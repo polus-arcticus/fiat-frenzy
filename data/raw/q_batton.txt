@@ -1,0 +1,6 @@
+[out:json][timeout:25];
+(
+  way["name"="Battonnstraße"](50.09,8.62,50.14,8.75);
+  nwr["addr:street"="Battonnstraße"]["addr:housenumber"="47"](50.09,8.62,50.14,8.75);
+);
+out center tags;

@@ -1,0 +1,495 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-11-10T12:37:51Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "node",
+  "id": 1853549297,
+  "lat": 50.1123357,
+  "lon": 8.6885584,
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "47",
+    "addr:postcode": "60311",
+    "addr:street": "Battonnstraße",
+    "fee": "yes",
+    "name": "Museum Judengasse",
+    "opening_hours": "Tu-Su 10:00-18:00",
+    "short_name": "MJ",
+    "toilets:wheelchair": "no",
+    "tourism": "museum",
+    "website": "https://www.juedischesmuseum.de/besuch/standort-museum-judengasse",
+    "wheelchair": "limited",
+    "wikidata": "Q21251780",
+    "wikimedia_commons": "Category:Museum Judengasse"
+  }
+},
+{
+  "type": "way",
+  "id": 44144248,
+  "center": {
+    "lat": 50.1126277,
+    "lon": 8.6893048
+  },
+  "tags": {
+    "alt_name": "Battonstraße",
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "40",
+    "name": "Battonnstraße",
+    "name:etymology:wikidata": "Q1693774",
+    "parking:both": "no",
+    "ref": "K 818",
+    "sidewalk:left": "yes",
+    "sidewalk:left:surface": "paving_stones",
+    "sidewalk:right": "separate",
+    "smoothness": "good",
+    "source:alt_name": "https://www.vgf-ffm.de/fileadmin/data_archive/Downloads/Netz_40_Jahre_U-Bahn.pdf",
+    "source:maxspeed": "sign",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 44145379,
+  "center": {
+    "lat": 50.1131250,
+    "lon": 8.6925906
+  },
+  "tags": {
+    "alt_name": "Battonstraße",
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "40",
+    "name": "Battonnstraße",
+    "name:etymology:wikidata": "Q1693774",
+    "oneway": "yes",
+    "parking:both": "no",
+    "ref": "K 818",
+    "sidewalk:both": "separate",
+    "smoothness": "good",
+    "source:alt_name": "https://www.vgf-ffm.de/fileadmin/data_archive/Downloads/Netz_40_Jahre_U-Bahn.pdf",
+    "source:maxspeed": "sign",
+    "surface": "asphalt",
+    "turn:lanes": "through|through;right"
+  }
+},
+{
+  "type": "way",
+  "id": 48098269,
+  "center": {
+    "lat": 50.1125463,
+    "lon": 8.6877757
+  },
+  "tags": {
+    "alt_name": "Battonstraße",
+    "check_date:parking": "2024-03-23",
+    "cycleway:both": "no",
+    "footway:left:sloped_curb:end": "0,03",
+    "footway:right:sloped_curb:end": "0,03",
+    "highway": "secondary",
+    "lanes": "5",
+    "lanes:backward": "3",
+    "lanes:forward": "2",
+    "lit": "yes",
+    "maxspeed": "40",
+    "name": "Battonnstraße",
+    "name:etymology:wikidata": "Q1693774",
+    "parking:both": "no",
+    "ref": "K 818",
+    "sidewalk": "separate",
+    "smoothness": "good",
+    "source:alt_name": "https://www.vgf-ffm.de/fileadmin/data_archive/Downloads/Netz_40_Jahre_U-Bahn.pdf",
+    "source:maxspeed": "sign",
+    "surface": "asphalt",
+    "turn:lanes:backward": "left|through|through;right"
+  }
+},
+{
+  "type": "way",
+  "id": 49571339,
+  "center": {
+    "lat": 50.1125633,
+    "lon": 8.6880594
+  },
+  "tags": {
+    "alt_name": "Battonstraße",
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "5",
+    "lanes:backward": "2",
+    "lanes:forward": "3",
+    "lit": "yes",
+    "maxspeed": "40",
+    "name": "Battonnstraße",
+    "name:etymology:wikidata": "Q1693774",
+    "parking:both": "no",
+    "ref": "K 818",
+    "sidewalk": "separate",
+    "smoothness": "good",
+    "source:alt_name": "https://www.vgf-ffm.de/fileadmin/data_archive/Downloads/Netz_40_Jahre_U-Bahn.pdf",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 51706790,
+  "center": {
+    "lat": 50.1125586,
+    "lon": 8.6879527
+  },
+  "tags": {
+    "alt_name": "Battonstraße",
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "5",
+    "lanes:backward": "2",
+    "lanes:forward": "3",
+    "lit": "yes",
+    "maxspeed": "40",
+    "name": "Battonnstraße",
+    "name:etymology:wikidata": "Q1693774",
+    "parking:both": "no",
+    "ref": "K 818",
+    "sidewalk": "separate",
+    "smoothness": "good",
+    "source:alt_name": "https://www.vgf-ffm.de/fileadmin/data_archive/Downloads/Netz_40_Jahre_U-Bahn.pdf",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 52928641,
+  "center": {
+    "lat": 50.1126711,
+    "lon": 8.6908136
+  },
+  "tags": {
+    "alt_name": "Battonstraße",
+    "check_date:parking": "2024-01-24",
+    "cycleway:both": "no",
+    "embedded_rails": "tram",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "40",
+    "name": "Battonnstraße",
+    "name:etymology:wikidata": "Q1693774",
+    "oneway": "yes",
+    "parking:left": "separate",
+    "parking:right": "no",
+    "parking:right:restriction": "no_stopping",
+    "ref": "K 818",
+    "sidewalk:both": "separate",
+    "smoothness": "good",
+    "source:alt_name": "https://www.vgf-ffm.de/fileadmin/data_archive/Downloads/Netz_40_Jahre_U-Bahn.pdf",
+    "source:maxspeed": "sign",
+    "surface": "asphalt",
+    "turn:lanes": "through|through;right"
+  }
+},
+{
+  "type": "way",
+  "id": 266026705,
+  "center": {
+    "lat": 50.1124774,
+    "lon": 8.6869107
+  },
+  "tags": {
+    "alt_name": "Battonstraße",
+    "check_date:parking": "2024-03-23",
+    "cycleway:both": "no",
+    "footway:left:sloped_curb:end": "0,03",
+    "footway:right:sloped_curb:end": "0,03",
+    "highway": "secondary",
+    "lanes": "5",
+    "lanes:backward": "3",
+    "lanes:forward": "2",
+    "lit": "yes",
+    "maxspeed": "40",
+    "name": "Battonnstraße",
+    "name:etymology:wikidata": "Q1693774",
+    "parking:both": "no",
+    "parking:both:restriction": "no_stopping",
+    "ref": "K 818",
+    "sidewalk:both": "separate",
+    "smoothness": "good",
+    "source:alt_name": "https://www.vgf-ffm.de/fileadmin/data_archive/Downloads/Netz_40_Jahre_U-Bahn.pdf",
+    "source:maxspeed": "sign",
+    "surface": "asphalt",
+    "turn:lanes:backward": "left|through|through;right"
+  }
+},
+{
+  "type": "way",
+  "id": 266026706,
+  "center": {
+    "lat": 50.1125685,
+    "lon": 8.6882066
+  },
+  "tags": {
+    "alt_name": "Battonstraße",
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "5",
+    "lanes:backward": "2",
+    "lanes:forward": "3",
+    "lit": "yes",
+    "maxspeed": "40",
+    "name": "Battonnstraße",
+    "name:etymology:wikidata": "Q1693774",
+    "parking:both": "no",
+    "ref": "K 818",
+    "sidewalk": "separate",
+    "smoothness": "good",
+    "source:alt_name": "https://www.vgf-ffm.de/fileadmin/data_archive/Downloads/Netz_40_Jahre_U-Bahn.pdf",
+    "source:maxspeed": "sign",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 266026707,
+  "center": {
+    "lat": 50.1131640,
+    "lon": 8.6928614
+  },
+  "tags": {
+    "alt_name": "Battonstraße",
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "40",
+    "name": "Battonnstraße",
+    "name:etymology:wikidata": "Q1693774",
+    "oneway": "yes",
+    "parking:both": "no",
+    "ref": "K 818",
+    "sidewalk:both": "separate",
+    "smoothness": "good",
+    "source:alt_name": "https://www.vgf-ffm.de/fileadmin/data_archive/Downloads/Netz_40_Jahre_U-Bahn.pdf",
+    "source:maxspeed": "sign",
+    "surface": "asphalt",
+    "turn:lanes": "through|through;right"
+  }
+},
+{
+  "type": "way",
+  "id": 335764756,
+  "center": {
+    "lat": 50.1124180,
+    "lon": 8.6877588
+  },
+  "tags": {
+    "bus": "yes",
+    "embedded_rails": "tram",
+    "highway": "busway",
+    "lane_markings": "yes",
+    "lanes": "2",
+    "maxspeed:type": "DE:urban",
+    "name": "Battonnstraße",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 335764757,
+  "center": {
+    "lat": 50.1123147,
+    "lon": 8.6867155
+  },
+  "tags": {
+    "bicycle": "no",
+    "embedded_rails": "tram",
+    "highway": "busway",
+    "lane_markings": "yes",
+    "lanes": "2",
+    "maxspeed": "40",
+    "name": "Battonnstraße",
+    "surface": "paving_stones"
+  }
+},
+{
+  "type": "way",
+  "id": 492264415,
+  "center": {
+    "lat": 50.1125988,
+    "lon": 8.6887631
+  },
+  "tags": {
+    "alt_name": "Battonstraße",
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "5",
+    "lanes:backward": "2",
+    "lanes:forward": "3",
+    "lit": "yes",
+    "maxspeed": "40",
+    "name": "Battonnstraße",
+    "name:etymology:wikidata": "Q1693774",
+    "parking:both": "no",
+    "ref": "K 818",
+    "sidewalk:left": "yes",
+    "sidewalk:left:surface": "paving_stones",
+    "sidewalk:right": "separate",
+    "smoothness": "good",
+    "source:alt_name": "https://www.vgf-ffm.de/fileadmin/data_archive/Downloads/Netz_40_Jahre_U-Bahn.pdf",
+    "source:maxspeed": "sign",
+    "surface": "asphalt",
+    "turn:lanes:forward": "through|through|right"
+  }
+},
+{
+  "type": "way",
+  "id": 492264416,
+  "center": {
+    "lat": 50.1124061,
+    "lon": 8.6860443
+  },
+  "tags": {
+    "check_date:parking": "2024-03-23",
+    "cycleway:both": "no",
+    "footway:left:sloped_curb:end": "0,03",
+    "footway:right:sloped_curb:end": "0,03",
+    "highway": "secondary",
+    "lanes": "4",
+    "lanes:backward": "2",
+    "lanes:forward": "2",
+    "lit": "yes",
+    "maxspeed": "40",
+    "name": "Battonnstraße",
+    "name:etymology:wikidata": "Q1693774",
+    "parking:both": "no",
+    "ref": "K 818",
+    "sidewalk:both:surface": "paving_stones",
+    "sidewalk:left": "yes",
+    "sidewalk:right": "separate",
+    "smoothness": "good",
+    "source:maxspeed": "sign",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1149011830,
+  "center": {
+    "lat": 50.1124527,
+    "lon": 8.6878725
+  },
+  "tags": {
+    "bus": "yes",
+    "embedded_rails": "tram",
+    "highway": "busway",
+    "lane_markings": "yes",
+    "lanes": "2",
+    "maxspeed:type": "DE:urban",
+    "name": "Battonnstraße",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1182169856,
+  "center": {
+    "lat": 50.1129040,
+    "lon": 8.6918479
+  },
+  "tags": {
+    "alt_name": "Battonstraße",
+    "check_date:parking": "2024-01-24",
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "40",
+    "name": "Battonnstraße",
+    "name:etymology:wikidata": "Q1693774",
+    "oneway": "yes",
+    "parking:both:restriction": "none",
+    "parking:left": "lane",
+    "parking:left:disabled": "designated",
+    "parking:left:fee": "yes",
+    "parking:left:fee:conditional": "no @ (Mo-Sa 0:00-09:00,20:00-24:00,Su 0:00-24:00)",
+    "parking:right": "on_kerb",
+    "parking:right:fee": "no",
+    "parking:right:orientation": "parallel",
+    "ref": "K 818",
+    "sidewalk:both": "separate",
+    "smoothness": "good",
+    "source:alt_name": "https://www.vgf-ffm.de/fileadmin/data_archive/Downloads/Netz_40_Jahre_U-Bahn.pdf",
+    "source:maxspeed": "sign",
+    "surface": "asphalt",
+    "turn:lanes": "through|through;right"
+  }
+},
+{
+  "type": "way",
+  "id": 1513090147,
+  "center": {
+    "lat": 50.1126247,
+    "lon": 8.6900418
+  },
+  "tags": {
+    "alt_name": "Battonstraße",
+    "check_date:parking": "2024-01-24",
+    "cycleway:both": "no",
+    "embedded_rails": "tram",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "40",
+    "name": "Battonnstraße",
+    "name:etymology:wikidata": "Q1693774",
+    "oneway": "yes",
+    "parking:both": "no",
+    "parking:right:restriction": "no_stopping",
+    "ref": "K 818",
+    "sidewalk:both": "separate",
+    "smoothness": "good",
+    "source:alt_name": "https://www.vgf-ffm.de/fileadmin/data_archive/Downloads/Netz_40_Jahre_U-Bahn.pdf",
+    "source:maxspeed": "sign",
+    "surface": "asphalt",
+    "turn:lanes": "through|through;right"
+  }
+},
+{
+  "type": "way",
+  "id": 1513090148,
+  "center": {
+    "lat": 50.1126223,
+    "lon": 8.6895343
+  },
+  "tags": {
+    "alt_name": "Battonstraße",
+    "check_date:parking": "2024-01-24",
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "40",
+    "name": "Battonnstraße",
+    "name:etymology:wikidata": "Q1693774",
+    "oneway": "yes",
+    "parking:both": "no",
+    "ref": "K 818",
+    "sidewalk:both": "separate",
+    "smoothness": "good",
+    "source:alt_name": "https://www.vgf-ffm.de/fileadmin/data_archive/Downloads/Netz_40_Jahre_U-Bahn.pdf",
+    "source:maxspeed": "sign",
+    "surface": "asphalt",
+    "turn:lanes": "through|through;right"
+  }
+}
+
+  ]
+}

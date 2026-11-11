@@ -1,0 +1,6 @@
+[out:json][timeout:90][maxsize:80000000];
+(
+  way["building"](50.1062,8.6630,50.1150,8.6945);
+  way["highway"~"^(primary|secondary|tertiary|residential|pedestrian|service|unclassified|living_street)$"](50.1062,8.6630,50.1150,8.6945);
+);
+out geom;
