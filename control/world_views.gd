@@ -24,6 +24,8 @@ static func spawn(parent: Node, world: World, scenario: Scenario) -> void:
 		parent.add_child(AmbulanceView.new().setup(a, scenario.facing.get(a, 0.0)))
 	if not scenario.sage_house.is_empty():
 		parent.add_child(SageHouseView.new().setup(scenario.sage_house))
+	if scenario.cast.has("skate_shop"):
+		parent.add_child(SkateShopView.new().setup(scenario.skate_shop, world.machine_of(scenario.cast.skate_shop)))
 	if scenario.cast.has("bike_shop"):
 		parent.add_child(ShopView.new().setup(scenario.bike_shop, world.machine_of(scenario.cast.bike_shop)))
 

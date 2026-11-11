@@ -104,10 +104,12 @@ static func build(district: Dictionary, openings := {}) -> Node3D:
 	for r in district.roads:
 		_road(streets, _pts(r.pts), float(r.w), String(r["class"]))
 	for bd in district.buildings:
-		_building(bd, walls, windows, lit, roofs, streets, openings.get(int(bd.id), {}))
+		for piece in Landmarks.pieces(int(bd.id), _pts(bd.poly)):  # (usually the one: its whole footprint)
+			_building(bd, walls, windows, lit, roofs, streets, openings.get(int(bd.id), {}), piece.pts, piece.style)
 
 	var root := Node3D.new()
 	root.name = "City"
+	Landmarks.add_props(root)
 	var mat := Watercolor.surface()
 	var layers := {"Ground": ground, "Streets": streets, "Walls": walls, "Windows": windows, "Roofs": roofs}
 	for key in layers:
@@ -149,13 +151,21 @@ static func build(district: Dictionary, openings := {}) -> Node3D:
 	return root
 
 
-static func _building(bd: Dictionary, walls: Buf, windows: Buf, lit: Buf, roofs: Buf, floors: Buf, opening := {}) -> void:
-	var pts := _pts(bd.poly)
+static func _building(bd: Dictionary, walls: Buf, windows: Buf, lit: Buf, roofs: Buf, floors: Buf, opening: Dictionary, pts: PackedVector2Array, style: Dictionary) -> void:
 	var h: float = bd.h
 	var id: int = bd.id
 	var kind: String = bd.kind
 	var levels: int = bd.levels
-	var plaster := _tint(PALETTE[absi(id) % PALETTE.size()], id)
+	if style.has("height"):  # a landmark, drawn with more character (see Landmarks)
+		h = style.height
+		levels = maxi(1, roundi(h / FLOOR_H))
+	var plaster := _tint(style.walls if style.has("walls") else PALETTE[absi(id) % PALETTE.size()], id, 0.02 if style.has("walls") else 0.05)
+	# a sloping top (skillion): how far down it falls at each point, along the footprint's long axis
+	var skew := Landmarks.skew(pts) if style.get("roof", "") == "skillion" else {}
+	var top := func(p: Vector2) -> float:
+		if skew.is_empty():
+			return h
+		return h - float(style.get("drop", 0.0)) * clampf((p - skew.c).dot(skew.axis) / (2.0 * skew.half) + 0.5, 0.0, 1.0)
 	var shopfront := plaster.darkened(0.22)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = id
@@ -180,8 +190,10 @@ static func _building(bd: Dictionary, walls: Buf, windows: Buf, lit: Buf, roofs:
 			walls.quad(p0, q0, q0 + up, p0 + up, out, shopfront)
 			if not opening.is_empty():
 				walls.quad(p0, q0, q0 + up, p0 + up, -out, INSIDE)  # the same wall from inside: solid both ways
-		if h > gh:
-			walls.quad(p0 + Vector3(0, gh, 0), q0 + Vector3(0, gh, 0), q0 + Vector3(0, h, 0), p0 + Vector3(0, h, 0), out, plaster)
+		var top_p: float = top.call(p)
+		var top_q: float = top.call(q)
+		if maxf(top_p, top_q) > gh:
+			walls.quad(p0 + Vector3(0, gh, 0), q0 + Vector3(0, gh, 0), q0 + Vector3(0, maxf(top_q, gh), 0), p0 + Vector3(0, maxf(top_p, gh), 0), out, plaster)
 		if kind == "roof" or length < 3.6 or has_door:
 			continue
 		var count := int((length - 1.2) / 3.2)
@@ -194,20 +206,28 @@ static func _building(bd: Dictionary, walls: Buf, windows: Buf, lit: Buf, roofs:
 				var y0 := 0.6 if f == 0 else f * FLOOR_H + 0.9
 				var y1 := 3.0 if f == 0 else y0 + 1.6
 				var hw := 1.0 if f == 0 else 0.62
-				if y1 > h - 0.3:
+				if y1 > minf(top_p, top_q) - 0.3:
 					break
 				var warm := rng.randf() < 0.22
 				var buf := lit if warm else windows
 				var col := LIT if warm else _tint(GLASS, id * 31 + w * 7 + f, 0.12)
 				buf.quad(c3 - along * hw + Vector3(0, y0, 0), c3 + along * hw + Vector3(0, y0, 0),
 					c3 + along * hw + Vector3(0, y1, 0), c3 - along * hw + Vector3(0, y1, 0), out, col)
+	var roof_col := _tint(style.roof_col if style.has("roof_col") else ROOFS[absi(id) % ROOFS.size()], id + 5)
+	Landmarks.tower(style, pts, walls, roofs, plaster, roof_col)
+	if Landmarks.roof(style, pts, h, roofs, roof_col):
+		return  # a hip, dome or gable roof: drawn, and it has no floor or ceiling to add
 	var tris := Geometry2D.triangulate_polygon(pts)
-	var roof_col := _tint(ROOFS[absi(id) % ROOFS.size()], id + 5)
 	for k in range(0, tris.size(), 3):
 		var a := pts[tris[k]]
 		var bb := pts[tris[k + 1]]
 		var cc := pts[tris[k + 2]]
-		roofs.tri(Vector3(a.x, h, a.y), Vector3(bb.x, h, bb.y), Vector3(cc.x, h, cc.y), Vector3.UP, roof_col)
+		var nrm := Vector3.UP
+		if not skew.is_empty():  # tilted: the roof's own normal, so it is lit as a slope
+			nrm = (Vector3(bb.x - a.x, top.call(bb) - top.call(a), bb.y - a.y)).cross(Vector3(cc.x - a.x, top.call(cc) - top.call(a), cc.y - a.y)).normalized()
+			if nrm.y < 0.0:
+				nrm = -nrm
+		roofs.tri(Vector3(a.x, top.call(a), a.y), Vector3(bb.x, top.call(bb), bb.y), Vector3(cc.x, top.call(cc), cc.y), nrm, roof_col)
 		if not opening.is_empty():  # a floor, and a ceiling at the top of the ground floor
 			floors.tri(Vector3(a.x, 0.04, a.y), Vector3(bb.x, 0.04, bb.y), Vector3(cc.x, 0.04, cc.y), Vector3.UP, FLOOR)
 			roofs.tri(Vector3(a.x, gh, a.y), Vector3(bb.x, gh, bb.y), Vector3(cc.x, gh, cc.y), Vector3.DOWN, CEILING)

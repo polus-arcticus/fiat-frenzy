@@ -30,6 +30,8 @@ func mount() -> Dictionary:
 		return _no("You're already on it.")
 	if _w.player.unconscious():
 		return _no("You're out cold.")
+	if _w.skating.mounted:
+		return _no("Get off the skateboard first.")
 	if _w.player.pos.distance_to(_w.bike.pos) > MOUNT_REACH:
 		return _no("Your bike is too far away.")
 	_w.bike.riding = true

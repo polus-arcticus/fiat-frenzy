@@ -67,9 +67,39 @@ static func plan_door(district: Dictionary, id: int, street: String) -> Dictiona
 	return {"id": id, "edge": best, "t": length * 0.5, "door": door, "out": out, "inward": -out, "along": along, "depth": depth, "poly": poly}
 
 
-## The traffic jam on Battonnstraße in front of Mr. Nobody's house: the bus in the lane nearest the house, a few
-## cars nose to tail on either side of it, and where the hero steps off on the pavement.
-static func plan_jam(district: Dictionary, sage_house: Dictionary) -> Dictionary:
+## The building next door to `door_of` (a plan_door layout) along `street`: the nearest one with a wall on the street long
+## enough for a door and room behind it for a shop, between `min_gap` and `max_gap` metres away. Returns its id, or -1.
+static func neighbour(district: Dictionary, layout: Dictionary, street: String, min_gap := 7.0, max_gap := 45.0) -> int:
+	if layout.is_empty():
+		return -1
+	var here: Vector2 = layout.door
+	var best := -1
+	var best_d := INF
+	for b in district.buildings:
+		var id := int(b.id)
+		if id == int(layout.id):
+			continue
+		var poly := pts(b.poly)
+		var c := Vector2.ZERO
+		for p in poly:
+			c += p
+		c /= maxi(poly.size(), 1)
+		if c.distance_to(here) > max_gap + 30.0:
+			continue
+		var other := plan_door(district, id, street)
+		if other.is_empty() or float(other.depth) < 8.0:
+			continue
+		var gap: float = (other.door as Vector2).distance_to(here)
+		if gap >= min_gap and gap <= max_gap and gap < best_d:
+			best_d = gap
+			best = id
+	return best
+
+
+## The traffic jam on Battonnstraße in front of Mr. Nobody's house: the bus arrives in its own (right-hand) lane and
+## joins the tail of a queue of cars nose to tail ahead of it (`fwd` is the way it is travelling), with a few cars
+## stuck the other way. Its door is on its right, so the hero steps off onto the far kerb and crosses to the house.
+static func plan_jam(district: Dictionary, sage_house: Dictionary, fwd := Vector2.ZERO) -> Dictionary:
 	if sage_house.is_empty():
 		return {}
 	var door: Vector2 = sage_house.door
@@ -77,17 +107,19 @@ static func plan_jam(district: Dictionary, sage_house: Dictionary) -> Dictionary
 	var street := street_frame(district, Scenario.SAGE_STREET, door)
 	if street.is_empty():
 		return {}
-	var dir: Vector2 = street.dir
+	var dir: Vector2 = fwd.normalized() if fwd != Vector2.ZERO else street.dir
 	var centre: Vector2 = street.point
 	var lane := float(street.width) * 0.25
 	var yaw := atan2(dir.x, dir.y)
 	var cars: Array = []
 	var colors := [Color(0.7, 0.2, 0.2), Color(0.85, 0.82, 0.7), Color(0.25, 0.35, 0.55), Color(0.3, 0.3, 0.32), Color(0.8, 0.6, 0.2), Color(0.35, 0.5, 0.35)]
-	var spots := [[-9.5, -1], [-14.5, -1], [10.0, -1], [15.0, -1], [-6.0, 1], [-11.0, 1], [4.0, 1], [9.5, 1]]
+	var right := Vector2(-dir.y, dir.x)  # the right-hand side of the way it is going
+	# [along the street, lane]: lane 1 is its own (right-hand) lane, -1 the one coming the other way
+	var spots := [[11.5, 1], [16.8, 1], [22.0, 1], [27.5, 1], [33.0, 1], [-13.0, -1], [-6.0, -1], [3.0, -1], [11.0, -1], [20.0, -1]]
 	for k in spots.size():
-		cars.append({"pos": centre + dir * spots[k][0] + out * (lane * spots[k][1]), "yaw": yaw if spots[k][1] < 0 else yaw + PI, "color": colors[k % colors.size()]})
+		cars.append({"pos": centre + dir * spots[k][0] + right * (lane * spots[k][1]), "yaw": yaw if spots[k][1] > 0 else yaw + PI, "color": colors[k % colors.size()]})
 	return {
-		"bus": {"pos": centre - out * lane, "yaw": yaw}, "cars": cars,
+		"bus": {"pos": centre + right * lane, "yaw": yaw}, "cars": cars, "fwd": dir,
 		"arrival": door + out * 4.0 + (sage_house.along as Vector2) * 4.0,
 	}
 

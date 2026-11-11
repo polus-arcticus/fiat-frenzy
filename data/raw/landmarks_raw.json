@@ -1,0 +1,4649 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-11-11T20:18:36Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "node",
+  "id": 29271560,
+  "lat": 50.1077714,
+  "lon": 8.6637906,
+  "tags": {
+    "layer": "-2",
+    "level": "-2",
+    "name": "Hauptbahnhof",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "railway:position": "7.75",
+    "ref:IFOPT": "de:6412:10:5:5",
+    "source:railway:position": "https://de.wikipedia.org/wiki/U-Bahn-Strecke_B_%28Frankfurt_am_Main%29",
+    "subway": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 117091087,
+  "lat": 50.1079413,
+  "lon": 8.6643974,
+  "tags": {
+    "name": "Hauptbahnhof",
+    "public_transport": "stop_position",
+    "railway": "tram_stop",
+    "ref": "C",
+    "ref:IFOPT": "de:6412:10:7:7",
+    "tram": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 205364328,
+  "lat": 50.1066539,
+  "lon": 8.6625808,
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:postcode": "60329",
+    "alt_name": "Frankfurt Hauptbahnhof",
+    "gtfs:stop_id:FR-SNCF": "StopArea:OCE80110684",
+    "internet_access": "wlan",
+    "internet_access:fee": "no",
+    "internet_access:ssid": "WIFI@DB",
+    "loc_name": "Hauptbahnhof",
+    "loc_name:ja": "中央駅",
+    "mainline": "true",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "name:fr": "Francfort-sur-le-Main Gare Centrale",
+    "name:ja": "フランクフルト(マイン)中央駅",
+    "note": "25 tracks with passenger platforms",
+    "operator": "DB InfraGO",
+    "operator:service:class": "1",
+    "operator:short": "InfraGO",
+    "operator:wikidata": "Q122870674",
+    "operator:wikipedia": "de:DB InfraGO",
+    "public_transport": "station",
+    "railway": "station",
+    "railway:ref": "FF",
+    "railway:station_category": "1",
+    "ref:FR:sncf:resarail": "DEFRH",
+    "ref:FR:uic8": "80110684",
+    "ref:IFOPT": "de:6412:10:1",
+    "ref:ibnr": "8000105",
+    "ref:station": "1866",
+    "short_name": "Frankfurt (Main) Hbf",
+    "start_date": "1888",
+    "station:mode": "stub-end",
+    "toilets:wheelchair": "yes",
+    "train": "yes",
+    "uic_name": "Frankfurt(Main)Hbf",
+    "uic_ref": "8011068",
+    "url": "https://www.bahnhof.de/frankfurt-main-hbf",
+    "wheelchair": "yes",
+    "wikidata": "Q165368",
+    "wikipedia": "de:Frankfurt (Main) Hauptbahnhof"
+  }
+},
+{
+  "type": "node",
+  "id": 224195433,
+  "lat": 50.1069748,
+  "lon": 8.6623412,
+  "tags": {
+    "description": "Frankfurt Hbf (tief), Gleis 101",
+    "name": "Hauptbahnhof (tief)",
+    "official_name": "Frankfurt (Main) Hbf (tief)",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "101",
+    "train": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 224200062,
+  "lat": 50.1072596,
+  "lon": 8.6620373,
+  "tags": {
+    "description": "Frankfurt Hbf (tief), Gleis 104",
+    "name": "Hauptbahnhof (tief)",
+    "official_name": "Frankfurt (Main) Hbf (tief)",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "104",
+    "train": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 299117822,
+  "lat": 50.1058525,
+  "lon": 8.6644620,
+  "tags": {
+    "bus": "yes",
+    "highway": "bus_stop",
+    "name": "Hauptbahnhof Südseite",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "public_transport": "stop_position",
+    "ref:IFOPT": "de:6412:7011:1:1",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 503882951,
+  "lat": 50.1070899,
+  "lon": 8.6621788,
+  "tags": {
+    "description": "Frankfurt Hbf (tief), Gleis 102",
+    "name": "Hauptbahnhof (tief)",
+    "official_name": "Frankfurt (Main) Hbf (tief)",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "102",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 503882952,
+  "lat": 50.1071251,
+  "lon": 8.6621411,
+  "tags": {
+    "description": "Frankfurt Hbf (tief), Gleis 103",
+    "name": "Hauptbahnhof (tief)",
+    "official_name": "Frankfurt (Main) Hbf (tief)",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "103",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 677374148,
+  "lat": 50.1071727,
+  "lon": 8.6623337,
+  "tags": {
+    "departures_board": "realtime",
+    "departures_board:speech_output": "no",
+    "name": "Hauptbahnhof (tief)",
+    "official_name": "Frankfurt (Main) Hbf (tief)",
+    "operator": "DB InfraGO AG",
+    "operator:short": "InfraGO",
+    "operator:wikidata": "Q122870674",
+    "operator:wikipedia": "de:DB InfraGO",
+    "public_transport": "station",
+    "railway": "station",
+    "railway:position": "0.0;50.0",
+    "railway:ref": "FFT",
+    "railway:station_category": "1",
+    "ref:IFOPT": "de:6412:7010",
+    "ref:ibnr": "8098105",
+    "ref:station": "1866",
+    "start_date": "1978",
+    "toilets:wheelchair": "yes",
+    "train": "yes",
+    "tunnel": "yes",
+    "uic_name": "Frankfurt Hbf (tief)",
+    "uic_ref": "8067016",
+    "wheelchair": "yes",
+    "wikidata": "Q871012",
+    "wikimedia_commons": "Category:Frankfurt (Main) Hauptbahnhof tief",
+    "wikipedia": "de:Frankfurt (Main) Hauptbahnhof tief"
+  }
+},
+{
+  "type": "node",
+  "id": 760309128,
+  "lat": 50.1078335,
+  "lon": 8.6638915,
+  "tags": {
+    "layer": "-2",
+    "level": "-2",
+    "name": "Hauptbahnhof",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "railway:position": "10.000",
+    "source": "https://de.wikipedia.org/w/index.php?title=U-Bahn-Strecke_D_%28Frankfurt_am_Main%29&oldid=126853897#cite_note-km-2",
+    "subway": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 760309208,
+  "lat": 50.1076727,
+  "lon": 8.6636325,
+  "tags": {
+    "layer": "-2",
+    "level": "-2",
+    "name": "Hauptbahnhof",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "railway:position": "10.000",
+    "ref:IFOPT": "de:6412:10:6:1",
+    "source": "https://de.wikipedia.org/w/index.php?title=U-Bahn-Strecke_D_%28Frankfurt_am_Main%29&oldid=126853897#cite_note-km-2",
+    "subway": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 760309241,
+  "lat": 50.1077383,
+  "lon": 8.6637381,
+  "tags": {
+    "layer": "-2",
+    "level": "-2",
+    "name": "Hauptbahnhof",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "railway:position": "7.75",
+    "ref:IFOPT": "de:6412:10:6:6",
+    "source:railway:position": "https://de.wikipedia.org/wiki/U-Bahn-Strecke_B_%28Frankfurt_am_Main%29",
+    "subway": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 761117257,
+  "lat": 50.1075206,
+  "lon": 8.6648555,
+  "tags": {
+    "name": "Hauptbahnhof",
+    "public_transport": "stop_position",
+    "railway": "tram_stop",
+    "ref": "B",
+    "ref:IFOPT": "de:6412:10:8:8",
+    "tram": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 762004997,
+  "lat": 50.1058471,
+  "lon": 8.6644675,
+  "tags": {
+    "name": "Hauptbahnhof Südseite",
+    "public_transport": "stop_position",
+    "railway": "tram_stop",
+    "ref:IFOPT": "de:6412:7011:3:3",
+    "tram": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 762005007,
+  "lat": 50.1045286,
+  "lon": 8.6633842,
+  "tags": {
+    "name": "Hauptbahnhof/Pforzheimer Straße",
+    "public_transport": "stop_position",
+    "railway": "tram_stop",
+    "tram": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 762005020,
+  "lat": 50.1069978,
+  "lon": 8.6665854,
+  "tags": {
+    "name": "Hauptbahnhof/Münchener Straße",
+    "public_transport": "stop_position",
+    "railway": "tram_stop",
+    "tram": "yes",
+    "wheelchair": "no"
+  }
+},
+{
+  "type": "node",
+  "id": 762005023,
+  "lat": 50.1068802,
+  "lon": 8.6659943,
+  "tags": {
+    "name": "Hauptbahnhof/Münchener Straße",
+    "public_transport": "stop_position",
+    "railway": "tram_stop",
+    "ref:IFOPT": "de:6412:8:2:2",
+    "tram": "yes",
+    "wheelchair": "no"
+  }
+},
+{
+  "type": "node",
+  "id": 762005038,
+  "lat": 50.1055907,
+  "lon": 8.6637389,
+  "tags": {
+    "name": "Hauptbahnhof Südseite",
+    "public_transport": "stop_position",
+    "railway": "tram_stop",
+    "ref:IFOPT": "de:6412:7011:2:2",
+    "tram": "yes",
+    "wheelchair": "limited"
+  }
+},
+{
+  "type": "node",
+  "id": 762895054,
+  "lat": 50.1109706,
+  "lon": 8.6821693,
+  "tags": {
+    "bench": "yes",
+    "bin": "yes",
+    "bus": "yes",
+    "check_date:shelter": "2024-05-05",
+    "description": "night service only",
+    "highway": "bus_stop",
+    "lit": "yes",
+    "name": "Römer/Paulskirche",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "operator:wikidata": "Q1754870",
+    "operator:wikipedia": "de:Stadtwerke Verkehrsgesellschaft Frankfurt am Main",
+    "public_transport": "platform",
+    "shelter": "yes",
+    "tactile_paving": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 762895063,
+  "lat": 50.1108362,
+  "lon": 8.6818220,
+  "tags": {
+    "bench": "yes",
+    "bin": "yes",
+    "bus": "yes",
+    "check_date:shelter": "2024-05-05",
+    "description": "night service only",
+    "highway": "bus_stop",
+    "lit": "yes",
+    "name": "Römer/Paulskirche",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "operator:wikidata": "Q1754870",
+    "operator:wikipedia": "de:Stadtwerke Verkehrsgesellschaft Frankfurt am Main",
+    "public_transport": "platform",
+    "shelter": "yes",
+    "tactile_paving": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 762895133,
+  "lat": 50.1109877,
+  "lon": 8.6823047,
+  "tags": {
+    "name": "Römer/Paulskirche",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "operator:wikidata": "Q1754870",
+    "operator:wikipedia": "de:Stadtwerke Verkehrsgesellschaft Frankfurt am Main",
+    "public_transport": "stop_position",
+    "railway": "tram_stop",
+    "tram": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 762895173,
+  "lat": 50.1108443,
+  "lon": 8.6817461,
+  "tags": {
+    "name": "Römer/Paulskirche",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "operator:wikidata": "Q1754870",
+    "operator:wikipedia": "de:Stadtwerke Verkehrsgesellschaft Frankfurt am Main",
+    "public_transport": "stop_position",
+    "railway": "tram_stop",
+    "tram": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 767185691,
+  "lat": 50.1077261,
+  "lon": 8.6646358,
+  "tags": {
+    "name": "Hauptbahnhof",
+    "name:de": "Hauptbahnhof",
+    "name:en": "Central Station",
+    "name:fr": "Gare Centrale",
+    "name:nl": "Centraal Station",
+    "public_transport": "station",
+    "tram": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 767185754,
+  "lat": 50.1077355,
+  "lon": 8.6637933,
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:postcode": "60329",
+    "addr:street": "Am Hauptbahnhof",
+    "layer": "-2",
+    "name": "Hauptbahnhof",
+    "name:de": "Hauptbahnhof",
+    "name:en": "Central Station",
+    "name:fr": "Gare Centrale",
+    "name:nl": "Centraal Station",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "operator": "VGF",
+    "operator:wikidata": "Q1754870",
+    "public_transport": "station",
+    "railway": "station",
+    "railway:position": "10.000;7.75",
+    "start_date": "1978",
+    "station": "subway",
+    "subway": "yes",
+    "train": "yes",
+    "tunnel": "yes",
+    "wheelchair": "yes",
+    "wikidata": "Q2465918",
+    "wikimedia_commons": "Category:U-Bahnhof Hauptbahnhof (Frankfurt)",
+    "wikipedia": "de:U-Bahnhof Hauptbahnhof (Frankfurt am Main)"
+  }
+},
+{
+  "type": "node",
+  "id": 772800493,
+  "lat": 50.1074788,
+  "lon": 8.6644706,
+  "tags": {
+    "bench": "no",
+    "bin": "yes",
+    "bus": "yes",
+    "highway": "bus_stop",
+    "lit": "no",
+    "local_ref": "A",
+    "name": "Hauptbahnhof",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "public_transport": "platform",
+    "shelter": "no",
+    "tactile_paving": "no",
+    "wheelchair": "limited"
+  }
+},
+{
+  "type": "node",
+  "id": 772800500,
+  "lat": 50.1078491,
+  "lon": 8.6648543,
+  "tags": {
+    "bench": "no",
+    "bin": "yes",
+    "bus": "yes",
+    "highway": "bus_stop",
+    "lit": "yes",
+    "local_ref": "D",
+    "name": "Hauptbahnhof",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "note": "night service only",
+    "operator": "VGF",
+    "public_transport": "platform",
+    "ref:IFOPT": "de:6412:10:4:4",
+    "shelter": "yes",
+    "tactile_paving": "no",
+    "wheelchair": "no"
+  }
+},
+{
+  "type": "node",
+  "id": 803546921,
+  "lat": 50.1087620,
+  "lon": 8.6637479,
+  "tags": {
+    "bench": "yes",
+    "bin": "yes",
+    "bus": "yes",
+    "check_date:shelter": "2023-10-11",
+    "highway": "bus_stop",
+    "lit": "yes",
+    "name": "Hauptbahnhof/Karlstraße",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "public_transport": "platform",
+    "ref:IFOPT": "de:6412:60767:1:1",
+    "shelter": "no",
+    "tactile_paving": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 1206339702,
+  "lat": 50.1080406,
+  "lon": 8.6617677,
+  "tags": {
+    "TMC:cid_58:tabcd_1:Class": "Area",
+    "TMC:cid_58:tabcd_1:LCLversion": "9.00",
+    "TMC:cid_58:tabcd_1:LocationCode": "44401",
+    "access": "yes",
+    "amenity": "parking_entrance",
+    "capacity": "365",
+    "charge": "4 EUR/hour",
+    "fee": "yes",
+    "maxheight": "2",
+    "name": "Hauptbahnhof",
+    "opening_hours": "24/7",
+    "operator": "Contipark Parkgaragen GmbH",
+    "parking": "underground",
+    "website": "http://www.dbbahnpark.info/content/fahrplanauskunft/bahnpark/pdf/8000105.pdf",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 1524680616,
+  "lat": 50.1078165,
+  "lon": 8.6647987,
+  "tags": {
+    "bus": "yes",
+    "name": "Hauptbahnhof",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "public_transport": "stop_position"
+  }
+},
+{
+  "type": "node",
+  "id": 1852666031,
+  "lat": 50.1110134,
+  "lon": 8.6824276,
+  "tags": {
+    "bus": "yes",
+    "name": "Römer/Paulskirche",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "operator:wikidata": "Q1754870",
+    "operator:wikipedia": "de:Stadtwerke Verkehrsgesellschaft Frankfurt am Main",
+    "public_transport": "stop_position"
+  }
+},
+{
+  "type": "node",
+  "id": 1852988299,
+  "lat": 50.1109550,
+  "lon": 8.6811625,
+  "tags": {
+    "artist_name": "Architekt Fritz Hessemer;Bildhauer Hugo Kaufmann",
+    "artwork_type": "sculpture",
+    "name": "Einheitsdenkmal",
+    "start_date": "1903-10-18",
+    "tourism": "artwork",
+    "wheelchair": "yes",
+    "wikidata": "Q116518773",
+    "wikimedia_commons": "Category:Einheitsdenkmal (Frankfurt am Main)"
+  }
+},
+{
+  "type": "node",
+  "id": 1984716067,
+  "lat": 50.1113730,
+  "lon": 8.6792330,
+  "tags": {
+    "check_date": "2025-09-10",
+    "check_date:opening_hours": "2023-08-25",
+    "name": "Buchhandlung an der Paulskirche",
+    "opening_hours": "Mo-Fr 09:00-18:30; Sa 09:00-17:00",
+    "shop": "books",
+    "wheelchair": "no"
+  }
+},
+{
+  "type": "node",
+  "id": 2278889108,
+  "lat": 50.1067343,
+  "lon": 8.6656956,
+  "tags": {
+    "check_date:wheelchair": "2022-03-24",
+    "disused:entrance": "yes",
+    "disused:railway": "subway_entrance",
+    "disused:station": "subway",
+    "entrance_marker:s-train": "yes",
+    "entrance_marker:subway": "yes",
+    "name": "Hauptbahnhof",
+    "wheelchair": "no"
+  }
+},
+{
+  "type": "node",
+  "id": 2278889159,
+  "lat": 50.1069112,
+  "lon": 8.6654892,
+  "tags": {
+    "check_date:wheelchair": "2022-03-22",
+    "disused:entrance": "yes",
+    "disused:railway": "subway_entrance",
+    "disused:station": "subway",
+    "entrance_marker:s-train": "yes",
+    "entrance_marker:subway": "yes",
+    "name": "Hauptbahnhof",
+    "wheelchair": "no"
+  }
+},
+{
+  "type": "node",
+  "id": 2278889189,
+  "lat": 50.1063451,
+  "lon": 8.6648310,
+  "tags": {
+    "check_date:wheelchair": "2022-01-17",
+    "disused:entrance": "yes",
+    "disused:railway": "subway_entrance",
+    "disused:station": "subway",
+    "entrance_marker:s-train": "yes",
+    "entrance_marker:subway": "yes",
+    "name": "Hauptbahnhof",
+    "wheelchair": "no"
+  }
+},
+{
+  "type": "node",
+  "id": 2821098767,
+  "lat": 50.1065781,
+  "lon": 8.6626869,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 11",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "11",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2821098768,
+  "lat": 50.1067260,
+  "lon": 8.6625532,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 13",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "13",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2973114824,
+  "lat": 50.1074525,
+  "lon": 8.6618738,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 23",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "23",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2974076244,
+  "lat": 50.1049984,
+  "lon": 8.6614412,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 1a",
+    "local_ref": "1a",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "1a",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "limited"
+  }
+},
+{
+  "type": "node",
+  "id": 2974076251,
+  "lat": 50.1058558,
+  "lon": 8.6633518,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 1",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "1",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2974076252,
+  "lat": 50.1059009,
+  "lon": 8.6632970,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 2",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "2",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2974076256,
+  "lat": 50.1059949,
+  "lon": 8.6632090,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 3",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "3",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2974076258,
+  "lat": 50.1060636,
+  "lon": 8.6631582,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 4",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "4",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2974076261,
+  "lat": 50.1061592,
+  "lon": 8.6630725,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 5",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "5",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2974076262,
+  "lat": 50.1061884,
+  "lon": 8.6630460,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 6",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "6",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2974076266,
+  "lat": 50.1062856,
+  "lon": 8.6629573,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 7",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "7",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2974076267,
+  "lat": 50.1063235,
+  "lon": 8.6629165,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 8",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "8",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2974076271,
+  "lat": 50.1064204,
+  "lon": 8.6628312,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 9",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "9",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2974076273,
+  "lat": 50.1064834,
+  "lon": 8.6627766,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 10",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "10",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2974076277,
+  "lat": 50.1066307,
+  "lon": 8.6626374,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 12",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "12",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2974076282,
+  "lat": 50.1067765,
+  "lon": 8.6625009,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 14",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "14",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2974076284,
+  "lat": 50.1068727,
+  "lon": 8.6624223,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 15",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "15",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2974076287,
+  "lat": 50.1069264,
+  "lon": 8.6623681,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 16",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "16",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2974076289,
+  "lat": 50.1070207,
+  "lon": 8.6622798,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 17",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "17",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2974076291,
+  "lat": 50.1070707,
+  "lon": 8.6622331,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 18",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "18",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2974076292,
+  "lat": 50.1071590,
+  "lon": 8.6621508,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 19",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "19",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2974076293,
+  "lat": 50.1072055,
+  "lon": 8.6621087,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 20",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "20",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2974076294,
+  "lat": 50.1072845,
+  "lon": 8.6620278,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 21",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "21",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2974076295,
+  "lat": 50.1073166,
+  "lon": 8.6613882,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 24",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "name:fr": "Francfort-sur-le-Main Gare Centrale",
+    "name:ja": "フランクフルト(マイン)中央駅",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "24",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2974076297,
+  "lat": 50.1073609,
+  "lon": 8.6619598,
+  "tags": {
+    "description": "Frankfurt (Main) Hbf, Gleis 22",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Frankfurt (Main) Hauptbahnhof",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_position",
+    "railway": "stop",
+    "ref": "22",
+    "short_name": "Frankfurt (Main) Hbf",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 2974319837,
+  "lat": 50.1064905,
+  "lon": 8.6654624,
+  "tags": {
+    "disused:entrance": "yes",
+    "disused:railway": "subway_entrance",
+    "disused:station": "subway",
+    "entrance_marker:s-train": "yes",
+    "entrance_marker:subway": "yes",
+    "name": "Hauptbahnhof",
+    "wheelchair": "no"
+  }
+},
+{
+  "type": "node",
+  "id": 3412616437,
+  "lat": 50.1087712,
+  "lon": 8.6636510,
+  "tags": {
+    "bus": "yes",
+    "name": "Hauptbahnhof/Karlstraße",
+    "public_transport": "stop_position"
+  }
+},
+{
+  "type": "node",
+  "id": 3428756221,
+  "lat": 50.1108601,
+  "lon": 8.6817383,
+  "tags": {
+    "bus": "yes",
+    "name": "Römer/Paulskirche",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "operator:wikidata": "Q1754870",
+    "operator:wikipedia": "de:Stadtwerke Verkehrsgesellschaft Frankfurt am Main",
+    "public_transport": "stop_position"
+  }
+},
+{
+  "type": "node",
+  "id": 3453531153,
+  "lat": 50.1068662,
+  "lon": 8.6660052,
+  "tags": {
+    "bus": "yes",
+    "name": "Hauptbahnhof/Münchener Straße",
+    "public_transport": "stop_position"
+  }
+},
+{
+  "type": "node",
+  "id": 3462916176,
+  "lat": 50.1075098,
+  "lon": 8.6645304,
+  "tags": {
+    "bus": "yes",
+    "local_ref": "A",
+    "name": "Hauptbahnhof",
+    "public_transport": "stop_position"
+  }
+},
+{
+  "type": "node",
+  "id": 3933430459,
+  "lat": 50.1061693,
+  "lon": 8.6628297,
+  "tags": {
+    "alt_name": "Frankfurt am Main Hauptbahnhof",
+    "loc_name": "Innenbahnhof",
+    "mainline": "true",
+    "name": "Frankfurt (Main) Hauptbahnhof Südseite",
+    "public_transport": "station",
+    "railway": "site",
+    "railway:ref": "FF",
+    "railway:station_category": "1",
+    "ref:ESTW": "01",
+    "ref:station": "1866",
+    "short_name": "Frankfurt (Main) Hbf Südseite"
+  }
+},
+{
+  "type": "node",
+  "id": 3945357727,
+  "lat": 50.1072781,
+  "lon": 8.6644257,
+  "tags": {
+    "check_date:wheelchair": "2021-07-16",
+    "disused:entrance": "yes",
+    "disused:railway": "subway_entrance",
+    "entrance_marker:s-train": "yes",
+    "entrance_marker:subway": "yes",
+    "name": "Hauptbahnhof",
+    "wheelchair": "no"
+  }
+},
+{
+  "type": "node",
+  "id": 3946654447,
+  "lat": 50.1067925,
+  "lon": 8.6620827,
+  "tags": {
+    "loc_name": "Außenbahnhof",
+    "mainline": "true",
+    "name": "Frankfurt (Main) Hauptbahnhof Nordseite",
+    "railway": "site",
+    "railway:ref": "FF",
+    "ref:ESTW": "02",
+    "ref:station": "1866",
+    "short_name": "Frankfurt (Main) Hbf Nordseite"
+  }
+},
+{
+  "type": "node",
+  "id": 4378793113,
+  "lat": 50.1079428,
+  "lon": 8.6627721,
+  "tags": {
+    "disused:railway": "subway_entrance",
+    "entrance_marker:s-train": "yes",
+    "entrance_marker:subway": "yes",
+    "level": "0",
+    "name": "Hauptbahnhof",
+    "name:de": "Hauptbahnhof",
+    "name:ja": "中央駅",
+    "wheelchair": "limited"
+  }
+},
+{
+  "type": "node",
+  "id": 6122375871,
+  "lat": 50.1050917,
+  "lon": 8.6620331,
+  "tags": {
+    "bus": "yes",
+    "local_ref": "P",
+    "name": "Hauptbahnhof/Fernbusterminal",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "public_transport": "stop_position"
+  }
+},
+{
+  "type": "node",
+  "id": 6266422193,
+  "lat": 50.1050255,
+  "lon": 8.6631340,
+  "tags": {
+    "access": "yes",
+    "amenity": "parking_entrance",
+    "entrance": "service",
+    "fee": "yes",
+    "maxheight": "2",
+    "name": "Hauptbahnhof Süd / Karlsruher Straße",
+    "operator": "DB BahnPark GmbH",
+    "parking": "underground"
+  }
+},
+{
+  "type": "node",
+  "id": 6380824938,
+  "lat": 50.1051042,
+  "lon": 8.6620636,
+  "tags": {
+    "bus": "yes",
+    "name": "Hauptbahnhof/Fernbusterminal",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "public_transport": "stop_position"
+  }
+},
+{
+  "type": "node",
+  "id": 6938590166,
+  "lat": 50.1109333,
+  "lon": 8.6850963,
+  "tags": {
+    "artwork_type": "statue",
+    "name": "Sankt Bartholomäus",
+    "name:de": "Sankt Bartholomäus",
+    "name:en": "Saint Bartholomew",
+    "tourism": "artwork"
+  }
+},
+{
+  "type": "node",
+  "id": 8221884014,
+  "lat": 50.1070375,
+  "lon": 8.6666842,
+  "tags": {
+    "bus": "yes",
+    "name": "Hauptbahnhof/Münchener Straße",
+    "public_transport": "stop_position"
+  }
+},
+{
+  "type": "node",
+  "id": 8517856123,
+  "lat": 50.1118044,
+  "lon": 8.6818791,
+  "tags": {
+    "bench": "no",
+    "bin": "yes",
+    "bus": "yes",
+    "highway": "bus_stop",
+    "lit": "yes",
+    "name": "Römer/Paulskirche",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "public_transport": "platform",
+    "shelter": "no",
+    "tactile_paving": "no",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 8517856124,
+  "lat": 50.1117699,
+  "lon": 8.6819225,
+  "tags": {
+    "bus": "yes",
+    "name": "Römer/Paulskirche",
+    "public_transport": "stop_position"
+  }
+},
+{
+  "type": "node",
+  "id": 8776885336,
+  "lat": 50.1116286,
+  "lon": 8.6812278,
+  "tags": {
+    "bus": "yes",
+    "name": "Römer/Paulskirche",
+    "public_transport": "stop_position"
+  }
+},
+{
+  "type": "node",
+  "id": 8776885337,
+  "lat": 50.1115812,
+  "lon": 8.6812484,
+  "tags": {
+    "bench": "yes",
+    "bin": "yes",
+    "bus": "yes",
+    "highway": "bus_stop",
+    "lit": "yes",
+    "name": "Römer/Paulskirche",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "public_transport": "platform",
+    "shelter": "no",
+    "tactile_paving": "no",
+    "wheelchair": "limited"
+  }
+},
+{
+  "type": "node",
+  "id": 9588469746,
+  "lat": 50.1045640,
+  "lon": 8.6633427,
+  "tags": {
+    "bench": "no",
+    "bin": "no",
+    "lit": "yes",
+    "name": "Hauptbahnhof/Pforzheimer Straße",
+    "network": "RMV",
+    "operator": "VGF",
+    "public_transport": "platform",
+    "railway": "platform",
+    "ref": "S",
+    "shelter": "no",
+    "tactile_paving": "yes",
+    "tram": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 9834198017,
+  "lat": 50.1051025,
+  "lon": 8.6632810,
+  "tags": {
+    "bus": "yes",
+    "local_ref": "T",
+    "name": "Hauptbahnhof/Fernbusterminal",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "public_transport": "stop_position"
+  }
+},
+{
+  "type": "node",
+  "id": 9834198018,
+  "lat": 50.1051231,
+  "lon": 8.6633400,
+  "tags": {
+    "bench": "no",
+    "bin": "yes",
+    "bus": "yes",
+    "check_date:bench": "2026-10-09",
+    "covered": "yes",
+    "highway": "bus_stop",
+    "lit": "yes",
+    "local_ref": "T",
+    "name": "Hauptbahnhof/Fernbusterminal",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "public_transport": "platform",
+    "tactile_paving": "no"
+  }
+},
+{
+  "type": "node",
+  "id": 9834198019,
+  "lat": 50.1043544,
+  "lon": 8.6620745,
+  "tags": {
+    "bus": "yes",
+    "local_ref": "R",
+    "name": "Hauptbahnhof/Fernbusterminal",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "public_transport": "stop_position"
+  }
+},
+{
+  "type": "node",
+  "id": 9834198020,
+  "lat": 50.1045610,
+  "lon": 8.6618745,
+  "tags": {
+    "bus": "yes",
+    "local_ref": "R",
+    "name": "Hauptbahnhof/Fernbusterminal",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "public_transport": "stop_position"
+  }
+},
+{
+  "type": "node",
+  "id": 9834198021,
+  "lat": 50.1051231,
+  "lon": 8.6620002,
+  "tags": {
+    "bench": "no",
+    "bin": "yes",
+    "bus": "yes",
+    "highway": "bus_stop",
+    "lit": "yes",
+    "local_ref": "P",
+    "name": "Hauptbahnhof/Fernbusterminal",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "public_transport": "platform",
+    "shelter": "no",
+    "tactile_paving": "no",
+    "wheelchair": "limited"
+  }
+},
+{
+  "type": "node",
+  "id": 9834198022,
+  "lat": 50.1043275,
+  "lon": 8.6620096,
+  "tags": {
+    "bench": "no",
+    "bin": "yes",
+    "bus": "yes",
+    "highway": "bus_stop",
+    "lit": "yes",
+    "local_ref": "R",
+    "name": "Hauptbahnhof/Fernbusterminal",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "public_transport": "platform",
+    "shelter": "no",
+    "tactile_paving": "no"
+  }
+},
+{
+  "type": "node",
+  "id": 9834198023,
+  "lat": 50.1045378,
+  "lon": 8.6618044,
+  "tags": {
+    "bench": "no",
+    "bin": "yes",
+    "bus": "yes",
+    "highway": "bus_stop",
+    "lit": "yes",
+    "local_ref": "R",
+    "name": "Hauptbahnhof/Fernbusterminal",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "public_transport": "platform",
+    "shelter": "no",
+    "tactile_paving": "no"
+  }
+},
+{
+  "type": "node",
+  "id": 9900805436,
+  "lat": 50.1041991,
+  "lon": 8.6619963,
+  "tags": {
+    "brand": "Toyoko Inn",
+    "brand:wikidata": "Q1320541",
+    "check_date": "2026-08-10",
+    "fax": "+49 69 870061046",
+    "name": "Toyoko Inn Frankfurt Hauptbahnhof",
+    "name:de": "Toyoko Inn Frankfurt Hauptbahnhof",
+    "name:ja": "東横INNフランクフルト中央駅前",
+    "phone": "+49 69 870061045",
+    "tourism": "hotel",
+    "website": "https://www.toyoko-inn.com/search/detail/00257"
+  }
+},
+{
+  "type": "node",
+  "id": 11097724982,
+  "lat": 50.1058259,
+  "lon": 8.6644819,
+  "tags": {
+    "bench": "yes",
+    "bin": "yes",
+    "bus": "yes",
+    "highway": "bus_stop",
+    "lit": "yes",
+    "local_ref": "M",
+    "name": "Hauptbahnhof Südseite",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "public_transport": "platform",
+    "shelter": "yes",
+    "tactile_paving": "no",
+    "wheelchair": "limited"
+  }
+},
+{
+  "type": "node",
+  "id": 12435650243,
+  "lat": 50.1050367,
+  "lon": 8.6621290,
+  "tags": {
+    "bench": "yes",
+    "bin": "yes",
+    "bus": "yes",
+    "highway": "bus_stop",
+    "lit": "yes",
+    "name": "Hauptbahnhof/Fernbusterminal",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "public_transport": "platform",
+    "shelter": "yes",
+    "tactile_paving": "no"
+  }
+},
+{
+  "type": "node",
+  "id": 12444456847,
+  "lat": 50.1109700,
+  "lon": 8.6809056,
+  "tags": {
+    "board_type": "history",
+    "information": "board",
+    "name": "Paulskirche",
+    "name:de": "Paulskirche",
+    "name:en": "St. Paul's Church",
+    "tourism": "information"
+  }
+},
+{
+  "type": "node",
+  "id": 12511689599,
+  "lat": 50.1069257,
+  "lon": 8.6659767,
+  "tags": {
+    "bench": "yes",
+    "bin": "yes",
+    "bus": "yes",
+    "highway": "bus_stop",
+    "lit": "yes",
+    "local_ref": "G",
+    "name": "Hauptbahnhof/Münchener Straße",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "operator:wikidata": "Q1754870",
+    "operator:wikipedia": "de:Stadtwerke Verkehrsgesellschaft Frankfurt am Main",
+    "public_transport": "platform",
+    "shelter": "yes",
+    "tactile_paving": "no",
+    "tram": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 12511693401,
+  "lat": 50.1069829,
+  "lon": 8.6666973,
+  "tags": {
+    "bench": "yes",
+    "bin": "no",
+    "bus": "yes",
+    "highway": "bus_stop",
+    "lit": "yes",
+    "local_ref": "H",
+    "name": "Hauptbahnhof/Münchener Straße",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "operator:wikidata": "Q1754870",
+    "operator:wikipedia": "de:Stadtwerke Verkehrsgesellschaft Frankfurt am Main",
+    "public_transport": "platform",
+    "ref:IFOPT": "de:6412:8:1:1",
+    "shelter": "no",
+    "tactile_paving": "no",
+    "tram": "yes",
+    "wheelchair": "no"
+  }
+},
+{
+  "type": "node",
+  "id": 13305110481,
+  "lat": 50.1119148,
+  "lon": 8.6817119,
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "26",
+    "addr:postcode": "60311",
+    "addr:street": "Neue Kräme",
+    "amenity": "doctors",
+    "healthcare": "doctor",
+    "healthcare:speciality": "urology",
+    "level": "4",
+    "name": "Urologie an der Paulskirche",
+    "phone": "+49 69 282010",
+    "website": "https://www.urologie-paulskirche.de/"
+  }
+},
+{
+  "type": "node",
+  "id": 14029236768,
+  "lat": 50.1080226,
+  "lon": 8.6635653,
+  "tags": {
+    "amenity": "pharmacy",
+    "check_date": "2026-10-25",
+    "contact:website": "https://www.apotheke-frankfurt-hbf.de/",
+    "level": "-1",
+    "name": "Apotheke im Hauptbahnhof",
+    "opening_hours": "Mo-Fr 07:00-20:00; Sa 09:00-19:00; Su,PH 10:00-19:00",
+    "payment:cash": "yes",
+    "payment:credit_cards": "yes",
+    "payment:debit_cards": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 4514391,
+  "bounds": {
+    "minlat": 50.1082709,
+    "minlon": 8.6630458,
+    "maxlat": 50.1084523,
+    "maxlon": 8.6637554
+  },
+  "geometry": [
+    { "lat": 50.1082709, "lon": 8.6637554 },
+    { "lat": 50.1083236, "lon": 8.6635533 },
+    { "lat": 50.1083669, "lon": 8.6633870 },
+    { "lat": 50.1084112, "lon": 8.6631848 },
+    { "lat": 50.1084523, "lon": 8.6630458 }
+  ],
+  "tags": {
+    "cycleway:both": "no",
+    "highway": "primary",
+    "lanes": "1",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "oneway:bicycle": "yes",
+    "parking:both": "no",
+    "parking:both:restriction": "no_stopping",
+    "ref": "B 44",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "smoothness": "good",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 4514395,
+  "bounds": {
+    "minlat": 50.1062606,
+    "minlon": 8.6653461,
+    "maxlat": 50.1067324,
+    "maxlon": 8.6653968
+  },
+  "geometry": [
+    { "lat": 50.1062606, "lon": 8.6653461 },
+    { "lat": 50.1064462, "lon": 8.6653857 },
+    { "lat": 50.1066156, "lon": 8.6653928 },
+    { "lat": 50.1066814, "lon": 8.6653955 },
+    { "lat": 50.1067175, "lon": 8.6653966 },
+    { "lat": 50.1067324, "lon": 8.6653968 }
+  ],
+  "tags": {
+    "cycleway:left": "no",
+    "cycleway:right": "lane",
+    "cycleway:right:buffer": "yes",
+    "cycleway:right:lane": "exclusive",
+    "highway": "primary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "oneway:bicycle": "yes",
+    "parking:both": "no",
+    "ref": "B 44",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "source:maxspeed": "DE:urban",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 4514396,
+  "bounds": {
+    "minlat": 50.1066500,
+    "minlon": 8.6643374,
+    "maxlat": 50.1077666,
+    "maxlon": 8.6651537
+  },
+  "geometry": [
+    { "lat": 50.1077666, "lon": 8.6643374 },
+    { "lat": 50.1075682, "lon": 8.6645980 },
+    { "lat": 50.1075250, "lon": 8.6646447 },
+    { "lat": 50.1074355, "lon": 8.6647414 },
+    { "lat": 50.1073005, "lon": 8.6648583 },
+    { "lat": 50.1071656, "lon": 8.6649693 },
+    { "lat": 50.1070761, "lon": 8.6650290 },
+    { "lat": 50.1069602, "lon": 8.6650925 },
+    { "lat": 50.1068514, "lon": 8.6651348 },
+    { "lat": 50.1067532, "lon": 8.6651537 },
+    { "lat": 50.1066500, "lon": 8.6651498 }
+  ],
+  "tags": {
+    "class:bicycle": "-2",
+    "cycleway:both": "no",
+    "foot": "no",
+    "highway": "primary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "oneway:bicycle": "yes",
+    "parking:both": "no",
+    "ref": "B 44",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "smoothness": "excellent",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 11018815,
+  "bounds": {
+    "minlat": 50.1103675,
+    "minlon": 8.6847993,
+    "maxlat": 50.1109801,
+    "maxlon": 8.6858996
+  },
+  "geometry": [
+    { "lat": 50.1107812, "lon": 8.6852076 },
+    { "lat": 50.1107904, "lon": 8.6852971 },
+    { "lat": 50.1108260, "lon": 8.6852892 },
+    { "lat": 50.1108251, "lon": 8.6852741 },
+    { "lat": 50.1108349, "lon": 8.6852717 },
+    { "lat": 50.1108358, "lon": 8.6852869 },
+    { "lat": 50.1108818, "lon": 8.6852747 },
+    { "lat": 50.1108801, "lon": 8.6852616 },
+    { "lat": 50.1108889, "lon": 8.6852581 },
+    { "lat": 50.1108909, "lon": 8.6852724 },
+    { "lat": 50.1109507, "lon": 8.6852595 },
+    { "lat": 50.1109581, "lon": 8.6852497 },
+    { "lat": 50.1109636, "lon": 8.6852585 },
+    { "lat": 50.1109519, "lon": 8.6852730 },
+    { "lat": 50.1109676, "lon": 8.6854419 },
+    { "lat": 50.1109801, "lon": 8.6854595 },
+    { "lat": 50.1109754, "lon": 8.6854688 },
+    { "lat": 50.1109635, "lon": 8.6854541 },
+    { "lat": 50.1109103, "lon": 8.6854664 },
+    { "lat": 50.1109126, "lon": 8.6854924 },
+    { "lat": 50.1109011, "lon": 8.6854956 },
+    { "lat": 50.1108992, "lon": 8.6854695 },
+    { "lat": 50.1108565, "lon": 8.6854792 },
+    { "lat": 50.1108587, "lon": 8.6855052 },
+    { "lat": 50.1108468, "lon": 8.6855076 },
+    { "lat": 50.1108449, "lon": 8.6854818 },
+    { "lat": 50.1107961, "lon": 8.6854930 },
+    { "lat": 50.1108024, "lon": 8.6855751 },
+    { "lat": 50.1108104, "lon": 8.6855737 },
+    { "lat": 50.1108158, "lon": 8.6855801 },
+    { "lat": 50.1108191, "lon": 8.6856174 },
+    { "lat": 50.1108214, "lon": 8.6856206 },
+    { "lat": 50.1108225, "lon": 8.6856357 },
+    { "lat": 50.1108210, "lon": 8.6856406 },
+    { "lat": 50.1108238, "lon": 8.6856751 },
+    { "lat": 50.1108195, "lon": 8.6856827 },
+    { "lat": 50.1108121, "lon": 8.6856845 },
+    { "lat": 50.1108162, "lon": 8.6857327 },
+    { "lat": 50.1108218, "lon": 8.6857380 },
+    { "lat": 50.1108175, "lon": 8.6857452 },
+    { "lat": 50.1108217, "lon": 8.6857998 },
+    { "lat": 50.1108125, "lon": 8.6858163 },
+    { "lat": 50.1107838, "lon": 8.6858243 },
+    { "lat": 50.1107657, "lon": 8.6858157 },
+    { "lat": 50.1107430, "lon": 8.6858629 },
+    { "lat": 50.1107504, "lon": 8.6858822 },
+    { "lat": 50.1107424, "lon": 8.6858892 },
+    { "lat": 50.1107349, "lon": 8.6858698 },
+    { "lat": 50.1106956, "lon": 8.6858771 },
+    { "lat": 50.1106918, "lon": 8.6858996 },
+    { "lat": 50.1106839, "lon": 8.6858965 },
+    { "lat": 50.1106876, "lon": 8.6858760 },
+    { "lat": 50.1106525, "lon": 8.6858373 },
+    { "lat": 50.1106449, "lon": 8.6858507 },
+    { "lat": 50.1106122, "lon": 8.6858562 },
+    { "lat": 50.1106019, "lon": 8.6858468 },
+    { "lat": 50.1105767, "lon": 8.6855392 },
+    { "lat": 50.1105471, "lon": 8.6855438 },
+    { "lat": 50.1105491, "lon": 8.6855694 },
+    { "lat": 50.1105378, "lon": 8.6855721 },
+    { "lat": 50.1105360, "lon": 8.6855469 },
+    { "lat": 50.1104943, "lon": 8.6855550 },
+    { "lat": 50.1104965, "lon": 8.6855800 },
+    { "lat": 50.1104841, "lon": 8.6855825 },
+    { "lat": 50.1104822, "lon": 8.6855579 },
+    { "lat": 50.1104617, "lon": 8.6855618 },
+    { "lat": 50.1104321, "lon": 8.6855677 },
+    { "lat": 50.1104333, "lon": 8.6855826 },
+    { "lat": 50.1104270, "lon": 8.6855950 },
+    { "lat": 50.1104133, "lon": 8.6855972 },
+    { "lat": 50.1104036, "lon": 8.6855863 },
+    { "lat": 50.1103980, "lon": 8.6855957 },
+    { "lat": 50.1103918, "lon": 8.6855878 },
+    { "lat": 50.1103993, "lon": 8.6855722 },
+    { "lat": 50.1103813, "lon": 8.6853910 },
+    { "lat": 50.1103675, "lon": 8.6853779 },
+    { "lat": 50.1103740, "lon": 8.6853666 },
+    { "lat": 50.1103827, "lon": 8.6853772 },
+    { "lat": 50.1104003, "lon": 8.6853722 },
+    { "lat": 50.1103954, "lon": 8.6853033 },
+    { "lat": 50.1103854, "lon": 8.6853053 },
+    { "lat": 50.1103847, "lon": 8.6852941 },
+    { "lat": 50.1103946, "lon": 8.6852925 },
+    { "lat": 50.1103943, "lon": 8.6852883 },
+    { "lat": 50.1103957, "lon": 8.6852881 },
+    { "lat": 50.1103950, "lon": 8.6852762 },
+    { "lat": 50.1104029, "lon": 8.6852752 },
+    { "lat": 50.1104034, "lon": 8.6852874 },
+    { "lat": 50.1104364, "lon": 8.6852807 },
+    { "lat": 50.1104356, "lon": 8.6852682 },
+    { "lat": 50.1104437, "lon": 8.6852671 },
+    { "lat": 50.1104446, "lon": 8.6852788 },
+    { "lat": 50.1104480, "lon": 8.6852785 },
+    { "lat": 50.1104482, "lon": 8.6852829 },
+    { "lat": 50.1104959, "lon": 8.6852736 },
+    { "lat": 50.1104957, "lon": 8.6852686 },
+    { "lat": 50.1105027, "lon": 8.6852673 },
+    { "lat": 50.1104976, "lon": 8.6852035 },
+    { "lat": 50.1104906, "lon": 8.6852051 },
+    { "lat": 50.1104900, "lon": 8.6851956 },
+    { "lat": 50.1104968, "lon": 8.6851939 },
+    { "lat": 50.1104913, "lon": 8.6851319 },
+    { "lat": 50.1104964, "lon": 8.6851225 },
+    { "lat": 50.1105302, "lon": 8.6851173 },
+    { "lat": 50.1105273, "lon": 8.6850833 },
+    { "lat": 50.1105481, "lon": 8.6850793 },
+    { "lat": 50.1105590, "lon": 8.6850768 },
+    { "lat": 50.1105639, "lon": 8.6850754 },
+    { "lat": 50.1105612, "lon": 8.6850440 },
+    { "lat": 50.1105777, "lon": 8.6850409 },
+    { "lat": 50.1105647, "lon": 8.6848810 },
+    { "lat": 50.1105481, "lon": 8.6848847 },
+    { "lat": 50.1105441, "lon": 8.6848324 },
+    { "lat": 50.1105774, "lon": 8.6848262 },
+    { "lat": 50.1105796, "lon": 8.6848523 },
+    { "lat": 50.1106823, "lon": 8.6848311 },
+    { "lat": 50.1106806, "lon": 8.6848060 },
+    { "lat": 50.1107129, "lon": 8.6847993 },
+    { "lat": 50.1107159, "lon": 8.6848430 },
+    { "lat": 50.1107193, "lon": 8.6848237 },
+    { "lat": 50.1107316, "lon": 8.6848212 },
+    { "lat": 50.1107366, "lon": 8.6848317 },
+    { "lat": 50.1107377, "lon": 8.6848482 },
+    { "lat": 50.1107446, "lon": 8.6848471 },
+    { "lat": 50.1107432, "lon": 8.6848294 },
+    { "lat": 50.1107519, "lon": 8.6848278 },
+    { "lat": 50.1107530, "lon": 8.6848451 },
+    { "lat": 50.1107940, "lon": 8.6848380 },
+    { "lat": 50.1107925, "lon": 8.6848174 },
+    { "lat": 50.1107960, "lon": 8.6848171 },
+    { "lat": 50.1107976, "lon": 8.6848364 },
+    { "lat": 50.1107992, "lon": 8.6848364 },
+    { "lat": 50.1108004, "lon": 8.6848374 },
+    { "lat": 50.1108014, "lon": 8.6848388 },
+    { "lat": 50.1108021, "lon": 8.6848414 },
+    { "lat": 50.1108126, "lon": 8.6848400 },
+    { "lat": 50.1108130, "lon": 8.6848491 },
+    { "lat": 50.1108025, "lon": 8.6848505 },
+    { "lat": 50.1108076, "lon": 8.6849091 },
+    { "lat": 50.1108183, "lon": 8.6849068 },
+    { "lat": 50.1108189, "lon": 8.6849172 },
+    { "lat": 50.1108092, "lon": 8.6849199 },
+    { "lat": 50.1108113, "lon": 8.6849500 },
+    { "lat": 50.1108140, "lon": 8.6849848 },
+    { "lat": 50.1107929, "lon": 8.6849886 },
+    { "lat": 50.1107776, "lon": 8.6849921 },
+    { "lat": 50.1107786, "lon": 8.6850024 },
+    { "lat": 50.1107684, "lon": 8.6850056 },
+    { "lat": 50.1107767, "lon": 8.6850816 },
+    { "lat": 50.1107681, "lon": 8.6850838 },
+    { "lat": 50.1107812, "lon": 8.6852076 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "1",
+    "addr:postcode": "60311",
+    "addr:street": "Domplatz",
+    "alt_name": "Frankfurter Dom",
+    "alt_name:en": "Frankfurt Cathedral",
+    "amenity": "place_of_worship",
+    "building": "cathedral",
+    "building:architecture": "gothic",
+    "building:levels": "2",
+    "building:material": "stone",
+    "check_date": "2026-10-04",
+    "check_date:opening_hours": "2026-10-04",
+    "denomination": "roman_catholic",
+    "description": "Kreuzförmige Hallenkirche der Gotik von einheitlicher Wirkung mit dominierendem Westturm. Gemäß der Bedeutung reiche Innenausstattung: Ab 855 traditionelle, seit 1356 legitime Wahlkirche der röm. Könige, seit 1562 Krönungskirche der deutschen Kaiser.",
+    "description:en": "Gothic cross-shaped hall church with a uniform appearance and a dominant west tower. Rich interior decoration in keeping with its importance: traditional from 855, legitimate electoral church of the Roman kings since 1356, coronation church of the German ",
+    "heritage": "4",
+    "heritage:operator": "LfDH",
+    "heritage:website": "http://denkxweb.denkmalpflege-hessen.de/518693",
+    "historic": "yes",
+    "loc_name": "Dom",
+    "name": "Kaiserdom St. Bartholomäus",
+    "name:ca": "Catedral Imperial de Sant Bartomeu",
+    "name:de": "Kaiserdom St. Bartholomäus",
+    "name:en": "Imperial Cathedral of Saint Bartholomew",
+    "name:es": "Catedral imperial de San Bartolomé",
+    "name:fr": "Cathédrale Imperiale St. Barthelémy",
+    "name:ru": "Кафедральный собор",
+    "name:zh": "法蘭克福主教座堂",
+    "opening_hours": "Mo-Su 09:00-20:00",
+    "ref:LfDH": "518693",
+    "religion": "christian",
+    "seamark:landmark:category": "tower",
+    "seamark:landmark:conspicuity": "conspicuous",
+    "seamark:landmark:function": "church",
+    "seamark:type": "landmark",
+    "source": "WSV",
+    "tourism": "attraction",
+    "website": "https://www.dom-frankfurt.de/dom/",
+    "wheelchair": "yes",
+    "wikidata": "Q57341",
+    "wikimedia_commons": "Category:Kaiserdom St. Bartholomäus (Frankfurt am Main)",
+    "wikipedia": "de:Kaiserdom St. Bartholomäus"
+  }
+},
+{
+  "type": "way",
+  "id": 11526375,
+  "bounds": {
+    "minlat": 50.1109486,
+    "minlon": 8.6803863,
+    "maxlat": 50.1114013,
+    "maxlon": 8.6810383
+  },
+  "geometry": [
+    { "lat": 50.1111703, "lon": 8.6810312 },
+    { "lat": 50.1111553, "lon": 8.6810248 },
+    { "lat": 50.1111374, "lon": 8.6810133 },
+    { "lat": 50.1111227, "lon": 8.6810003 },
+    { "lat": 50.1111066, "lon": 8.6809776 },
+    { "lat": 50.1110907, "lon": 8.6809487 },
+    { "lat": 50.1110767, "lon": 8.6809134 },
+    { "lat": 50.1110672, "lon": 8.6808824 },
+    { "lat": 50.1109706, "lon": 8.6809148 },
+    { "lat": 50.1109486, "lon": 8.6807679 },
+    { "lat": 50.1110438, "lon": 8.6807331 },
+    { "lat": 50.1110428, "lon": 8.6807125 },
+    { "lat": 50.1110432, "lon": 8.6806954 },
+    { "lat": 50.1110445, "lon": 8.6806749 },
+    { "lat": 50.1110473, "lon": 8.6806514 },
+    { "lat": 50.1110514, "lon": 8.6806284 },
+    { "lat": 50.1110585, "lon": 8.6806018 },
+    { "lat": 50.1110647, "lon": 8.6805833 },
+    { "lat": 50.1110721, "lon": 8.6805665 },
+    { "lat": 50.1110800, "lon": 8.6805500 },
+    { "lat": 50.1110905, "lon": 8.6805349 },
+    { "lat": 50.1111015, "lon": 8.6805197 },
+    { "lat": 50.1111165, "lon": 8.6805057 },
+    { "lat": 50.1111247, "lon": 8.6804986 },
+    { "lat": 50.1111340, "lon": 8.6804920 },
+    { "lat": 50.1111437, "lon": 8.6804862 },
+    { "lat": 50.1111551, "lon": 8.6804819 },
+    { "lat": 50.1111643, "lon": 8.6804786 },
+    { "lat": 50.1111765, "lon": 8.6804768 },
+    { "lat": 50.1111916, "lon": 8.6804770 },
+    { "lat": 50.1112055, "lon": 8.6804787 },
+    { "lat": 50.1112164, "lon": 8.6804821 },
+    { "lat": 50.1112275, "lon": 8.6804864 },
+    { "lat": 50.1112382, "lon": 8.6804920 },
+    { "lat": 50.1112782, "lon": 8.6804221 },
+    { "lat": 50.1112792, "lon": 8.6804102 },
+    { "lat": 50.1112772, "lon": 8.6803884 },
+    { "lat": 50.1112837, "lon": 8.6803863 },
+    { "lat": 50.1112864, "lon": 8.6804126 },
+    { "lat": 50.1113476, "lon": 8.6804978 },
+    { "lat": 50.1113477, "lon": 8.6805205 },
+    { "lat": 50.1113092, "lon": 8.6805879 },
+    { "lat": 50.1113238, "lon": 8.6806323 },
+    { "lat": 50.1113322, "lon": 8.6806695 },
+    { "lat": 50.1113394, "lon": 8.6807087 },
+    { "lat": 50.1113426, "lon": 8.6807409 },
+    { "lat": 50.1113440, "lon": 8.6807697 },
+    { "lat": 50.1113449, "lon": 8.6808024 },
+    { "lat": 50.1113437, "lon": 8.6808282 },
+    { "lat": 50.1113965, "lon": 8.6808611 },
+    { "lat": 50.1114013, "lon": 8.6808819 },
+    { "lat": 50.1113740, "lon": 8.6809935 },
+    { "lat": 50.1113607, "lon": 8.6810003 },
+    { "lat": 50.1113075, "lon": 8.6809674 },
+    { "lat": 50.1112901, "lon": 8.6809912 },
+    { "lat": 50.1112764, "lon": 8.6810074 },
+    { "lat": 50.1112609, "lon": 8.6810198 },
+    { "lat": 50.1112399, "lon": 8.6810310 },
+    { "lat": 50.1112171, "lon": 8.6810363 },
+    { "lat": 50.1111989, "lon": 8.6810383 },
+    { "lat": 50.1111801, "lon": 8.6810359 },
+    { "lat": 50.1111703, "lon": 8.6810312 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "11",
+    "addr:postcode": "60311",
+    "addr:street": "Paulsplatz",
+    "alt_name": "Frankfurter Paulskirche",
+    "architect": "Johann Friedrich Christian Hess",
+    "architect:wikidata": "Q1693526",
+    "architect:wikipedia": "de:Johann Friedrich Christian Hess",
+    "building": "church",
+    "building:architecture": "neoclassicism",
+    "building:colour": "#ba9585",
+    "building:facade": "material:plaster",
+    "building:material": "sandstone",
+    "check_date": "2026-10-04",
+    "check_date:opening_hours": "2026-10-04",
+    "description": "Es handelt sich um eine ehemalige evangelische Kirche in Frankfurt, die als Versammlungshalle genutzt wird. Ihre wichtige politische Symbolik geht auf das Jahr 1848 zurück, als hier das Frankfurter Parlament tagte, die erste öffentlich und frei gewählte d",
+    "description:en": "It is a former Protestant church in Frankfurt, Germany, used as a national assembly hall. Its important political symbolism dates back to 1848 when the Frankfurt Parliament convened there, the first publicly and freely-elected German legislative body.",
+    "height": "28",
+    "heritage": "4",
+    "heritage:operator": "LfDH",
+    "heritage:website": "http://denkxweb.denkmalpflege-hessen.de/518819",
+    "name": "Paulskirche",
+    "name:de": "Paulskirche",
+    "name:en": "St. Paul's Church",
+    "name:etymology": "Paulus von Tarsus",
+    "name:etymology:wikidata": "Q9200",
+    "name:etymology:wikipedia": "de:Paulus von Tarsus",
+    "name:ko": "성 파울 교회",
+    "name:ru": "Церковь святого Павла",
+    "name:zh": "圣保罗教堂",
+    "opening_hours": "Mo-Su 10:00-17:00",
+    "operator": "Stadt Frankfurt am Main",
+    "phone": "+49 69 21234920",
+    "ref:LfDH": "518819",
+    "religion": "christian",
+    "roof:material": "copper",
+    "seamark:landmark:category": "tower",
+    "seamark:landmark:conspicuity": "conspicuous",
+    "seamark:landmark:function": "church",
+    "seamark:landmark:name": "Paulskirche",
+    "seamark:type": "landmark",
+    "source": "WSV",
+    "start_date": "1833",
+    "toilets:wheelchair": "yes",
+    "tourism": "attraction",
+    "website": "https://frankfurt.de/frankfurt-entdecken-und-erleben/sehenswuerdigkeiten/fuer-historisch-interessierte/paulskirche",
+    "wheelchair": "yes",
+    "wheelchair:description": "Nebeneingang barrierefrei",
+    "wikidata": "Q198106",
+    "wikimedia_commons": "Category:Paulskirche (Frankfurt)",
+    "wikipedia": "de:Paulskirche (Frankfurt am Main)"
+  }
+},
+{
+  "type": "way",
+  "id": 27253640,
+  "bounds": {
+    "minlat": 50.1078411,
+    "minlon": 8.6640443,
+    "maxlat": 50.1078746,
+    "maxlon": 8.6641002
+  },
+  "geometry": [
+    { "lat": 50.1078746, "lon": 8.6640443 },
+    { "lat": 50.1078411, "lon": 8.6641002 }
+  ],
+  "tags": {
+    "cycleway": "no",
+    "foot": "no",
+    "highway": "unclassified",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "parking:both": "no",
+    "sidewalk": "no",
+    "smoothness": "good",
+    "source:maxspeed": "DE:urban",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 48440970,
+  "bounds": {
+    "minlat": 50.1055337,
+    "minlon": 8.6637405,
+    "maxlat": 50.1058541,
+    "maxlon": 8.6645319
+  },
+  "geometry": [
+    { "lat": 50.1058347, "lon": 8.6645319 },
+    { "lat": 50.1057684, "lon": 8.6643615 },
+    { "lat": 50.1057250, "lon": 8.6642501 },
+    { "lat": 50.1056300, "lon": 8.6640061 },
+    { "lat": 50.1056203, "lon": 8.6639813 },
+    { "lat": 50.1055867, "lon": 8.6638951 },
+    { "lat": 50.1055337, "lon": 8.6637589 },
+    { "lat": 50.1055531, "lon": 8.6637405 },
+    { "lat": 50.1058541, "lon": 8.6645135 },
+    { "lat": 50.1058448, "lon": 8.6645224 },
+    { "lat": 50.1058347, "lon": 8.6645319 }
+  ],
+  "tags": {
+    "area": "yes",
+    "bench": "yes",
+    "bin": "yes",
+    "bus": "yes",
+    "lit": "yes",
+    "name": "Hauptbahnhof Südseite",
+    "note": "Bahnsteig separat vom Halt nummeriert.",
+    "public_transport": "platform",
+    "railway": "platform",
+    "ref": "3",
+    "shelter": "yes",
+    "tactile_paving": "no",
+    "tram": "yes",
+    "wheelchair": "limited"
+  }
+},
+{
+  "type": "way",
+  "id": 48440971,
+  "bounds": {
+    "minlat": 50.1054973,
+    "minlon": 8.6634182,
+    "maxlat": 50.1059124,
+    "maxlon": 8.6644755
+  },
+  "geometry": [
+    { "lat": 50.1059124, "lon": 8.6644563 },
+    { "lat": 50.1058738, "lon": 8.6643564 },
+    { "lat": 50.1058264, "lon": 8.6642337 },
+    { "lat": 50.1057157, "lon": 8.6639470 },
+    { "lat": 50.1056726, "lon": 8.6638357 },
+    { "lat": 50.1056465, "lon": 8.6637680 },
+    { "lat": 50.1055091, "lon": 8.6634193 },
+    { "lat": 50.1055043, "lon": 8.6634182 },
+    { "lat": 50.1055008, "lon": 8.6634230 },
+    { "lat": 50.1054973, "lon": 8.6634367 },
+    { "lat": 50.1054978, "lon": 8.6634508 },
+    { "lat": 50.1058920, "lon": 8.6644755 },
+    { "lat": 50.1059017, "lon": 8.6644664 },
+    { "lat": 50.1059124, "lon": 8.6644563 }
+  ],
+  "tags": {
+    "area": "yes",
+    "bench": "yes",
+    "bin": "yes",
+    "bus": "yes",
+    "lit": "yes",
+    "name": "Hauptbahnhof Südseite",
+    "public_transport": "platform",
+    "railway": "platform",
+    "ref": "L",
+    "shelter": "yes",
+    "tactile_paving": "no",
+    "tram": "yes",
+    "wheelchair": "limited"
+  }
+},
+{
+  "type": "way",
+  "id": 139100336,
+  "bounds": {
+    "minlat": 50.1063995,
+    "minlon": 8.6649761,
+    "maxlat": 50.1068630,
+    "maxlon": 8.6650719
+  },
+  "geometry": [
+    { "lat": 50.1068630, "lon": 8.6649808 },
+    { "lat": 50.1068066, "lon": 8.6649761 },
+    { "lat": 50.1067482, "lon": 8.6649937 },
+    { "lat": 50.1067211, "lon": 8.6650064 },
+    { "lat": 50.1066205, "lon": 8.6650517 },
+    { "lat": 50.1065808, "lon": 8.6650661 },
+    { "lat": 50.1065400, "lon": 8.6650719 },
+    { "lat": 50.1064094, "lon": 8.6650499 },
+    { "lat": 50.1063995, "lon": 8.6650482 }
+  ],
+  "tags": {
+    "cycleway:both": "no",
+    "foot": "no",
+    "highway": "unclassified",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "parking:both": "no",
+    "sidewalk:left": "no",
+    "source:maxspeed": "DE:urban",
+    "surface": "asphalt",
+    "zone:traffic": "DE:urban"
+  }
+},
+{
+  "type": "way",
+  "id": 139100337,
+  "bounds": {
+    "minlat": 50.1066500,
+    "minlon": 8.6649808,
+    "maxlat": 50.1068630,
+    "maxlon": 8.6651498
+  },
+  "geometry": [
+    { "lat": 50.1068630, "lon": 8.6649808 },
+    { "lat": 50.1068117, "lon": 8.6650175 },
+    { "lat": 50.1067564, "lon": 8.6650390 },
+    { "lat": 50.1067117, "lon": 8.6650871 },
+    { "lat": 50.1066500, "lon": 8.6651498 }
+  ],
+  "tags": {
+    "class:bicycle": "-2",
+    "cycleway:both": "no",
+    "foot": "no",
+    "highway": "unclassified",
+    "lanes": "1",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "parking:both": "no",
+    "sidewalk": "no",
+    "source:maxspeed": "DE:urban",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 139100338,
+  "bounds": {
+    "minlat": 50.1071924,
+    "minlon": 8.6646360,
+    "maxlat": 50.1074072,
+    "maxlon": 8.6648171
+  },
+  "geometry": [
+    { "lat": 50.1074072, "lon": 8.6646360 },
+    { "lat": 50.1072966, "lon": 8.6647348 },
+    { "lat": 50.1071924, "lon": 8.6648171 }
+  ],
+  "tags": {
+    "class:bicycle": "-2",
+    "cycleway:both": "no",
+    "foot": "no",
+    "highway": "unclassified",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "parking:both": "no",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "source:maxspeed": "DE:urban",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 139106362,
+  "bounds": {
+    "minlat": 50.1076339,
+    "minlon": 8.6641002,
+    "maxlat": 50.1078411,
+    "maxlon": 8.6643749
+  },
+  "geometry": [
+    { "lat": 50.1078411, "lon": 8.6641002 },
+    { "lat": 50.1077830, "lon": 8.6641917 },
+    { "lat": 50.1077335, "lon": 8.6642674 },
+    { "lat": 50.1076339, "lon": 8.6643749 }
+  ],
+  "tags": {
+    "cycleway:both": "no",
+    "foot": "no",
+    "highway": "unclassified",
+    "lanes": "1",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "parking:both": "no",
+    "sidewalk": "no",
+    "source:maxspeed": "DE:urban",
+    "surface": "asphalt",
+    "traffic_sign": "DE:250",
+    "vehicle": "no"
+  }
+},
+{
+  "type": "way",
+  "id": 139133558,
+  "bounds": {
+    "minlat": 50.1079477,
+    "minlon": 8.6631988,
+    "maxlat": 50.1082345,
+    "maxlon": 8.6640314
+  },
+  "geometry": [
+    { "lat": 50.1082345, "lon": 8.6631988 },
+    { "lat": 50.1081491, "lon": 8.6634469 },
+    { "lat": 50.1080835, "lon": 8.6636880 },
+    { "lat": 50.1080369, "lon": 8.6638227 },
+    { "lat": 50.1080234, "lon": 8.6638569 },
+    { "lat": 50.1079947, "lon": 8.6639294 },
+    { "lat": 50.1079477, "lon": 8.6640314 }
+  ],
+  "tags": {
+    "class:bicycle": "-2",
+    "cycleway:both": "no",
+    "foot": "no",
+    "highway": "primary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "oneway:bicycle": "yes",
+    "parking:both": "no",
+    "parking:both:restriction": "no_stopping",
+    "ref": "B 44",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "smoothness": "excellent",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 238867586,
+  "bounds": {
+    "minlat": 50.1068630,
+    "minlon": 8.6648171,
+    "maxlat": 50.1071924,
+    "maxlon": 8.6649808
+  },
+  "geometry": [
+    { "lat": 50.1071924, "lon": 8.6648171 },
+    { "lat": 50.1070669, "lon": 8.6648974 },
+    { "lat": 50.1069697, "lon": 8.6649465 },
+    { "lat": 50.1068630, "lon": 8.6649808 }
+  ],
+  "tags": {
+    "class:bicycle": "-2",
+    "cycleway:both": "no",
+    "foot": "no",
+    "highway": "unclassified",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "parking:both": "no",
+    "sidewalk": "no",
+    "source:maxspeed": "DE:urban",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 315645342,
+  "bounds": {
+    "minlat": 50.1067324,
+    "minlon": 8.6650988,
+    "maxlat": 50.1075342,
+    "maxlon": 8.6654043
+  },
+  "geometry": [
+    { "lat": 50.1067324, "lon": 8.6653968 },
+    { "lat": 50.1068319, "lon": 8.6654043 },
+    { "lat": 50.1068721, "lon": 8.6654015 },
+    { "lat": 50.1069379, "lon": 8.6653924 },
+    { "lat": 50.1069948, "lon": 8.6653810 },
+    { "lat": 50.1070665, "lon": 8.6653497 },
+    { "lat": 50.1071922, "lon": 8.6653033 },
+    { "lat": 50.1072982, "lon": 8.6652462 },
+    { "lat": 50.1073938, "lon": 8.6651929 },
+    { "lat": 50.1074221, "lon": 8.6651771 },
+    { "lat": 50.1075342, "lon": 8.6650988 }
+  ],
+  "tags": {
+    "cycleway:left": "no",
+    "cycleway:right": "lane",
+    "cycleway:right:buffer": "yes",
+    "cycleway:right:lane": "exclusive",
+    "foot": "use_sidepath",
+    "highway": "primary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "oneway:bicycle": "yes",
+    "parking:both": "no",
+    "ref": "B 44",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "smoothness": "good",
+    "source:maxspeed": "DE:urban",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 315938467,
+  "bounds": {
+    "minlat": 50.1061203,
+    "minlon": 8.6650635,
+    "maxlat": 50.1063318,
+    "maxlon": 8.6651006
+  },
+  "geometry": [
+    { "lat": 50.1063318, "lon": 8.6651006 },
+    { "lat": 50.1063154, "lon": 8.6651004 },
+    { "lat": 50.1061203, "lon": 8.6650635 }
+  ],
+  "tags": {
+    "class:bicycle": "-2",
+    "cycleway:both": "no",
+    "foot": "no",
+    "highway": "primary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "oneway:bicycle": "yes",
+    "parking:both": "no",
+    "ref": "B 44",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "smoothness": "excellent",
+    "surface": "asphalt",
+    "turn:lanes": "through|through",
+    "zone:traffic": "DE:urban"
+  }
+},
+{
+  "type": "way",
+  "id": 375815937,
+  "bounds": {
+    "minlat": 50.1044559,
+    "minlon": 8.6617575,
+    "maxlat": 50.1050077,
+    "maxlon": 8.6625283
+  },
+  "geometry": [
+    { "lat": 50.1044559, "lon": 8.6621387 },
+    { "lat": 50.1044749, "lon": 8.6621205 },
+    { "lat": 50.1046922, "lon": 8.6619115 },
+    { "lat": 50.1048544, "lon": 8.6617575 },
+    { "lat": 50.1049208, "lon": 8.6619263 },
+    { "lat": 50.1050077, "lon": 8.6621471 },
+    { "lat": 50.1046615, "lon": 8.6624782 },
+    { "lat": 50.1046091, "lon": 8.6625283 },
+    { "lat": 50.1045918, "lon": 8.6624843 },
+    { "lat": 50.1045055, "lon": 8.6622648 },
+    { "lat": 50.1044894, "lon": 8.6622238 },
+    { "lat": 50.1044559, "lon": 8.6621387 }
+  ],
+  "tags": {
+    "access": "yes",
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "35",
+    "addr:postcode": "60329",
+    "addr:street": "Mannheimer Straße",
+    "amenity": "parking",
+    "building": "parking",
+    "building:levels": "5",
+    "capacity": "349",
+    "fee": "yes",
+    "maxheight": "2",
+    "name": "Parkhaus Am Hauptbahnhof",
+    "opening_hours": "24/7",
+    "operator": "Parkhaus Betriebs-Gesellschaft",
+    "parking": "multi-storey",
+    "roof:shape": "flat",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 466931799,
+  "bounds": {
+    "minlat": 50.1078165,
+    "minlon": 8.6640614,
+    "maxlat": 50.1081944,
+    "maxlon": 8.6647987
+  },
+  "geometry": [
+    { "lat": 50.1078165, "lon": 8.6647987 },
+    { "lat": 50.1079268, "lon": 8.6646430 },
+    { "lat": 50.1079932, "lon": 8.6645320 },
+    { "lat": 50.1080509, "lon": 8.6644178 },
+    { "lat": 50.1081036, "lon": 8.6642899 },
+    { "lat": 50.1081066, "lon": 8.6642824 },
+    { "lat": 50.1081944, "lon": 8.6640614 }
+  ],
+  "tags": {
+    "cycleway:left": "no",
+    "cycleway:right": "lane",
+    "cycleway:right:lane": "exclusive",
+    "highway": "primary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "oneway:bicycle": "yes",
+    "parking:both": "no",
+    "ref": "B 44",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "source:maxspeed": "DE:urban",
+    "surface": "asphalt",
+    "turn:lanes": "slight_left|through;slight_right|slight_right"
+  }
+},
+{
+  "type": "way",
+  "id": 529500875,
+  "bounds": {
+    "minlat": 50.1046555,
+    "minlon": 8.6623772,
+    "maxlat": 50.1052603,
+    "maxlon": 8.6633010
+  },
+  "geometry": [
+    { "lat": 50.1050934, "lon": 8.6623772 },
+    { "lat": 50.1051309, "lon": 8.6624759 },
+    { "lat": 50.1052404, "lon": 8.6627654 },
+    { "lat": 50.1052603, "lon": 8.6628181 },
+    { "lat": 50.1052475, "lon": 8.6629243 },
+    { "lat": 50.1050474, "lon": 8.6631133 },
+    { "lat": 50.1050255, "lon": 8.6631340 },
+    { "lat": 50.1050131, "lon": 8.6631454 },
+    { "lat": 50.1050066, "lon": 8.6631515 },
+    { "lat": 50.1050002, "lon": 8.6631574 },
+    { "lat": 50.1048696, "lon": 8.6632803 },
+    { "lat": 50.1048474, "lon": 8.6633010 },
+    { "lat": 50.1046555, "lon": 8.6627916 },
+    { "lat": 50.1047621, "lon": 8.6626911 },
+    { "lat": 50.1050934, "lon": 8.6623772 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "21",
+    "addr:postcode": "60329",
+    "addr:street": "Mannheimer Straße",
+    "air_conditioning": "yes",
+    "alt_name": "IC Hotel",
+    "brand": "IntercityHotel",
+    "brand:wikidata": "Q73642490",
+    "building": "hotel",
+    "building:levels": "8",
+    "check_date": "2026-10-09",
+    "internet_access": "wlan",
+    "internet_access:fee": "no",
+    "name": "IntercityHotel Frankfurt Hauptbahnhof Süd",
+    "opening_hours:bar": "10:00-01:00",
+    "opening_hours:breakfast": "Mo-Fr 06:00-10:00; Sa, Su, Ph 7:00-11:00",
+    "phone": "+49 69 6599920",
+    "smoking": "no",
+    "source": "survey",
+    "stars": "4",
+    "start_date": "2018",
+    "tourism": "hotel",
+    "website": "https://www.intercityhotel.com/hotels/alle-hotels/deutschland/frankfurt/intercityhotel-frankfurt-hauptbahnhof-sued",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 1007099544,
+  "bounds": {
+    "minlat": 50.1063318,
+    "minlon": 8.6651006,
+    "maxlat": 50.1066500,
+    "maxlon": 8.6651498
+  },
+  "geometry": [
+    { "lat": 50.1066500, "lon": 8.6651498 },
+    { "lat": 50.1063318, "lon": 8.6651006 }
+  ],
+  "tags": {
+    "class:bicycle": "-2",
+    "cycleway:both": "no",
+    "foot": "no",
+    "highway": "primary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "oneway:bicycle": "yes",
+    "parking:both": "no",
+    "ref": "B 44",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "smoothness": "excellent",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1007099545,
+  "bounds": {
+    "minlat": 50.1060210,
+    "minlon": 8.6646675,
+    "maxlat": 50.1063995,
+    "maxlon": 8.6650482
+  },
+  "geometry": [
+    { "lat": 50.1063995, "lon": 8.6650482 },
+    { "lat": 50.1063867, "lon": 8.6650461 },
+    { "lat": 50.1062051, "lon": 8.6650155 },
+    { "lat": 50.1061637, "lon": 8.6649978 },
+    { "lat": 50.1061344, "lon": 8.6649504 },
+    { "lat": 50.1060210, "lon": 8.6646675 }
+  ],
+  "tags": {
+    "cycleway:both": "no",
+    "foot": "no",
+    "highway": "unclassified",
+    "lanes": "1",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "parking:both": "no",
+    "sidewalk": "separate",
+    "smoothness": "excellent",
+    "source:maxspeed": "DE:urban",
+    "surface": "asphalt",
+    "width": "4",
+    "zone:traffic": "DE:urban"
+  }
+},
+{
+  "type": "way",
+  "id": 1019957665,
+  "bounds": {
+    "minlat": 50.1082422,
+    "minlon": 8.6637554,
+    "maxlat": 50.1082709,
+    "maxlon": 8.6638645
+  },
+  "geometry": [
+    { "lat": 50.1082422, "lon": 8.6638645 },
+    { "lat": 50.1082709, "lon": 8.6637554 }
+  ],
+  "tags": {
+    "change:lanes": "no|no",
+    "cycleway:left": "no",
+    "cycleway:right": "track",
+    "highway": "primary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "parking:both": "no",
+    "parking:both:restriction": "no_stopping",
+    "ref": "B 44",
+    "sidewalk": "separate",
+    "smoothness": "good",
+    "surface": "asphalt",
+    "turn:lanes": "through;slight_right|slight_right"
+  }
+},
+{
+  "type": "way",
+  "id": 1019958846,
+  "bounds": {
+    "minlat": 50.1081944,
+    "minlon": 8.6638645,
+    "maxlat": 50.1082422,
+    "maxlon": 8.6640614
+  },
+  "geometry": [
+    { "lat": 50.1081944, "lon": 8.6640614 },
+    { "lat": 50.1082422, "lon": 8.6638645 }
+  ],
+  "tags": {
+    "change:lanes": "yes|not_right|yes",
+    "cycleway:left": "no",
+    "cycleway:right": "track",
+    "highway": "primary",
+    "lanes": "3",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "parking:both": "no",
+    "parking:both:restriction": "no_stopping",
+    "ref": "B 44",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "smoothness": "good",
+    "surface": "asphalt",
+    "turn:lanes": "slight_left|through;slight_right|slight_right"
+  }
+},
+{
+  "type": "way",
+  "id": 1020521499,
+  "bounds": {
+    "minlat": 50.1082800,
+    "minlon": 8.6630146,
+    "maxlat": 50.1083405,
+    "maxlon": 8.6635727
+  },
+  "geometry": [
+    { "lat": 50.1082800, "lon": 8.6635727 },
+    { "lat": 50.1083237, "lon": 8.6633693 },
+    { "lat": 50.1083356, "lon": 8.6633074 },
+    { "lat": 50.1083396, "lon": 8.6632815 },
+    { "lat": 50.1083405, "lon": 8.6632322 },
+    { "lat": 50.1083359, "lon": 8.6631727 },
+    { "lat": 50.1083280, "lon": 8.6631201 },
+    { "lat": 50.1083119, "lon": 8.6630146 }
+  ],
+  "tags": {
+    "access": "no",
+    "bus": "yes",
+    "cycleway:both": "no",
+    "foot": "use_sidepath",
+    "highway": "residential",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "maxspeed:type": "sign",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "note": "Baumaßnahme bis 2028",
+    "oneway": "yes",
+    "parking:both": "no",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1071730880,
+  "bounds": {
+    "minlat": 50.1061312,
+    "minlon": 8.6653064,
+    "maxlat": 50.1062606,
+    "maxlon": 8.6653461
+  },
+  "geometry": [
+    { "lat": 50.1061312, "lon": 8.6653064 },
+    { "lat": 50.1062606, "lon": 8.6653461 }
+  ],
+  "tags": {
+    "cycleway:left": "no",
+    "cycleway:right": "lane",
+    "cycleway:right:buffer": "yes",
+    "cycleway:right:lane": "exclusive",
+    "highway": "primary",
+    "lanes": "1",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "oneway:bicycle": "yes",
+    "parking:both": "no",
+    "ref": "B 44",
+    "sidewalk": "separate",
+    "smoothness": "excellent",
+    "source:maxspeed": "DE:urban",
+    "surface": "asphalt",
+    "zone:traffic": "DE:urban"
+  }
+},
+{
+  "type": "way",
+  "id": 1071730881,
+  "bounds": {
+    "minlat": 50.1077666,
+    "minlon": 8.6640314,
+    "maxlat": 50.1079477,
+    "maxlon": 8.6643374
+  },
+  "geometry": [
+    { "lat": 50.1079477, "lon": 8.6640314 },
+    { "lat": 50.1078494, "lon": 8.6642094 },
+    { "lat": 50.1077898, "lon": 8.6643069 },
+    { "lat": 50.1077666, "lon": 8.6643374 }
+  ],
+  "tags": {
+    "class:bicycle": "-2",
+    "cycleway:both": "no",
+    "foot": "no",
+    "highway": "primary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "parking:both": "no",
+    "ref": "B 44",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "smoothness": "excellent",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1071730883,
+  "bounds": {
+    "minlat": 50.1074072,
+    "minlon": 8.6643749,
+    "maxlat": 50.1076339,
+    "maxlon": 8.6646360
+  },
+  "geometry": [
+    { "lat": 50.1076339, "lon": 8.6643749 },
+    { "lat": 50.1075098, "lon": 8.6645304 },
+    { "lat": 50.1074869, "lon": 8.6645567 },
+    { "lat": 50.1074072, "lon": 8.6646360 }
+  ],
+  "tags": {
+    "class:bicycle": "-2",
+    "cycleway:both": "no",
+    "foot": "no",
+    "highway": "unclassified",
+    "lanes": "1",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "parking:both": "no",
+    "sidewalk": "right",
+    "sidewalk:right:surface": "asphalt",
+    "smoothness": "good",
+    "source:maxspeed": "DE:urban",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1072426285,
+  "bounds": {
+    "minlat": 50.1075342,
+    "minlon": 8.6647987,
+    "maxlat": 50.1078165,
+    "maxlon": 8.6650988
+  },
+  "geometry": [
+    { "lat": 50.1075342, "lon": 8.6650988 },
+    { "lat": 50.1076942, "lon": 8.6649432 },
+    { "lat": 50.1078165, "lon": 8.6647987 }
+  ],
+  "tags": {
+    "cycleway:left": "no",
+    "cycleway:right": "lane",
+    "cycleway:right:lane": "exclusive",
+    "foot": "use_sidepath",
+    "highway": "primary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "oneway:bicycle": "yes",
+    "parking:both": "no",
+    "ref": "B 44",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "source:maxspeed": "DE:urban",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1112545499,
+  "bounds": {
+    "minlat": 50.1026286,
+    "minlon": 8.6585490,
+    "maxlat": 50.1044995,
+    "maxlon": 8.6613570
+  },
+  "geometry": [
+    { "lat": 50.1041969, "lon": 8.6602548 },
+    { "lat": 50.1035565, "lon": 8.6586149 },
+    { "lat": 50.1034280, "lon": 8.6585490 },
+    { "lat": 50.1033382, "lon": 8.6585572 },
+    { "lat": 50.1026286, "lon": 8.6590348 },
+    { "lat": 50.1027660, "lon": 8.6594932 },
+    { "lat": 50.1041709, "lon": 8.6613570 },
+    { "lat": 50.1041882, "lon": 8.6613232 },
+    { "lat": 50.1044995, "lon": 8.6610250 },
+    { "lat": 50.1044810, "lon": 8.6609780 },
+    { "lat": 50.1041969, "lon": 8.6602548 }
+  ],
+  "tags": {
+    "access": "yes",
+    "amenity": "parking",
+    "capacity": "358",
+    "fee": "yes",
+    "layer": "-1",
+    "maxheight": "2.1",
+    "name": "Tiefgarage Hauptbahnhof Süd",
+    "opening_hours": "06:00-24:00",
+    "operator": "Parkhaus Betriebs-Gesellschaft",
+    "parking": "underground",
+    "wheelchair": "limited"
+  }
+},
+{
+  "type": "way",
+  "id": 1125857903,
+  "bounds": {
+    "minlat": 50.1082422,
+    "minlon": 8.6635727,
+    "maxlat": 50.1082800,
+    "maxlon": 8.6638645
+  },
+  "geometry": [
+    { "lat": 50.1082422, "lon": 8.6638645 },
+    { "lat": 50.1082800, "lon": 8.6635727 }
+  ],
+  "tags": {
+    "access": "no",
+    "bus": "yes",
+    "cycleway:both": "no",
+    "highway": "residential",
+    "lanes": "1",
+    "lit": "yes",
+    "maxspeed": "50",
+    "maxspeed:type": "sign",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "parking:both": "no",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1209722950,
+  "bounds": {
+    "minlat": 50.1060891,
+    "minlon": 8.6650559,
+    "maxlat": 50.1061203,
+    "maxlon": 8.6650635
+  },
+  "geometry": [
+    { "lat": 50.1061203, "lon": 8.6650635 },
+    { "lat": 50.1060891, "lon": 8.6650559 }
+  ],
+  "tags": {
+    "class:bicycle": "-2",
+    "cycleway:both": "no",
+    "foot": "no",
+    "highway": "primary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Am Hauptbahnhof",
+    "name:etymology:wikidata": "Q165368",
+    "oneway": "yes",
+    "oneway:bicycle": "yes",
+    "parking:both": "no",
+    "ref": "B 44",
+    "sidewalk": "separate",
+    "smoothness": "good",
+    "surface": "asphalt",
+    "turn:lanes": "through|through"
+  }
+},
+{
+  "type": "relation",
+  "id": 6097,
+  "bounds": {
+    "minlat": 50.0754250,
+    "minlon": 8.5674959,
+    "maxlat": 50.1094202,
+    "maxlon": 8.6695628
+  },
+  "tags": {
+    "from": "Stadion",
+    "name": "Tram 21: Stadion => Hauptbahnhof => Nied Kirche",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "operator:wikidata": "Q1754870",
+    "operator:wikipedia": "de:Stadtwerke Verkehrsgesellschaft Frankfurt am Main",
+    "public_transport:version": "2",
+    "ref": "21",
+    "route": "tram",
+    "to": "Nied Kirche",
+    "type": "route",
+    "via": "Hauptbahnhof",
+    "wikidata": "Q85093119"
+  }
+},
+{
+  "type": "relation",
+  "id": 66631,
+  "bounds": {
+    "minlat": 50.1062093,
+    "minlon": 8.6631452,
+    "maxlat": 50.1585528,
+    "maxlon": 8.6920027
+  },
+  "tags": {
+    "colour": "#007942",
+    "from": "Hauptbahnhof",
+    "name": "U5: Hauptbahnhof => Preungesheim",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "operator": "VGF",
+    "operator:wikidata": "Q1754870",
+    "operator:wikipedia": "de:Stadtwerke Verkehrsgesellschaft Frankfurt am Main",
+    "public_transport:version": "2",
+    "ref": "U5",
+    "route": "subway",
+    "to": "Preungesheim",
+    "type": "route",
+    "wikidata": "Q3040872",
+    "wikipedia": "de:U-Bahn-Strecke B (Frankfurt am Main)"
+  }
+},
+{
+  "type": "relation",
+  "id": 68095,
+  "bounds": {
+    "minlat": 50.0928044,
+    "minlon": 8.6350690,
+    "maxlat": 50.1051231,
+    "maxlon": 8.6620331
+  },
+  "tags": {
+    "bus": "regular",
+    "from": "Hauptbahnhof/Fernbusterminal",
+    "name": "Bus 37: Hauptbahnhof/Fernbusterminal => Briefzentrum",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "In-der-City-Bus",
+    "public_transport:version": "2",
+    "ref": "37",
+    "route": "bus",
+    "to": "Briefzentrum",
+    "type": "route",
+    "website": "https://wiki.openstreetmap.org/wiki/Rhein-Main-Verkehrsverbund/Bus_Frankfurt"
+  }
+},
+{
+  "type": "relation",
+  "id": 72787,
+  "bounds": {
+    "minlat": 50.0976276,
+    "minlon": 8.4515870,
+    "maxlat": 50.4318122,
+    "maxlon": 8.6623858
+  },
+  "tags": {
+    "from": "Frankfurt Hauptbahnhof",
+    "name": "RB15: Frankfurt Hauptbahnhof => Brandoberndorf",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "DB Regio AG Mitte",
+    "public_transport:version": "2",
+    "ref": "RB15",
+    "route": "train",
+    "service": "regional",
+    "to": "Brandoberndorf",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 233704,
+  "bounds": {
+    "minlat": 50.1049984,
+    "minlon": 8.6602640,
+    "maxlat": 50.1080619,
+    "maxlon": 8.6644879
+  },
+  "tags": {
+    "check_date:service_times:wheelchair": "2024-05-07",
+    "gtfs:stop_id:FR-SNCF": "StopArea:OCE80110684",
+    "name": "Frankfurt (Main) Hauptbahnhof",
+    "name:ja": "フランクフルト(マイン)中央駅",
+    "operator": "DB Station&Service AG",
+    "public_transport": "stop_area",
+    "railway": "facility",
+    "service_times:wheelchair": "24/7",
+    "short_name": "Frankfurt (Main) Hbf",
+    "taxi": "yes",
+    "train": "yes",
+    "type": "public_transport",
+    "uic_name": "Frankfurt am Main Hauptbahnhof",
+    "uic_ref": "8000105",
+    "wikidata": "Q165368",
+    "wikipedia": "de:Frankfurt (Main) Hauptbahnhof"
+  }
+},
+{
+  "type": "relation",
+  "id": 387070,
+  "bounds": {
+    "minlat": 50.1035359,
+    "minlon": 8.6184380,
+    "maxlat": 50.1107915,
+    "maxlon": 8.6620745
+  },
+  "tags": {
+    "from": "Rebstock Römerhof",
+    "name": "Bus M46: Rebstock Römerhof => Hauptbahnhof/Fernbusterminal",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "In-der-City-Bus",
+    "public_transport:version": "2",
+    "ref": "M46",
+    "route": "bus",
+    "to": "Hauptbahnhof/Fernbusterminal",
+    "type": "route",
+    "website": "https://wiki.openstreetmap.org/wiki/Rhein-Main-Verkehrsverbund/Bus_Frankfurt",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "relation",
+  "id": 387072,
+  "bounds": {
+    "minlat": 50.1036150,
+    "minlon": 8.6184722,
+    "maxlat": 50.1108613,
+    "maxlon": 8.6633400
+  },
+  "tags": {
+    "from": "Hauptbahnhof/Fernbusterminal",
+    "name": "Bus M46: Hauptbahnhof/Fernbusterminal => Rebstock Römerhof",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "In-der-City-Bus",
+    "public_transport:version": "2",
+    "ref": "M46",
+    "route": "bus",
+    "to": "Rebstock Römerhof",
+    "type": "route",
+    "website": "https://wiki.openstreetmap.org/wiki/Rhein-Main-Verkehrsverbund/Bus_Frankfurt",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "relation",
+  "id": 387080,
+  "bounds": {
+    "minlat": 50.1054973,
+    "minlon": 8.6634182,
+    "maxlat": 50.1059124,
+    "maxlon": 8.6645319
+  },
+  "tags": {
+    "alt_name": "Hauptbahnhof Südseite, Frankfurt am Main",
+    "bus": "yes",
+    "name": "Hauptbahnhof Südseite",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "public_transport": "stop_area",
+    "ref": "107011",
+    "tram": "yes",
+    "type": "public_transport"
+  }
+},
+{
+  "type": "relation",
+  "id": 397326,
+  "bounds": {
+    "minlat": 50.0744493,
+    "minlon": 8.6496996,
+    "maxlat": 50.1092893,
+    "maxlon": 8.6694946
+  },
+  "tags": {
+    "from": "Hauptbahnhof",
+    "name": "Tram 20: Hauptbahnhof => Stadion",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "note": "only for events at the Commerzbank-Arena, the Waldstadion or the Wäldchen",
+    "note:de": "nur bei Events in der Commerzbank-Arena, dem Waldstadion oder dem Wäldchen",
+    "operator": "VGF",
+    "operator:wikidata": "Q1754870",
+    "operator:wikipedia": "de:Stadtwerke Verkehrsgesellschaft Frankfurt am Main",
+    "public_transport:version": "2",
+    "ref": "20",
+    "regular": "no",
+    "route": "tram",
+    "to": "Stadion",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 418584,
+  "bounds": {
+    "minlat": 49.8428545,
+    "minlon": 7.8673710,
+    "maxlat": 50.1060251,
+    "maxlon": 8.6637804
+  },
+  "tags": {
+    "fixme": "Fahrtverlauf in Mainz Hauptbahnhof überprüfen",
+    "from": "Bad Kreuznach",
+    "name": "RB33: Bad Kreuznach => Mainz Hauptbahnhof => Frankfurt (Main) Hauptbahnhof",
+    "network": "Rhein-Nahe Nahverkehrsverbund",
+    "network:short": "RNN",
+    "network:wikidata": "Q1245949",
+    "network:wikipedia": "de:Rhein-Nahe-Nahverkehrsverbund",
+    "note:de": "Für die Weiterfahrt nach Frankfurt ist die RB33 mit der RB31 gekuppelt.",
+    "operator": "vlexx",
+    "operator:wikidata": "Q18536938",
+    "operator:wikipedia": "de:Vlexx",
+    "public_transport:version": "2",
+    "ref": "RB33",
+    "route": "train",
+    "service": "regional",
+    "to": "Frankfurt (Main) Hauptbahnhof",
+    "type": "route",
+    "via": "Mainz Hauptbahnhof"
+  }
+},
+{
+  "type": "relation",
+  "id": 418585,
+  "bounds": {
+    "minlat": 49.2409683,
+    "minlon": 6.9880907,
+    "maxlat": 50.1074559,
+    "maxlon": 8.6624617
+  },
+  "tags": {
+    "from": "Frankfurt am Main Hauptbahnhof",
+    "name": "RE3: Frankfurt am Main Hauptbahnhof → Saarbrücken Hauptbahnhof",
+    "network": "RMV;RNN;saarVV",
+    "operator": "vlexx",
+    "operator:wikidata": "Q18536938",
+    "operator:wikipedia": "de:Vlexx",
+    "passenger": "regional",
+    "public_transport:version": "2",
+    "ref": "RE3",
+    "route": "train",
+    "service": "regional",
+    "to": "Saarbrücken Hauptbahnhof",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 418586,
+  "bounds": {
+    "minlat": 49.2414488,
+    "minlon": 6.9883602,
+    "maxlat": 50.1074559,
+    "maxlon": 8.6624617
+  },
+  "tags": {
+    "from": "Saarbrücken Hauptbahnhof",
+    "name": "RE3: Saarbrücken Hauptbahnhof → Frankfurt am Main Hauptbahnhof",
+    "network": "RMV;RNN;saarVV",
+    "operator": "vlexx",
+    "operator:wikidata": "Q18536938",
+    "operator:wikipedia": "de:Vlexx",
+    "passenger": "regional",
+    "public_transport:version": "2",
+    "ref": "RE3",
+    "route": "train",
+    "service": "regional",
+    "to": "Frankfurt am Main Hauptbahnhof",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 939239,
+  "bounds": {
+    "minlat": 50.1063462,
+    "minlon": 8.6631950,
+    "maxlat": 50.1586065,
+    "maxlon": 8.6919525
+  },
+  "tags": {
+    "colour": "#007942",
+    "from": "Preungesheim",
+    "name": "U5: Preungesheim => Hauptbahnhof",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "operator": "VGF",
+    "operator:wikidata": "Q1754870",
+    "operator:wikipedia": "de:Stadtwerke Verkehrsgesellschaft Frankfurt am Main",
+    "public_transport:version": "2",
+    "ref": "U5",
+    "route": "subway",
+    "to": "Hauptbahnhof",
+    "type": "route",
+    "wikidata": "Q3040872",
+    "wikipedia": "de:U-Bahn-Strecke B (Frankfurt am Main)"
+  }
+},
+{
+  "type": "relation",
+  "id": 947732,
+  "bounds": {
+    "minlat": 50.0754250,
+    "minlon": 8.6497431,
+    "maxlat": 50.1079870,
+    "maxlon": 8.6695628
+  },
+  "tags": {
+    "from": "Stadion",
+    "name": "Tram 20: Stadion => Hauptbahnhof",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "note": "only for events at the Commerzbank-Arena, the Waldstadion or the Wäldchen",
+    "note:de": "nur bei Events in der Commerzbank-Arena, dem Waldstadion oder dem Wäldchen",
+    "operator": "VGF",
+    "operator:wikidata": "Q1754870",
+    "operator:wikipedia": "de:Stadtwerke Verkehrsgesellschaft Frankfurt am Main",
+    "public_transport:version": "2",
+    "ref": "20",
+    "regular": "no",
+    "route": "tram",
+    "to": "Hauptbahnhof",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 947823,
+  "bounds": {
+    "minlat": 50.0744493,
+    "minlon": 8.5665584,
+    "maxlat": 50.1093852,
+    "maxlon": 8.6694946
+  },
+  "tags": {
+    "from": "Nied Kirche",
+    "name": "Tram 21: Nied Kirche => Hauptbahnhof => Stadion",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "operator:wikidata": "Q1754870",
+    "operator:wikipedia": "de:Stadtwerke Verkehrsgesellschaft Frankfurt am Main",
+    "public_transport:version": "2",
+    "ref": "21",
+    "route": "tram",
+    "to": "Stadion",
+    "type": "route",
+    "via": "Hauptbahnhof",
+    "wikidata": "Q85093119"
+  }
+},
+{
+  "type": "relation",
+  "id": 1085747,
+  "bounds": {
+    "minlat": 48.0521923,
+    "minlon": 8.6501800,
+    "maxlat": 50.1249259,
+    "maxlon": 16.3778394
+  },
+  "tags": {
+    "colour": "#00A7FF",
+    "fee": "yes",
+    "fixme": "Abschnitt Frankfurt - Dortmund fehlt",
+    "from": "Dortmund Hbf",
+    "name": "ICE 91: Dortmund => Wien Hauptbahnhof",
+    "network": "DB InterCityExpress",
+    "operator": "DB Fernverkehr AG;ÖBB",
+    "public_transport:version": "2",
+    "ref": "ICE 91",
+    "reservation": "recommended",
+    "roundtrip": "no",
+    "route": "train",
+    "service": "high_speed",
+    "to": "Wien Hauptbahnhof",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 1847261,
+  "bounds": {
+    "minlat": 50.0923720,
+    "minlon": 8.6345499,
+    "maxlat": 50.1048190,
+    "maxlon": 8.6620745
+  },
+  "tags": {
+    "bus": "regular",
+    "from": "Briefzentrum",
+    "name": "Bus 37: Briefzentrum => Hauptbahnhof/Fernbusterminal",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "In-der-City-Bus",
+    "public_transport:version": "2",
+    "ref": "37",
+    "route": "bus",
+    "to": "Hauptbahnhof/Fernbusterminal",
+    "type": "route",
+    "website": "https://wiki.openstreetmap.org/wiki/Rhein-Main-Verkehrsverbund/Bus_Frankfurt"
+  }
+},
+{
+  "type": "relation",
+  "id": 1884019,
+  "bounds": {
+    "minlat": 48.0522360,
+    "minlon": 8.6502445,
+    "maxlat": 50.1249601,
+    "maxlon": 16.3780144
+  },
+  "tags": {
+    "colour": "#00A7FF",
+    "fee": "yes",
+    "fixme": "Abschnitt Frankfurt - Dortmund fehlt",
+    "from": "Wien Hauptbahnhof",
+    "name": "ICE 91: Wien Hauptbahnhof => Dortmund",
+    "network": "DB InterCityExpress",
+    "operator": "DB Fernverkehr AG;ÖBB",
+    "public_transport:version": "2",
+    "ref": "ICE 91",
+    "reservation": "recommended",
+    "roundtrip": "no",
+    "route": "train",
+    "service": "high_speed",
+    "to": "Dortmund Hbf",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 1915167,
+  "bounds": {
+    "minlat": 50.1063451,
+    "minlon": 8.6625499,
+    "maxlat": 50.1084209,
+    "maxlon": 8.6656956
+  },
+  "tags": {
+    "name": "Hauptbahnhof",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "public_transport": "stop_area",
+    "subway": "yes",
+    "type": "public_transport"
+  }
+},
+{
+  "type": "relation",
+  "id": 1915168,
+  "bounds": {
+    "minlat": 50.1068662,
+    "minlon": 8.6659767,
+    "maxlat": 50.1070375,
+    "maxlon": 8.6666973
+  },
+  "tags": {
+    "name": "Hauptbahnhof/Münchener Straße",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "public_transport": "stop_area",
+    "tram": "yes",
+    "type": "public_transport",
+    "uic_name": "Hauptbahnhof/Münchener Straße, Frankfurt am Main",
+    "uic_ref": "100008"
+  }
+},
+{
+  "type": "relation",
+  "id": 1915169,
+  "bounds": {
+    "minlat": 50.1074561,
+    "minlon": 8.6642547,
+    "maxlat": 50.1079870,
+    "maxlon": 8.6650160
+  },
+  "tags": {
+    "alt_name": "Frankfurt am Main Hauptbahnhof",
+    "bus": "yes",
+    "name": "Hauptbahnhof",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "public_transport": "stop_area",
+    "ref": "100010",
+    "tram": "yes",
+    "type": "public_transport",
+    "wheelchair": "limited"
+  }
+},
+{
+  "type": "relation",
+  "id": 2078076,
+  "bounds": {
+    "minlat": 48.8733585,
+    "minlon": 2.3589437,
+    "maxlat": 50.1069264,
+    "maxlon": 8.6623681
+  },
+  "tags": {
+    "colour": "#5bc109",
+    "fee": "yes",
+    "from": "Frankfurt (Main) Hbf",
+    "gtfs:route_id:FR-SNCF": "FR:Line::0A303D27-DA0B-473B-9466-9180AC80EC60:",
+    "highspeed": "yes",
+    "name": "TGV 651B / ICE 82 : Frankfurt (Main) Hauptbahnhof → Saarbrücken Hauptbahnhof → Paris Est",
+    "name:de": "ICE 82 : Frankfurt (Main) Hauptbahnhof → Saarbrücken Hauptbahnhof → Paris Est",
+    "name:fr": "TGV InOui 651B : Francfort → Sarrebruck → Paris Est",
+    "network": "TGV InOui;DB InterCityExpress",
+    "network:de": "DB InterCityExpress",
+    "network:de:wikidata": "Q129172",
+    "network:de:wikipedia": "de:Intercity-Express",
+    "network:fr": "TGV InOui",
+    "network:fr:wikidata": "Q30754613",
+    "network:fr:wikipedia": "fr:TGV InOui",
+    "operator": "DB Fernverkehr AG;SNCF Voyageurs",
+    "operator:note": "Joint Venture SNCF/DB",
+    "operator:wikidata": "Q452140;Q93090957",
+    "public_transport:version": "2",
+    "ref": "651B;ICE 82",
+    "ref:DB": "ICE 82",
+    "ref:TGV_InOui": "651B",
+    "reservation:description:de": "reservierungspflichtig zwischen Saarbrücken und Paris",
+    "route": "train",
+    "service": "international",
+    "to": "Paris Est",
+    "type": "route",
+    "via": "Saarbrücken Hauptbahnhof"
+  }
+},
+{
+  "type": "relation",
+  "id": 2784662,
+  "bounds": {
+    "minlat": 50.1080406,
+    "minlon": 8.6617677,
+    "maxlat": 50.1080875,
+    "maxlon": 8.6621970
+  },
+  "tags": {
+    "amenity": "parking",
+    "capacity": "365",
+    "fee": "yes",
+    "name": "Hauptbahnhof",
+    "parking": "underground",
+    "site": "parking",
+    "source:url": "http://www.bahnhof.de/site/shared/de/bahnhofsuche/bahnpark/pdf/frankfurt__hbf.pdf",
+    "type": "site"
+  }
+},
+{
+  "type": "relation",
+  "id": 3812487,
+  "bounds": {
+    "minlat": 48.8733938,
+    "minlon": 2.3589437,
+    "maxlat": 50.1063235,
+    "maxlon": 8.6702281
+  },
+  "tags": {
+    "colour": "#5bc109",
+    "fee": "yes",
+    "from": "Paris Est",
+    "gtfs:route_id:FR-SNCF": "FR:Line::0A303D27-DA0B-473B-9466-9180AC80EC60:",
+    "highspeed": "yes",
+    "name": "TGV InOui 651B / ICE 82 : Paris Est → Saarbrücken Hauptbahnhof → Frankfurt (Main) Hauptbahnhof",
+    "name:de": "ICE 82: Paris Est → Saarbrücken Hauptbahnhof → Frankfurt (Main) Hauptbahnhof",
+    "name:fr": "TGV InOui 651B : Paris Est → Sarrebruck → Francfort",
+    "network": "TGV InOui;DB InterCityExpress",
+    "network:de": "DB InterCityExpress",
+    "network:de:wikidata": "Q129172",
+    "network:de:wikipedia": "de:Intercity-Express",
+    "network:fr": "TGV InOui",
+    "network:fr:wikidata": "Q30754613",
+    "network:fr:wikipedia": "fr:TGV InOui",
+    "operator": "DB Fernverkehr AG;SNCF Voyageurs",
+    "operator:note": "Joint Venture SNCF/DB",
+    "operator:wikidata": "Q452140;Q93090957",
+    "public_transport:version": "2",
+    "ref": "651B;ICE 82",
+    "ref:DB": "ICE 82",
+    "ref:TGV_InOui": "651B",
+    "reservation:description:de": "reservierungspflichtig zwischen Saarbrücken und Paris",
+    "route": "train",
+    "service": "international",
+    "to": "Frankfurt (Main) Hauptbahnhof",
+    "type": "route",
+    "via": "Saarbrücken Hauptbahnhof"
+  }
+},
+{
+  "type": "relation",
+  "id": 6379086,
+  "bounds": {
+    "minlat": 48.5427515,
+    "minlon": 2.3589437,
+    "maxlat": 50.1063235,
+    "maxlon": 8.6701642
+  },
+  "tags": {
+    "colour": "#5bc109",
+    "fee": "yes",
+    "from": "Frankfurt (Main) Hauptbahnhof",
+    "gtfs:route_id:FR-SNCF": "FR:Line::B51875E3-EFE6-4B17-ABCB-659C9BC47E5D:",
+    "name": "TGV 651A / ICE 82 : Frankfurt (Main) Hauptbahnhof → Strasbourg → Paris Est",
+    "name:de": "ICE 82 : Frankfurt (Main) Hauptbahnhof → Straßburg → Paris Est",
+    "name:fr": "TGV InOui 651A : Francfort-sur-le-Main Gare Centrale → Strasbourg → Paris Est",
+    "network": "TGV InOui;DB InterCityExpress",
+    "network:de": "DB InterCityExpress",
+    "network:de:wikidata": "Q129172",
+    "network:de:wikipedia": "de:Intercity-Express",
+    "network:fr": "TGV InOui",
+    "network:fr:wikidata": "Q30754613",
+    "network:fr:wikipedia": "fr:TGV InOui",
+    "network:wikidata": "Q30754613",
+    "not:network:wikidata": "Q129172",
+    "operator": "DB Fernverkehr;SNCF Voyageurs",
+    "operator:note": "Joint Venture SNCF/DB",
+    "operator:wikidata": "Q452140;Q93090957",
+    "public_transport:version": "2",
+    "ref": "651A;ICE 82",
+    "ref:DB": "ICE 82",
+    "ref:TGV_InOui": "651A",
+    "reservation:description:de": "reservierungspflichtig zwischen Karlsruhe und Paris",
+    "route": "train",
+    "service": "international",
+    "to": "Paris Est",
+    "type": "route",
+    "via": "Strasbourg"
+  }
+},
+{
+  "type": "relation",
+  "id": 6379087,
+  "bounds": {
+    "minlat": 48.5427515,
+    "minlon": 2.3589437,
+    "maxlat": 50.1063235,
+    "maxlon": 8.6702281
+  },
+  "tags": {
+    "colour": "#5bc109",
+    "fee": "yes",
+    "from": "Paris Est",
+    "gtfs:route_id:FR-SNCF": "FR:Line::B51875E3-EFE6-4B17-ABCB-659C9BC47E5D:",
+    "highspeed": "yes",
+    "name": "TGV InOui 651A / ICE 82 : Paris Est → Strasbourg → Frankfurt (Main) Hauptbahnhof",
+    "name:de": "ICE 82: Paris Est → Straßburg → Frankfurt (Main) Hauptbahnhof",
+    "name:fr": "TGV InOui 651A : Paris Est → Strasbourg → Francfort-sur-le-Main Gare Centrale",
+    "network": "TGV InOui;DB InterCityExpress",
+    "network:de": "DB InterCityExpress",
+    "network:de:wikidata": "Q129172",
+    "network:de:wikipedia": "de:Intercity-Express",
+    "network:fr": "TGV InOui",
+    "network:fr:wikidata": "Q30754613",
+    "network:fr:wikipedia": "fr:TGV InOui",
+    "network:wikidata": "Q30754613",
+    "operator": "DB Fernverkehr;SNCF Voyageurs",
+    "operator:note": "Joint Venture SNCF/DB",
+    "operator:wikidata": "Q452140;Q93090957",
+    "public_transport:version": "2",
+    "ref": "651A;ICE 82",
+    "ref:DB": "ICE 82",
+    "ref:TGV_InOui": "651A",
+    "reservation:description:de": "reservierungspflichtig zwischen Karlsruhe und Paris",
+    "route": "train",
+    "service": "international",
+    "to": "Frankfurt (Main) Hauptbahnhof",
+    "type": "route",
+    "via": "Strasbourg"
+  }
+},
+{
+  "type": "relation",
+  "id": 6691045,
+  "bounds": {
+    "minlat": 50.0973460,
+    "minlon": 8.4515870,
+    "maxlat": 50.4318122,
+    "maxlon": 8.6623858
+  },
+  "tags": {
+    "from": "Brandoberndorf",
+    "name": "RB15: Brandoberndorf => Frankfurt Hauptbahnhof",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "DB Regio AG Mitte",
+    "public_transport:version": "2",
+    "ref": "RB15",
+    "route": "train",
+    "service": "regional",
+    "to": "Frankfurt Hauptbahnhof",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 6704995,
+  "bounds": {
+    "minlat": 49.6679295,
+    "minlon": 8.0101392,
+    "maxlat": 50.1051145,
+    "maxlon": 8.6617379
+  },
+  "tags": {
+    "from": "Kirchheimbolanden",
+    "name": "RB31: Kirchheimbolanden → Mainz Hauptbahnhof → Frankfurt (Main) Flughafen → Frankfurt (Main) Hauptbahnhof",
+    "network": "RMV;RNN",
+    "note:de": "Rückweg nur mit Umstieg in Mainz",
+    "operator": "vlexx",
+    "operator:wikidata": "Q18536938",
+    "operator:wikipedia": "de:Vlexx",
+    "passenger": "regional",
+    "public_transport:version": "2",
+    "ref": "RB31",
+    "route": "train",
+    "service": "regional",
+    "to": "Frankfurt (Main) Hauptbahnhof",
+    "type": "route",
+    "via": "Mainz Hauptbahnhof; Frankfurt (Main) Flughafen"
+  }
+},
+{
+  "type": "relation",
+  "id": 9847694,
+  "bounds": {
+    "minlat": 45.4873985,
+    "minlon": 7.5206483,
+    "maxlat": 50.1047934,
+    "maxlon": 9.1307676
+  },
+  "tags": {
+    "fee": "yes",
+    "from": "Milano, Lampugnano",
+    "name": "Flixbus 107: Milano, Lampugnano => Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Flixbus 107: Mailand, Lampugnano => Frankfurt (Main) Hauptbahnhof",
+    "name:it": "Flixbus 107: Milano, Lampugnano => Stazione centrale di Francoforte (principale)",
+    "network": "Flixbus",
+    "network:wikidata": "Q15712258",
+    "network:wikipedia": "en:Flixbus",
+    "note": "Bussteig in Frankfurt (Hbf.) fehlt, nur improvisiert getaggt",
+    "operator": "Stiefvater Fernreisen GmbH",
+    "public_transport:version": "2",
+    "ref": "107",
+    "route": "bus",
+    "to": "Frankfurt (Main) Hauptbahnhof",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 9847695,
+  "bounds": {
+    "minlat": 45.4876545,
+    "minlon": 7.5204597,
+    "maxlat": 50.1058749,
+    "maxlon": 9.1305470
+  },
+  "tags": {
+    "fee": "yes",
+    "from": "Frankfurt (Main) Hauptbahnhof",
+    "name": "Flixbus 107: Frankfurt (Main) Hauptbahnhof => Milano, Lampugnano",
+    "name:de": "Flixbus 107: Frankfurt (Main) Hauptbahnhof => Mailand, Lampugnano",
+    "name:it": "Flixbus 107: Francoforte, Statione Centrale => Milano, Lampugnano",
+    "network": "Flixbus",
+    "network:wikidata": "Q15712258",
+    "network:wikipedia": "en:Flixbus",
+    "note": "Bussteig in Frankfurt (Hbf.) fehlt, nur improvisiert getaggt",
+    "operator": "Stiefvater Fernreisen GmbH",
+    "public_transport:version": "2",
+    "ref": "107",
+    "route": "bus",
+    "to": "Milano, Lampugnano",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 10962728,
+  "bounds": {
+    "minlat": 48.8164060,
+    "minlon": 2.3760650,
+    "maxlat": 50.1047934,
+    "maxlon": 8.6688405
+  },
+  "tags": {
+    "from": "Paris, Bercy Seine",
+    "name": "Flixbus 090: Paris, Bercy Seine => Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Flixbus 090: Paris, Bercy Seine => Frankfurt (Main) Hauptbahnhof",
+    "name:fr": "Flixbus 090: Paris, Bercy Seine => Francfort (Main) Gare centrale",
+    "network": "Flixbus",
+    "network:wikidata": "Q15712258",
+    "network:wikipedia": "en:Flixbus",
+    "operator": "Flixbus",
+    "public_transport:version": "2",
+    "ref": "090",
+    "route": "bus",
+    "to": "Frankfurt (Main) Hauptbahnhof",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 10962729,
+  "bounds": {
+    "minlat": 48.8165832,
+    "minlon": 2.3800937,
+    "maxlat": 50.1058749,
+    "maxlon": 8.6703619
+  },
+  "tags": {
+    "from": "Frankfurt (Main) Hauptbahnhof",
+    "name": "Flixbus 090: Frankfurt (Main) Hauptbahnhof => Paris, Bercy Seine",
+    "name:de": "Flixbus 090: Frankfurt (Main) Hauptbahnhof => Paris, Bercy Seine",
+    "name:fr": "Flixbus 090: Francfort (Main) Gare centrale => Paris, Bercy Seine",
+    "network": "Flixbus",
+    "network:wikidata": "Q15712258",
+    "network:wikipedia": "en:Flixbus",
+    "operator": "Flixbus",
+    "public_transport:version": "2",
+    "ref": "090",
+    "route": "bus",
+    "to": "Paris, Bercy Seine",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 11560985,
+  "bounds": {
+    "minlat": 45.0680483,
+    "minlon": 7.5206483,
+    "maxlat": 50.1047934,
+    "maxlon": 9.0599311
+  },
+  "tags": {
+    "fee": "yes",
+    "from": "Torino, Vittorio Emanuele",
+    "name": "Flixbus N474: Torino, Vittorio Emanuele => Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Flixbus N474: Turin, Vittorio Emanuele => Frankfurt (Main) Hauptbahnhof",
+    "name:it": "Flixbus N474: Torino, Vittorio Emanuele => Francoforte, Stazione centrale",
+    "network": "Flixbus",
+    "network:wikidata": "Q15712258",
+    "network:wikipedia": "en:Flixbus",
+    "note": "Bussteig in Frankfurt (Hbf.) fehlt, nur improvisiert getaggt",
+    "operator": "Flixbus",
+    "public_transport:version": "2",
+    "ref": "N474",
+    "route": "bus",
+    "to": "Frankfurt (Main) Hauptbahnhof",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 11560986,
+  "bounds": {
+    "minlat": 45.0682359,
+    "minlon": 7.5204597,
+    "maxlat": 50.1058749,
+    "maxlon": 9.0598136
+  },
+  "tags": {
+    "fee": "yes",
+    "from": "Frankfurt (Main) Hauptbahnhof",
+    "name": "Flixbus N474: Frankfurt (Main) Hauptbahnhof => Torino, Vittorio Emanuele",
+    "name:de": "Flixbus N474: Frankfurt (Main) Hauptbahnhof => Turin, Vittorio Emanuele",
+    "name:it": "Flixbus N474: Francoforte, Statione Centrale => Torino, Vittorio Emanuele",
+    "network": "Flixbus",
+    "network:wikidata": "Q15712258",
+    "network:wikipedia": "en:Flixbus",
+    "note": "Bussteig in Frankfurt (Hbf.) fehlt, nur improvisiert getaggt",
+    "operator": "Flixbus",
+    "public_transport:version": "2",
+    "ref": "N474",
+    "route": "bus",
+    "to": "Torino, Vittorio Emanuele",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 11733930,
+  "bounds": {
+    "minlat": 45.7161500,
+    "minlon": 4.8283630,
+    "maxlat": 50.1058749,
+    "maxlon": 8.6678675
+  },
+  "tags": {
+    "description": "The start, end, and stop locations have not been verified. This route may be out of service for an extended period and may not match the actual route (2026)",
+    "description:en": "The start, end, and stop locations have not been verified. This route may be out of service for an extended period and may not match the actual route (2026)",
+    "fee": "yes",
+    "from": "Frankfurt (Main) Hauptbahnhof",
+    "name": "Flixbus 122: Frankfurt (Main) Hauptbahnhof => Lyon, Gerland",
+    "name:de": "Flixbus 122: Frankfurt (Main) Hauptbahnhof => Lyon, Gerland",
+    "name:fr": "Flixbus 122: Francfort, Gare Centrale => Lyon, Gerland",
+    "network": "Flixbus",
+    "network:wikidata": "Q15712258",
+    "network:wikipedia": "en:Flixbus",
+    "operator": "Flixbus",
+    "public_transport:version": "2",
+    "ref": "122",
+    "route": "bus",
+    "to": "Lyon, Gerland",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 11733931,
+  "bounds": {
+    "minlat": 45.7145468,
+    "minlon": 4.8284907,
+    "maxlat": 50.1047934,
+    "maxlon": 8.6688405
+  },
+  "tags": {
+    "description": "The start, end, and stop locations have not been verified. This route may be out of service for an extended period and may not match the actual route (2026)",
+    "description:en": "The start, end, and stop locations have not been verified. This route may be out of service for an extended period and may not match the actual route (2026)",
+    "fee": "yes",
+    "from": "Lyon, Gerland",
+    "name": "Flixbus 122: Lyon, Gerland => Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Flixbus 122: Lyon, Gerland => Frankfurt (Main) Hauptbahnhof",
+    "name:fr": "Flixbus 122: Lyon, Gerland => Francfort, Gare centrale",
+    "network": "Flixbus",
+    "network:wikidata": "Q15712258",
+    "network:wikipedia": "en:Flixbus",
+    "operator": "Flixbus",
+    "public_transport:version": "2",
+    "ref": "122",
+    "route": "bus",
+    "to": "Frankfurt (Main) Hauptbahnhof",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 11734148,
+  "bounds": {
+    "minlat": 45.7161500,
+    "minlon": 4.8283630,
+    "maxlat": 50.1058749,
+    "maxlon": 8.6703619
+  },
+  "tags": {
+    "description": "The start, end, and stop locations have not been verified. This route may be out of service for an extended period and may not match the actual route (2026)",
+    "description:en": "The start, end, and stop locations have not been verified. This route may be out of service for an extended period and may not match the actual route (2026)",
+    "fee": "yes",
+    "from": "Frankfurt (Main) Hauptbahnhof",
+    "name": "Flixbus N122: Frankfurt (Main) Hauptbahnhof => Lyon, Gerland",
+    "name:de": "Flixbus N122: Frankfurt (Main) Hauptbahnhof => Lyon, Gerland",
+    "name:fr": "Flixbus N122: Francfort, Gare Centrale => Lyon, Gerland",
+    "network": "Flixbus",
+    "network:wikidata": "Q15712258",
+    "network:wikipedia": "en:Flixbus",
+    "operator": "Flixbus",
+    "public_transport:version": "2",
+    "ref": "N122",
+    "route": "bus",
+    "to": "Lyon, Gerland",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 11734149,
+  "bounds": {
+    "minlat": 45.7145468,
+    "minlon": 4.8284907,
+    "maxlat": 50.1047934,
+    "maxlon": 8.6709209
+  },
+  "tags": {
+    "description": "The start, end, and stop locations have not been verified. This route may be out of service for an extended period and may not match the actual route (2026)",
+    "description:en": "The start, end, and stop locations have not been verified. This route may be out of service for an extended period and may not match the actual route (2026)",
+    "fee": "yes",
+    "from": "Lyon, Gerland",
+    "name": "Flixbus N122: Lyon, Gerland => Frankfurt (Main) Hauptbahnhof",
+    "name:de": "Flixbus N122: Lyon, Gerland => Frankfurt (Main) Hauptbahnhof",
+    "name:fr": "Flixbus N122: Lyon, Gerland => Francfort, Gare centrale",
+    "network": "Flixbus",
+    "network:wikidata": "Q15712258",
+    "network:wikipedia": "en:Flixbus",
+    "operator": "Flixbus",
+    "public_transport:version": "2",
+    "ref": "N122",
+    "route": "bus",
+    "to": "Frankfurt (Main) Hauptbahnhof",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 12405131,
+  "bounds": {
+    "minlat": 50.1043275,
+    "minlon": 8.6616222,
+    "maxlat": 50.1585136,
+    "maxlon": 8.6939913
+  },
+  "tags": {
+    "from": "Preungesheim",
+    "name": "Bus N5: Preungesheim => Hauptbahnhof/Fernbusterminal",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "In-der-City-Bus",
+    "public_transport:version": "2",
+    "ref": "N5",
+    "route": "bus",
+    "to": "Hauptbahnhof/Fernbusterminal",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 12405132,
+  "bounds": {
+    "minlat": 50.1041205,
+    "minlon": 8.6620096,
+    "maxlat": 50.1588852,
+    "maxlon": 8.6923701
+  },
+  "tags": {
+    "from": "Hauptbahnhof/Fernbusterminal",
+    "name": "Bus N5: Hauptbahnhof/Fernbusterminal => Preungesheim",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "In-der-City-Bus",
+    "public_transport:version": "2",
+    "ref": "N5",
+    "route": "bus",
+    "to": "Preungesheim",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 12769217,
+  "bounds": {
+    "minlat": 50.1107928,
+    "minlon": 8.6812278,
+    "maxlat": 50.1118044,
+    "maxlon": 8.6825461
+  },
+  "tags": {
+    "name": "Römer/Paulskirche",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "operator:wikidata": "Q1754870",
+    "operator:wikipedia": "de:Stadtwerke Verkehrsgesellschaft Frankfurt am Main",
+    "public_transport": "stop_area",
+    "type": "public_transport"
+  }
+},
+{
+  "type": "relation",
+  "id": 13685221,
+  "bounds": {
+    "minlat": 50.1087620,
+    "minlon": 8.6636510,
+    "maxlat": 50.1087712,
+    "maxlon": 8.6637479
+  },
+  "tags": {
+    "bus": "yes",
+    "name": "Hauptbahnhof/Karlstraße",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "public_transport": "stop_area",
+    "type": "public_transport"
+  }
+},
+{
+  "type": "relation",
+  "id": 14238626,
+  "bounds": {
+    "minlat": 49.7504289,
+    "minlon": 8.0692551,
+    "maxlat": 50.1073748,
+    "maxlon": 8.6625359
+  },
+  "tags": {
+    "from": "Frankfurt (Main) Hauptbahnhof",
+    "name": "RB31: Frankfurt (Main) Hauptbahnhof → Alzey",
+    "network": "RMV;RNN",
+    "operator": "vlexx",
+    "operator:wikidata": "Q18536938",
+    "operator:wikipedia": "de:Vlexx",
+    "passenger": "regional",
+    "public_transport:version": "2",
+    "ref": "RB31",
+    "route": "train",
+    "service": "regional",
+    "to": "Alzey",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 14276025,
+  "bounds": {
+    "minlat": 50.1043275,
+    "minlon": 8.6618044,
+    "maxlat": 50.1051231,
+    "maxlon": 8.6633400
+  },
+  "tags": {
+    "bus": "yes",
+    "name": "Hauptbahnhof/Fernbusterminal",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "VGF",
+    "public_transport": "stop_area",
+    "type": "public_transport"
+  }
+},
+{
+  "type": "relation",
+  "id": 16831470,
+  "bounds": {
+    "minlat": 49.6679295,
+    "minlon": 8.0101392,
+    "maxlat": 50.1051145,
+    "maxlon": 8.6617379
+  },
+  "tags": {
+    "fixme": "Routing at Mainz Hbf estimated",
+    "from": "Kirchheimbolanden",
+    "name": "RB31: Kirchheimbolanden → Mainz Hauptbahnhof → Frankfurt (Main) Hauptbahnhof",
+    "network": "RMV;RNN",
+    "note:de": "Für die Weiterfahrt nach Frankfurt ist die RB31 mit der RB33 gekuppelt.",
+    "operator": "vlexx",
+    "operator:wikidata": "Q18536938",
+    "operator:wikipedia": "de:Vlexx",
+    "passenger": "regional",
+    "public_transport:version": "2",
+    "ref": "RB31",
+    "route": "train",
+    "service": "regional",
+    "to": "Frankfurt (Main) Hauptbahnhof",
+    "type": "route",
+    "via": "Mainz Hauptbahnhof"
+  }
+},
+{
+  "type": "relation",
+  "id": 18010096,
+  "bounds": {
+    "minlat": 49.7503833,
+    "minlon": 8.0692551,
+    "maxlat": 50.1051145,
+    "maxlon": 8.6617379
+  },
+  "tags": {
+    "fixme": "Routing at Mainz Hbf estimated",
+    "from": "Alzey",
+    "name": "RE13: Alzey → Mainz Hauptbahnhof → Frankfurt (Main) Hauptbahnhof",
+    "network": "Rhein-Nahe Nahverkehrsverbund",
+    "operator": "vlexx",
+    "operator:wikidata": "Q18536938",
+    "operator:wikipedia": "de:Vlexx",
+    "passenger": "regional",
+    "public_transport:version": "2",
+    "ref": "RE13",
+    "route": "train",
+    "service": "regional",
+    "to": "Frankfurt (Main) Hauptbahnhof",
+    "type": "route",
+    "via": "Mainz Hauptbahnhof"
+  }
+},
+{
+  "type": "relation",
+  "id": 18273113,
+  "bounds": {
+    "minlat": 50.1068500,
+    "minlon": 8.6642138,
+    "maxlat": 50.1113861,
+    "maxlon": 8.6795841
+  },
+  "tags": {
+    "name": "Lutherweg 1521 (Zuweg Frankfurt Hauptbahnhof)",
+    "network": "lwn",
+    "operator": "Lutherweg in Hessen e.V.",
+    "osmc:symbol": "yellow:black_frame::L:black",
+    "ref": "LW1521Zu",
+    "route": "hiking",
+    "symbol": "wie Hauptweg, nur, dass es Schwarz mit gelben Rand ist: Schwarzes L auf weiß, umranded von schwarz und unten am Rand, ein weißes 1521 auf schwarz, alles umrandet von gelb",
+    "symbol:en": "like main route except it's black with a yellow border: black L on white and white 1521 on black, surrounding by yellow",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 19870601,
+  "bounds": {
+    "minlat": 50.1043275,
+    "minlon": 8.4665774,
+    "maxlat": 50.1827769,
+    "maxlon": 8.6650719
+  },
+  "tags": {
+    "from": "Königstein Stadtmitte",
+    "name": "Bus S3N: Königstein => Bad Soden => Hauptbahnhof/Fernbusterminal",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "Transdev Rhein-Main",
+    "public_transport:version": "2",
+    "ref": "S3N",
+    "route": "bus",
+    "to": "Hauptbahnhof/Fernbusterminal",
+    "type": "route",
+    "via": "Bad Soden Bahnhof"
+  }
+},
+{
+  "type": "relation",
+  "id": 19870602,
+  "bounds": {
+    "minlat": 50.1041205,
+    "minlon": 8.4667998,
+    "maxlat": 50.1835964,
+    "maxlon": 8.6654043
+  },
+  "tags": {
+    "from": "Hauptbahnhof/Fernbusterminal",
+    "name": "Bus S3N: Hauptbahnhof/Fernbusterminal => Bad Soden => Königstein",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "Transdev Rhein-Main",
+    "public_transport:version": "2",
+    "ref": "S3N",
+    "route": "bus",
+    "to": "Königstein Stadtmitte",
+    "type": "route",
+    "via": "Bad Soden Bahnhof"
+  }
+},
+{
+  "type": "relation",
+  "id": 19870624,
+  "bounds": {
+    "minlat": 50.1043275,
+    "minlon": 8.4665774,
+    "maxlat": 50.1870937,
+    "maxlon": 8.6650719
+  },
+  "tags": {
+    "from": "Königstein Stadtmitte",
+    "name": "Bus S4N: Königstein => Kronberg => Hauptbahnhof/Fernbusterminal",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "Transdev Rhein-Main",
+    "public_transport:version": "2",
+    "ref": "S4N",
+    "route": "bus",
+    "to": "Hauptbahnhof/Fernbusterminal",
+    "type": "route",
+    "via": "Kronberg Bahnhof"
+  }
+},
+{
+  "type": "relation",
+  "id": 19870625,
+  "bounds": {
+    "minlat": 50.1041205,
+    "minlon": 8.4667998,
+    "maxlat": 50.1871789,
+    "maxlon": 8.6654043
+  },
+  "tags": {
+    "from": "Hauptbahnhof/Fernbusterminal",
+    "name": "Bus S4N: Hauptbahnhof/Fernbusterminal => Kronberg => Königstein",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "Transdev Rhein-Main",
+    "public_transport:version": "2",
+    "ref": "S4N",
+    "route": "bus",
+    "to": "Königstein Stadtmitte",
+    "type": "route",
+    "via": "Kronberg Bahnhof"
+  }
+},
+{
+  "type": "relation",
+  "id": 19870660,
+  "bounds": {
+    "minlat": 50.1043275,
+    "minlon": 8.5706142,
+    "maxlat": 50.2217450,
+    "maxlon": 8.6650719
+  },
+  "tags": {
+    "from": "Bad Homburg Bahnhof",
+    "name": "Bus S5N: Bad Homburg => Hauptbahnhof/Fernbusterminal",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "Transdev Rhein-Main",
+    "public_transport:version": "2",
+    "ref": "S5N",
+    "route": "bus",
+    "to": "Hauptbahnhof/Fernbusterminal",
+    "type": "route",
+    "via": "Bad Soden Bahnhof"
+  }
+},
+{
+  "type": "relation",
+  "id": 19870661,
+  "bounds": {
+    "minlat": 50.1041205,
+    "minlon": 8.5706142,
+    "maxlat": 50.2215645,
+    "maxlon": 8.6654043
+  },
+  "tags": {
+    "from": "Hauptbahnhof/Fernbusterminal",
+    "name": "Bus S5N: Hauptbahnhof/Fernbusterminal => Bad Homburg",
+    "network": "Rhein-Main-Verkehrsverbund",
+    "network:short": "RMV",
+    "network:wikidata": "Q314042",
+    "network:wikipedia": "de:Rhein-Main-Verkehrsverbund",
+    "operator": "Transdev Rhein-Main",
+    "public_transport:version": "2",
+    "ref": "S5N",
+    "route": "bus",
+    "to": "Bad Homburg Bahnhof",
+    "type": "route"
+  }
+},
+{
+  "type": "relation",
+  "id": 21151417,
+  "bounds": {
+    "minlat": 48.5427515,
+    "minlon": 2.3589437,
+    "maxlat": 52.5487211,
+    "maxlon": 13.3894393
+  },
+  "tags": {
+    "colour": "#5bc109",
+    "fee": "yes",
+    "from": "Berlin Gesundbrunnen",
+    "gtfs:route_id:FR-SNCF": "FR:Line::B51875E3-EFE6-4B17-ABCB-659C9BC47E5D:",
+    "name": "TGV 651A / ICE 9590 : Berlin Gesundbrunnen → Erfurt Hbf → Frankfurt (Main) Hauptbahnhof → Strasbourg → Paris Est",
+    "name:de": "ICE 9590: Berlin Gesundbrunnen → Erfurt Hbf → Frankfurt (Main) Hauptbahnhof → Straßburg → Paris Est",
+    "name:fr": "TGV InOui 651A : Berlin Gesundbrunnen → Erfurt Hbf → Francfort-sur-le-Main Gare Centrale → Strasbourg → Paris Est",
+    "network": "TGV InOui;DB InterCityExpress",
+    "network:de": "DB InterCityExpress",
+    "network:de:wikidata": "Q129172",
+    "network:de:wikipedia": "de:Intercity-Express",
+    "network:fr": "TGV InOui",
+    "network:fr:wikidata": "Q30754613",
+    "network:fr:wikipedia": "fr:TGV InOui",
+    "network:wikidata": "Q30754613",
+    "not:network:wikidata": "Q129172",
+    "operator": "DB Fernverkehr;SNCF Voyageurs",
+    "operator:note": "Joint Venture SNCF/DB",
+    "operator:wikidata": "Q452140;Q93090957",
+    "public_transport:version": "2",
+    "ref": "651A;ICE 9590",
+    "ref:DB": "ICE 9590",
+    "ref:TGV_InOui": "651A",
+    "reservation:description:de": "reservierungspflichtig zwischen Karlsruhe und Paris",
+    "route": "train",
+    "service": "international",
+    "to": "Paris Est",
+    "type": "route",
+    "via": "Erfurt Hbf;Frankfurt (Main) Hauptbahnhof;Strasbourg"
+  }
+},
+{
+  "type": "relation",
+  "id": 21151418,
+  "bounds": {
+    "minlat": 48.5427515,
+    "minlon": 2.3589437,
+    "maxlat": 52.5485016,
+    "maxlon": 13.3894409
+  },
+  "tags": {
+    "colour": "#5bc109",
+    "fee": "yes",
+    "from": "Paris Est",
+    "gtfs:route_id:FR-SNCF": "FR:Line::B51875E3-EFE6-4B17-ABCB-659C9BC47E5D:",
+    "highspeed": "yes",
+    "name": "TGV InOui 651A / ICE 9591 : Paris Est → Strasbourg → Frankfurt (Main) Hauptbahnhof → Erfurt Hbf → Berlin Gesundbrunnen",
+    "name:de": "ICE 9591: Paris Est → Straßburg → Frankfurt (Main) Hauptbahnhof → Erfurt Hbf → Berlin Gesundbrunnen",
+    "name:fr": "TGV InOui 651A : Paris Est → Strasbourg → Francfort-sur-le-Main Gare Centrale → Erfurt Hbf → Berlin Gesundbrunnen",
+    "network": "TGV InOui;DB InterCityExpress",
+    "network:de": "DB InterCityExpress",
+    "network:de:wikidata": "Q129172",
+    "network:de:wikipedia": "de:Intercity-Express",
+    "network:fr": "TGV InOui",
+    "network:fr:wikidata": "Q30754613",
+    "network:fr:wikipedia": "fr:TGV InOui",
+    "network:wikidata": "Q30754613",
+    "operator": "DB Fernverkehr;SNCF Voyageurs",
+    "operator:note": "Joint Venture SNCF/DB",
+    "operator:wikidata": "Q452140;Q93090957",
+    "public_transport:version": "2",
+    "ref": "651A;ICE 9591",
+    "ref:DB": "ICE 9591",
+    "ref:TGV_InOui": "651A",
+    "reservation:description:de": "reservierungspflichtig zwischen Karlsruhe und Paris",
+    "route": "train",
+    "service": "international",
+    "to": "Berlin Gesundbrunnen",
+    "type": "route",
+    "via": "Strasbourg;Frankfurt (Main) Hauptbahnhof;Erfurt Hbf"
+  }
+}
+
+  ]
+}

@@ -32,7 +32,7 @@ func test_the_letter_is_offered_once_the_stands_run_and_the_bankers_are_fed() ->
 	check(w.quests.fed_count() == 1, "a meal after being hungry counts him as fed")
 	check(w.quests.state.get(QuestBook.LETTER, "") == "offered" and w.quests.giver == banker, "all running and a banker who has had a meal: he has a favour to ask")
 	check(w.quests.objective().text.contains("press Q") and w.quests.objective().at == banker.pos, "and the objective sends you to him")
-	check(w.events.any(func(e): return e.contains("wants a word")), "with a note in the feed")
+	check(w.events.any(func(e): return e.contains("want a word")), "with a note in the feed")
 	check(banker.label == "Banker with a letter", "he is labelled")
 
 
@@ -70,7 +70,13 @@ func test_accepting_gives_the_letter_and_the_objectives_go_in_order() -> void:
 	var sage := w.add_sage(Vector2(500, 0))
 	check(w.quests.objective().text.contains("stuck in traffic") and w.quests.objective().at == sage.pos, "then you are stuck in traffic, and someone is watching")
 	w.sage.tell(Stories.FIRST)
-	check(w.quests.objective().text.contains("European Central Bank") and w.quests.objective().at == null, "once you have met him, on to the bank")
+	check(w.quests.objective().text.contains("farewell") and w.quests.objective().at == sage.pos, "once you have met him, he is the next stop: say farewell when you are ready")
+	check(not w.quests.done("jam_cleared"), "the traffic is still stuck")
+	w.add_bus(Vector2(300, 0), 0.0)
+	check(w.quests.farewell_to_sage() and w.quests.done("jam_cleared") and not w.quests.farewell_to_sage(), "saying farewell clears the jam, once")
+	check(w.quests.objective().text.contains("bus is waiting") and w.quests.objective().at == Vector2(300, 0), "and the bus, waiting in the cleared street, is where to go")
+	w.quests.set_flag("rode_on")
+	check(w.quests.objective().text.contains("European Central Bank") and w.quests.objective().at == null, "then on to the bank (no doorman in this town to point at)")
 
 
 func test_the_letter_is_handed_to_the_doorman_and_the_quest_is_done() -> void:
@@ -87,6 +93,8 @@ func test_the_letter_is_handed_to_the_doorman_and_the_quest_is_done() -> void:
 	w.quests.accept(QuestBook.LETTER)
 	w.quests.set_flag("rode_bus")
 	w.sage.tell(Stories.FIRST)
+	w.quests.set_flag("jam_cleared")
+	w.quests.set_flag("rode_on")
 	check(w.quests.objective().at == door.pos and w.quests.can_deliver(), "the last leg points the beacon at the doorman")
 	check(w.quests.deliver(), "handing it over works")
 	check(w.player.carry.count("letter") == 0 and w.quests.state[QuestBook.LETTER] == "done" and w.quests.active() == "", "the letter leaves the bag and the quest is done")

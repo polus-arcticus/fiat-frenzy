@@ -17,8 +17,11 @@
 ##   Riding      getting on and off the bicycle
 ##   Sage        Mr. Nobody: who has met whom, and what he has told
 ##   Portals     the teleporter rings
+##   Transit     the bus: boarding, driving itself along the streets, arriving
+##   Skating     the skateboard: rolling, the ollie, the kickflip (and its $25)
 ##   Zones       which patches of the map run, and the books of each
 ##   Quests      what the hero has been asked to do, and how far along it is
+##   Attention   who needs the hero's help, as a gold glow
 ##   Rescue      collapsing, the ambulance, and the medical tent
 ##   Levels      experience (money given) and what a level does to a business
 ##   Ledger      where the money is
@@ -42,6 +45,7 @@ var bike: Bike = null        # the player's bicycle, once they have bought one
 var sage_drone: Drone = null    # Mr. Nobody, if this world has him
 var ecb_doorman: Drone = null   # the doorman at the European Central Bank, if this world reaches it
 var bus_stop := Vector2(INF, INF)  # where the bus waits, if this world has one
+var bus: Bus = null                # the bus itself (see add_bus)
 var gun_owned := false       # the hero has the money gun (set by whoever hands it over)
 var player: Drone = null     # the player's body: bars and a bag. Not in `drones`, so no NPC logic drives it
 var events: Array[String] = []
@@ -60,7 +64,10 @@ var chatter: Chatter
 var riding: Riding
 var sage: Sage
 var portals: Portals
+var transit: Transit
+var skating: Skating
 var quests: Quests
+var attention: Attention
 
 
 
@@ -78,8 +85,11 @@ func _init() -> void:
 	riding = Riding.new(self)
 	sage = Sage.new(self)
 	portals = Portals.new()
+	transit = Transit.new(self)
+	skating = Skating.new(self)
 	zones = Zones.new(self)
 	quests = Quests.new(self)
+	attention = Attention.new(self)
 
 
 # ---------------------------------------------------------------- building the town
@@ -180,6 +190,14 @@ func add_player(at: Vector2, cash := 25.0) -> Drone:
 	return player
 
 
+## The bus, waiting at its stop. `facing` is the angle of the way it points (as Walking measures it).
+func add_bus(at: Vector2, facing: float) -> Bus:
+	bus = Bus.new(at, facing)
+	bus.zone = build_zone
+	bus_stop = at
+	return bus
+
+
 func add_relief_truck(at: Vector2) -> ReliefTruck:
 	var t := ReliefTruck.new(at)
 	t.zone = build_zone
@@ -255,7 +273,9 @@ func tick(dt := 1.0) -> void:
 			needs.decay(d, dt)
 	if player != null:
 		needs.decay(player, dt)
+	transit.step(dt)
 	rescue.step(dt)
 	chatter.step(dt)
 	sage.step(dt)
 	quests.step()
+	attention.step()

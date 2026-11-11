@@ -43,6 +43,13 @@ func _draw() -> void:
 			_line(o, s, Vector2(0.48, 0.4), Vector2(0.62, 0.38), Color(0.86, 0.24, 0.2), 2.5)
 			_line(o, s, Vector2(0.62, 0.38), Vector2(0.72, 0.66), INK, 2.0)
 			_line(o, s, Vector2(0.58, 0.3), Vector2(0.68, 0.3), INK, 2.5)
+		"skateboard":
+			var deck := PackedVector2Array([o + Vector2(0.1, 0.5) * s, o + Vector2(0.22, 0.42) * s, o + Vector2(0.78, 0.42) * s, o + Vector2(0.9, 0.5) * s, o + Vector2(0.78, 0.56) * s, o + Vector2(0.22, 0.56) * s])
+			draw_colored_polygon(deck, Color(0.9, 0.55, 0.2))
+			draw_polyline(PackedVector2Array([deck[0], deck[1], deck[2], deck[3], deck[4], deck[5], deck[0]]), INK, 2.0)
+			for wx in [0.3, 0.7]:
+				draw_circle(o + Vector2(wx, 0.68) * s, 0.07 * s, Color(0.95, 0.95, 0.9))
+				draw_arc(o + Vector2(wx, 0.68) * s, 0.07 * s, 0, TAU, 12, INK, 1.6)
 		"flour":
 			_blob(o, s, Vector2(0.5, 0.6), Vector2(0.3, 0.3), Color(0.96, 0.94, 0.88))
 			draw_rect(Rect2(o + Vector2(0.4, 0.18) * s, Vector2(0.2, 0.14) * s), Color(0.96, 0.94, 0.88))

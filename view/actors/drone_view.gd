@@ -23,6 +23,7 @@ var _label: Label3D
 var _bars: BarsRig
 var _cart: CartView = null  # a runner's
 var _bubble: Bubble
+var _aura: Aura
 var _last_level := 1
 var _playing := ""
 var _hold_clip := ""
@@ -58,6 +59,8 @@ func setup(d: Drone, w: World) -> DroneView:
 	add_child(_bars)
 	_bubble = Bubble.new()
 	add_child(_bubble)
+	_aura = Aura.new()
+	add_child(_aura)
 	if d.kind == "runner":
 		_cart = CartView.new()
 		add_child(_cart)
@@ -98,6 +101,7 @@ func _process(delta: float) -> void:
 		_celebrate()
 	_model.visible = (drone.sheltered_in == null or not (drone.sheltered_in in _tent_shelters)) and drone.care != "carried"
 	_bars.refresh(drone, _model.visible and drone.kind != "sage", get_viewport().get_camera_3d())
+	_aura.visible = drone.aura and _model.visible and drone.care == ""
 	_lie_down(delta)
 	_play(_pick_animation())
 	_label_clock -= delta

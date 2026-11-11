@@ -42,6 +42,7 @@ func pickup() -> GunPickupView:
 func _ray(reach: float, layer: int) -> Dictionary:
 	var cam := _player.camera
 	var from := cam.global_position
-	var q := PhysicsRayQueryParameters3D.create(from, from - cam.global_basis.z * reach, layer)
+	# (in third person the camera is behind the hero: the reach is measured from them, not from the camera)
+	var q := PhysicsRayQueryParameters3D.create(from, from - cam.global_basis.z * (reach + _player.view_back()), layer)
 	q.collide_with_areas = true
 	return _player.get_world_3d().direct_space_state.intersect_ray(q)

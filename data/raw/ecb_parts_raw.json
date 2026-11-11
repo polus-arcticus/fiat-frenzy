@@ -1,0 +1,2673 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-11-11T20:15:34Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "way",
+  "id": 85317855,
+  "bounds": {
+    "minlat": 50.1107698,
+    "minlon": 8.7003046,
+    "maxlat": 50.1109074,
+    "maxlon": 8.7005232
+  },
+  "geometry": [
+    { "lat": 50.1107698, "lon": 8.7003510 },
+    { "lat": 50.1108050, "lon": 8.7005232 },
+    { "lat": 50.1109074, "lon": 8.7004758 },
+    { "lat": 50.1108738, "lon": 8.7003046 },
+    { "lat": 50.1107698, "lon": 8.7003510 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "17a",
+    "addr:postcode": "60314",
+    "addr:street": "Windeckstraße",
+    "building": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 85317874,
+  "bounds": {
+    "minlat": 50.1109851,
+    "minlon": 8.7002304,
+    "maxlat": 50.1111274,
+    "maxlon": 8.7004010
+  },
+  "geometry": [
+    { "lat": 50.1109851, "lon": 8.7002367 },
+    { "lat": 50.1110171, "lon": 8.7004010 },
+    { "lat": 50.1111274, "lon": 8.7003488 },
+    { "lat": 50.1111170, "lon": 8.7002951 },
+    { "lat": 50.1111108, "lon": 8.7002629 },
+    { "lat": 50.1110713, "lon": 8.7002805 },
+    { "lat": 50.1110612, "lon": 8.7002304 },
+    { "lat": 50.1109851, "lon": 8.7002367 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "21a",
+    "addr:postcode": "60314",
+    "addr:street": "Windeckstraße",
+    "building": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 85421023,
+  "bounds": {
+    "minlat": 50.1086029,
+    "minlon": 8.6998043,
+    "maxlat": 50.1087694,
+    "maxlon": 8.7001746
+  },
+  "geometry": [
+    { "lat": 50.1086174, "lon": 8.6999288 },
+    { "lat": 50.1086029, "lon": 8.7001518 },
+    { "lat": 50.1087468, "lon": 8.7001746 },
+    { "lat": 50.1087694, "lon": 8.6998271 },
+    { "lat": 50.1086254, "lon": 8.6998043 },
+    { "lat": 50.1086174, "lon": 8.6999288 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "48",
+    "addr:postcode": "60314",
+    "addr:street": "Oskar-von-Miller-Straße",
+    "building": "apartments",
+    "building:levels": "8",
+    "roof:levels": "0",
+    "roof:shape": "flat"
+  }
+},
+{
+  "type": "way",
+  "id": 150818611,
+  "bounds": {
+    "minlat": 50.1111157,
+    "minlon": 8.7018505,
+    "maxlat": 50.1113484,
+    "maxlon": 8.7021040
+  },
+  "geometry": [
+    { "lat": 50.1111157, "lon": 8.7019519 },
+    { "lat": 50.1111469, "lon": 8.7019361 },
+    { "lat": 50.1111549, "lon": 8.7019321 },
+    { "lat": 50.1112812, "lon": 8.7018680 },
+    { "lat": 50.1112842, "lon": 8.7018665 },
+    { "lat": 50.1113163, "lon": 8.7018505 },
+    { "lat": 50.1113484, "lon": 8.7020031 },
+    { "lat": 50.1112912, "lon": 8.7020319 },
+    { "lat": 50.1112897, "lon": 8.7020245 },
+    { "lat": 50.1112538, "lon": 8.7020426 },
+    { "lat": 50.1112529, "lon": 8.7020383 },
+    { "lat": 50.1112341, "lon": 8.7020477 },
+    { "lat": 50.1112365, "lon": 8.7020591 },
+    { "lat": 50.1111475, "lon": 8.7021040 },
+    { "lat": 50.1111402, "lon": 8.7020694 },
+    { "lat": 50.1111172, "lon": 8.7019589 },
+    { "lat": 50.1111157, "lon": 8.7019519 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "11",
+    "addr:postcode": "60314",
+    "addr:street": "Howaldtstraße",
+    "building": "apartments",
+    "building:levels": "6",
+    "roof:levels": "0"
+  }
+},
+{
+  "type": "way",
+  "id": 150818629,
+  "bounds": {
+    "minlat": 50.1108421,
+    "minlon": 8.7016772,
+    "maxlat": 50.1109948,
+    "maxlon": 8.7019536
+  },
+  "geometry": [
+    { "lat": 50.1108958, "lon": 8.7019536 },
+    { "lat": 50.1108421, "lon": 8.7017023 },
+    { "lat": 50.1109306, "lon": 8.7016772 },
+    { "lat": 50.1109500, "lon": 8.7017680 },
+    { "lat": 50.1109623, "lon": 8.7017611 },
+    { "lat": 50.1109617, "lon": 8.7017585 },
+    { "lat": 50.1109790, "lon": 8.7017486 },
+    { "lat": 50.1109881, "lon": 8.7018307 },
+    { "lat": 50.1109804, "lon": 8.7018351 },
+    { "lat": 50.1109948, "lon": 8.7019030 },
+    { "lat": 50.1108958, "lon": 8.7019536 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "3",
+    "addr:postcode": "60314",
+    "addr:street": "Howaldtstraße",
+    "building": "apartments",
+    "building:levels": "6",
+    "roof:levels": "0"
+  }
+},
+{
+  "type": "way",
+  "id": 150818637,
+  "bounds": {
+    "minlat": 50.1108958,
+    "minlon": 8.7019030,
+    "maxlat": 50.1110397,
+    "maxlon": 8.7021678
+  },
+  "geometry": [
+    { "lat": 50.1109411, "lon": 8.7021678 },
+    { "lat": 50.1108958, "lon": 8.7019536 },
+    { "lat": 50.1109948, "lon": 8.7019030 },
+    { "lat": 50.1110100, "lon": 8.7019721 },
+    { "lat": 50.1110199, "lon": 8.7019668 },
+    { "lat": 50.1110299, "lon": 8.7020145 },
+    { "lat": 50.1110351, "lon": 8.7020384 },
+    { "lat": 50.1110360, "lon": 8.7020433 },
+    { "lat": 50.1110260, "lon": 8.7020488 },
+    { "lat": 50.1110397, "lon": 8.7021165 },
+    { "lat": 50.1109411, "lon": 8.7021678 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "5",
+    "addr:postcode": "60314",
+    "addr:street": "Howaldtstraße",
+    "building": "apartments",
+    "building:levels": "6",
+    "roof:levels": "0"
+  }
+},
+{
+  "type": "way",
+  "id": 150818663,
+  "bounds": {
+    "minlat": 50.1110771,
+    "minlon": 8.7028015,
+    "maxlat": 50.1112268,
+    "maxlon": 8.7030650
+  },
+  "geometry": [
+    { "lat": 50.1111836, "lon": 8.7028015 },
+    { "lat": 50.1112268, "lon": 8.7030108 },
+    { "lat": 50.1111211, "lon": 8.7030650 },
+    { "lat": 50.1110771, "lon": 8.7028564 },
+    { "lat": 50.1111836, "lon": 8.7028015 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "69",
+    "addr:postcode": "60314",
+    "addr:street": "Sonnemannstraße",
+    "building": "apartments",
+    "building:levels": "7",
+    "roof:levels": "0"
+  }
+},
+{
+  "type": "way",
+  "id": 150818667,
+  "bounds": {
+    "minlat": 50.1109411,
+    "minlon": 8.7021165,
+    "maxlat": 50.1110873,
+    "maxlon": 8.7023956
+  },
+  "geometry": [
+    { "lat": 50.1109979, "lon": 8.7023956 },
+    { "lat": 50.1109895, "lon": 8.7023549 },
+    { "lat": 50.1109820, "lon": 8.7023586 },
+    { "lat": 50.1109411, "lon": 8.7021678 },
+    { "lat": 50.1110397, "lon": 8.7021165 },
+    { "lat": 50.1110541, "lon": 8.7021863 },
+    { "lat": 50.1110626, "lon": 8.7021819 },
+    { "lat": 50.1110856, "lon": 8.7022552 },
+    { "lat": 50.1110706, "lon": 8.7022634 },
+    { "lat": 50.1110807, "lon": 8.7023095 },
+    { "lat": 50.1110748, "lon": 8.7023123 },
+    { "lat": 50.1110873, "lon": 8.7023707 },
+    { "lat": 50.1109979, "lon": 8.7023956 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "7",
+    "addr:postcode": "60314",
+    "addr:street": "Howaldtstraße",
+    "building": "apartments",
+    "building:levels": "6",
+    "roof:levels": "0"
+  }
+},
+{
+  "type": "way",
+  "id": 150818670,
+  "bounds": {
+    "minlat": 50.1111211,
+    "minlon": 8.7030027,
+    "maxlat": 50.1112820,
+    "maxlon": 8.7032533
+  },
+  "geometry": [
+    { "lat": 50.1112268, "lon": 8.7030108 },
+    { "lat": 50.1112419, "lon": 8.7030027 },
+    { "lat": 50.1112820, "lon": 8.7031906 },
+    { "lat": 50.1112541, "lon": 8.7032051 },
+    { "lat": 50.1111613, "lon": 8.7032533 },
+    { "lat": 50.1111211, "lon": 8.7030650 },
+    { "lat": 50.1112268, "lon": 8.7030108 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "71",
+    "addr:postcode": "60314",
+    "addr:street": "Sonnemannstraße",
+    "building": "apartments",
+    "building:levels": "6",
+    "roof:levels": "1"
+  }
+},
+{
+  "type": "way",
+  "id": 150818673,
+  "bounds": {
+    "minlat": 50.1111613,
+    "minlon": 8.7032051,
+    "maxlat": 50.1112924,
+    "maxlon": 8.7034370
+  },
+  "geometry": [
+    { "lat": 50.1112541, "lon": 8.7032051 },
+    { "lat": 50.1112667, "lon": 8.7032662 },
+    { "lat": 50.1112746, "lon": 8.7033039 },
+    { "lat": 50.1112924, "lon": 8.7033900 },
+    { "lat": 50.1111996, "lon": 8.7034370 },
+    { "lat": 50.1111613, "lon": 8.7032533 },
+    { "lat": 50.1112541, "lon": 8.7032051 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "73",
+    "addr:postcode": "60314",
+    "addr:street": "Sonnemannstraße",
+    "building": "apartments",
+    "building:levels": "6",
+    "roof:levels": "1",
+    "roof:shape": "gambrel"
+  }
+},
+{
+  "type": "way",
+  "id": 150818678,
+  "bounds": {
+    "minlat": 50.1111996,
+    "minlon": 8.7033796,
+    "maxlat": 50.1113515,
+    "maxlon": 8.7036219
+  },
+  "geometry": [
+    { "lat": 50.1112924, "lon": 8.7033900 },
+    { "lat": 50.1113130, "lon": 8.7033796 },
+    { "lat": 50.1113515, "lon": 8.7035645 },
+    { "lat": 50.1113335, "lon": 8.7035736 },
+    { "lat": 50.1112382, "lon": 8.7036219 },
+    { "lat": 50.1111996, "lon": 8.7034370 },
+    { "lat": 50.1112924, "lon": 8.7033900 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "75",
+    "addr:postcode": "60314",
+    "addr:street": "Sonnemannstraße",
+    "building": "apartments",
+    "building:levels": "5",
+    "roof:levels": "1",
+    "roof:shape": "gambrel"
+  }
+},
+{
+  "type": "way",
+  "id": 150818693,
+  "bounds": {
+    "minlat": 50.1110422,
+    "minlon": 8.7019589,
+    "maxlat": 50.1111402,
+    "maxlon": 8.7021060
+  },
+  "geometry": [
+    { "lat": 50.1110474, "lon": 8.7020052 },
+    { "lat": 50.1110460, "lon": 8.7020059 },
+    { "lat": 50.1110422, "lon": 8.7019878 },
+    { "lat": 50.1110676, "lon": 8.7019748 },
+    { "lat": 50.1110694, "lon": 8.7019833 },
+    { "lat": 50.1111172, "lon": 8.7019589 },
+    { "lat": 50.1111402, "lon": 8.7020694 },
+    { "lat": 50.1110687, "lon": 8.7021060 },
+    { "lat": 50.1110526, "lon": 8.7020292 },
+    { "lat": 50.1110474, "lon": 8.7020052 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "9",
+    "addr:postcode": "60314",
+    "addr:street": "Howaldtstraße",
+    "building": "apartments",
+    "building:levels": "6",
+    "roof:levels": "0"
+  }
+},
+{
+  "type": "way",
+  "id": 150945453,
+  "bounds": {
+    "minlat": 50.1088978,
+    "minlon": 8.6999246,
+    "maxlat": 50.1091076,
+    "maxlon": 8.7001701
+  },
+  "geometry": [
+    { "lat": 50.1091076, "lon": 8.7001605 },
+    { "lat": 50.1088978, "lon": 8.7001701 },
+    { "lat": 50.1089014, "lon": 8.7000955 },
+    { "lat": 50.1089047, "lon": 8.7000959 },
+    { "lat": 50.1089166, "lon": 8.6999246 },
+    { "lat": 50.1089948, "lon": 8.6999377 },
+    { "lat": 50.1090536, "lon": 8.6999438 },
+    { "lat": 50.1091076, "lon": 8.7001605 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "1",
+    "addr:postcode": "60314",
+    "addr:street": "Horst-Schulmann-Straße",
+    "building": "apartments",
+    "building:levels": "7",
+    "roof:levels": "0"
+  }
+},
+{
+  "type": "way",
+  "id": 150945471,
+  "bounds": {
+    "minlat": 50.1083956,
+    "minlon": 8.6998960,
+    "maxlat": 50.1086174,
+    "maxlon": 8.7001518
+  },
+  "geometry": [
+    { "lat": 50.1083956, "lon": 8.7001198 },
+    { "lat": 50.1086029, "lon": 8.7001518 },
+    { "lat": 50.1086174, "lon": 8.6999288 },
+    { "lat": 50.1085986, "lon": 8.6999259 },
+    { "lat": 50.1085988, "lon": 8.6999228 },
+    { "lat": 50.1084281, "lon": 8.6998960 },
+    { "lat": 50.1084279, "lon": 8.6998988 },
+    { "lat": 50.1084100, "lon": 8.6998960 },
+    { "lat": 50.1083956, "lon": 8.7001198 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "2",
+    "addr:postcode": "60314",
+    "addr:street": "Rosa-Marx-Weg",
+    "building": "apartments",
+    "building:levels": "7"
+  }
+},
+{
+  "type": "way",
+  "id": 150945505,
+  "bounds": {
+    "minlat": 50.1090467,
+    "minlon": 8.6999133,
+    "maxlat": 50.1092889,
+    "maxlon": 8.7001605
+  },
+  "geometry": [
+    { "lat": 50.1092889, "lon": 8.7001367 },
+    { "lat": 50.1091076, "lon": 8.7001605 },
+    { "lat": 50.1090536, "lon": 8.6999438 },
+    { "lat": 50.1090467, "lon": 8.6999177 },
+    { "lat": 50.1091612, "lon": 8.6999206 },
+    { "lat": 50.1091930, "lon": 8.6999206 },
+    { "lat": 50.1092756, "lon": 8.6999133 },
+    { "lat": 50.1092889, "lon": 8.7001367 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "3",
+    "addr:postcode": "60314",
+    "addr:street": "Horst-Schulmann-Straße",
+    "building": "apartments"
+  }
+},
+{
+  "type": "way",
+  "id": 150945544,
+  "bounds": {
+    "minlat": 50.1082532,
+    "minlon": 8.6997918,
+    "maxlat": 50.1084142,
+    "maxlon": 8.7001198
+  },
+  "geometry": [
+    { "lat": 50.1084100, "lon": 8.6998960 },
+    { "lat": 50.1084142, "lon": 8.6998121 },
+    { "lat": 50.1082740, "lon": 8.6997918 },
+    { "lat": 50.1082532, "lon": 8.7000981 },
+    { "lat": 50.1083956, "lon": 8.7001198 },
+    { "lat": 50.1084100, "lon": 8.6998960 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "4",
+    "addr:postcode": "60314",
+    "addr:street": "Rosa-Marx-Weg",
+    "building": "apartments",
+    "building:levels": "7"
+  }
+},
+{
+  "type": "way",
+  "id": 150945564,
+  "bounds": {
+    "minlat": 50.1092756,
+    "minlon": 8.6998787,
+    "maxlat": 50.1095085,
+    "maxlon": 8.7001367
+  },
+  "geometry": [
+    { "lat": 50.1095085, "lon": 8.7000859 },
+    { "lat": 50.1093945, "lon": 8.7001151 },
+    { "lat": 50.1092889, "lon": 8.7001367 },
+    { "lat": 50.1092756, "lon": 8.6999133 },
+    { "lat": 50.1093530, "lon": 8.6999025 },
+    { "lat": 50.1093835, "lon": 8.6998961 },
+    { "lat": 50.1094573, "lon": 8.6998787 },
+    { "lat": 50.1094634, "lon": 8.6999033 },
+    { "lat": 50.1095085, "lon": 8.7000859 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "5",
+    "addr:postcode": "60314",
+    "addr:street": "Horst-Schulmann-Straße",
+    "building": "apartments"
+  }
+},
+{
+  "type": "way",
+  "id": 150945595,
+  "bounds": {
+    "minlat": 50.1094634,
+    "minlon": 8.6998429,
+    "maxlat": 50.1096810,
+    "maxlon": 8.7000859
+  },
+  "geometry": [
+    { "lat": 50.1096810, "lon": 8.7000275 },
+    { "lat": 50.1095985, "lon": 8.7000574 },
+    { "lat": 50.1095085, "lon": 8.7000859 },
+    { "lat": 50.1094634, "lon": 8.6999033 },
+    { "lat": 50.1095567, "lon": 8.6998750 },
+    { "lat": 50.1096067, "lon": 8.6998579 },
+    { "lat": 50.1096480, "lon": 8.6998429 },
+    { "lat": 50.1096810, "lon": 8.7000275 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "7",
+    "addr:postcode": "60314",
+    "addr:street": "Horst-Schulmann-Straße",
+    "building": "apartments"
+  }
+},
+{
+  "type": "way",
+  "id": 150945626,
+  "bounds": {
+    "minlat": 50.1096480,
+    "minlon": 8.6997725,
+    "maxlat": 50.1098650,
+    "maxlon": 8.7000275
+  },
+  "geometry": [
+    { "lat": 50.1098650, "lon": 8.6999439 },
+    { "lat": 50.1098326, "lon": 8.6999603 },
+    { "lat": 50.1098339, "lon": 8.6999661 },
+    { "lat": 50.1098158, "lon": 8.6999742 },
+    { "lat": 50.1097964, "lon": 8.6999828 },
+    { "lat": 50.1097955, "lon": 8.6999775 },
+    { "lat": 50.1096810, "lon": 8.7000275 },
+    { "lat": 50.1096480, "lon": 8.6998429 },
+    { "lat": 50.1097210, "lon": 8.6998140 },
+    { "lat": 50.1097618, "lon": 8.6997952 },
+    { "lat": 50.1098041, "lon": 8.6997764 },
+    { "lat": 50.1098123, "lon": 8.6997725 },
+    { "lat": 50.1098650, "lon": 8.6999439 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "9",
+    "addr:postcode": "60314",
+    "addr:street": "Horst-Schulmann-Straße",
+    "building": "apartments"
+  }
+},
+{
+  "type": "way",
+  "id": 151086820,
+  "bounds": {
+    "minlat": 50.1107553,
+    "minlon": 8.7007523,
+    "maxlat": 50.1108663,
+    "maxlon": 8.7009163
+  },
+  "geometry": [
+    { "lat": 50.1107553, "lon": 8.7007928 },
+    { "lat": 50.1108429, "lon": 8.7007523 },
+    { "lat": 50.1108663, "lon": 8.7008759 },
+    { "lat": 50.1107782, "lon": 8.7009163 },
+    { "lat": 50.1107553, "lon": 8.7007928 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "15",
+    "addr:postcode": "60314",
+    "addr:street": "Windeckstraße",
+    "building": "apartments",
+    "building:levels": "5",
+    "roof:levels": "1"
+  }
+},
+{
+  "type": "way",
+  "id": 151086821,
+  "bounds": {
+    "minlat": 50.1108323,
+    "minlon": 8.7006472,
+    "maxlat": 50.1109770,
+    "maxlon": 8.7008759
+  },
+  "geometry": [
+    { "lat": 50.1108429, "lon": 8.7007523 },
+    { "lat": 50.1108323, "lon": 8.7006988 },
+    { "lat": 50.1109421, "lon": 8.7006472 },
+    { "lat": 50.1109770, "lon": 8.7008256 },
+    { "lat": 50.1108663, "lon": 8.7008759 },
+    { "lat": 50.1108429, "lon": 8.7007523 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "17",
+    "addr:postcode": "60314",
+    "addr:street": "Windeckstraße",
+    "building": "apartments",
+    "building:levels": "4",
+    "roof:levels": "1"
+  }
+},
+{
+  "type": "way",
+  "id": 151086824,
+  "bounds": {
+    "minlat": 50.1109421,
+    "minlon": 8.7005945,
+    "maxlat": 50.1110870,
+    "maxlon": 8.7008256
+  },
+  "geometry": [
+    { "lat": 50.1109421, "lon": 8.7006472 },
+    { "lat": 50.1110531, "lon": 8.7005945 },
+    { "lat": 50.1110557, "lon": 8.7006072 },
+    { "lat": 50.1110870, "lon": 8.7007755 },
+    { "lat": 50.1109770, "lon": 8.7008256 },
+    { "lat": 50.1109421, "lon": 8.7006472 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "19",
+    "addr:postcode": "60314",
+    "addr:street": "Windeckstraße",
+    "building": "apartments",
+    "building:levels": "5",
+    "roof:levels": "0"
+  }
+},
+{
+  "type": "way",
+  "id": 151086825,
+  "bounds": {
+    "minlat": 50.1110557,
+    "minlon": 8.7005563,
+    "maxlat": 50.1111984,
+    "maxlon": 8.7007755
+  },
+  "geometry": [
+    { "lat": 50.1110557, "lon": 8.7006072 },
+    { "lat": 50.1111665, "lon": 8.7005563 },
+    { "lat": 50.1111984, "lon": 8.7007247 },
+    { "lat": 50.1110870, "lon": 8.7007755 },
+    { "lat": 50.1110557, "lon": 8.7006072 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "21",
+    "addr:postcode": "60314",
+    "addr:street": "Windeckstraße",
+    "building": "apartments",
+    "building:levels": "5",
+    "roof:levels": "0"
+  }
+},
+{
+  "type": "way",
+  "id": 151086826,
+  "bounds": {
+    "minlat": 50.1104727,
+    "minlon": 8.6998994,
+    "maxlat": 50.1106441,
+    "maxlon": 8.7001810
+  },
+  "geometry": [
+    { "lat": 50.1106381, "lon": 8.6998994 },
+    { "lat": 50.1106441, "lon": 8.6999956 },
+    { "lat": 50.1105591, "lon": 8.7000046 },
+    { "lat": 50.1105487, "lon": 8.7000286 },
+    { "lat": 50.1105610, "lon": 8.7000844 },
+    { "lat": 50.1105702, "lon": 8.7000794 },
+    { "lat": 50.1105717, "lon": 8.7000865 },
+    { "lat": 50.1105846, "lon": 8.7001466 },
+    { "lat": 50.1105170, "lon": 8.7001810 },
+    { "lat": 50.1104727, "lon": 8.6999689 },
+    { "lat": 50.1104940, "lon": 8.6999151 },
+    { "lat": 50.1106381, "lon": 8.6998994 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "22",
+    "addr:postcode": "60314",
+    "addr:street": "Rückertstraße",
+    "building": "apartments",
+    "building:levels": "5",
+    "roof:levels": "1"
+  }
+},
+{
+  "type": "way",
+  "id": 151086829,
+  "bounds": {
+    "minlat": 50.1111665,
+    "minlon": 8.7005066,
+    "maxlat": 50.1113084,
+    "maxlon": 8.7007247
+  },
+  "geometry": [
+    { "lat": 50.1111665, "lon": 8.7005563 },
+    { "lat": 50.1112771, "lon": 8.7005066 },
+    { "lat": 50.1113084, "lon": 8.7006753 },
+    { "lat": 50.1111984, "lon": 8.7007247 },
+    { "lat": 50.1111665, "lon": 8.7005563 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "23",
+    "addr:postcode": "60314",
+    "addr:street": "Windeckstraße",
+    "building": "apartments",
+    "building:levels": "5",
+    "roof:levels": "0"
+  }
+},
+{
+  "type": "way",
+  "id": 151086831,
+  "bounds": {
+    "minlat": 50.1106381,
+    "minlon": 8.6998891,
+    "maxlat": 50.1107579,
+    "maxlon": 8.7001885
+  },
+  "geometry": [
+    { "lat": 50.1107481, "lon": 8.7001032 },
+    { "lat": 50.1107500, "lon": 8.7001597 },
+    { "lat": 50.1107579, "lon": 8.7001847 },
+    { "lat": 50.1107254, "lon": 8.7001871 },
+    { "lat": 50.1107065, "lon": 8.7001885 },
+    { "lat": 50.1106988, "lon": 8.7001766 },
+    { "lat": 50.1106955, "lon": 8.7000898 },
+    { "lat": 50.1107062, "lon": 8.7000742 },
+    { "lat": 50.1107052, "lon": 8.7000548 },
+    { "lat": 50.1106479, "lon": 8.7000592 },
+    { "lat": 50.1106441, "lon": 8.6999956 },
+    { "lat": 50.1106381, "lon": 8.6998994 },
+    { "lat": 50.1107397, "lon": 8.6998891 },
+    { "lat": 50.1107481, "lon": 8.7001032 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "24",
+    "addr:postcode": "60314",
+    "addr:street": "Rückertstraße",
+    "building": "apartments",
+    "building:levels": "4",
+    "roof:levels": "1"
+  }
+},
+{
+  "type": "way",
+  "id": 151086835,
+  "bounds": {
+    "minlat": 50.1107397,
+    "minlon": 8.6998799,
+    "maxlat": 50.1108434,
+    "maxlon": 8.7001032
+  },
+  "geometry": [
+    { "lat": 50.1108370, "lon": 8.6998799 },
+    { "lat": 50.1108433, "lon": 8.7000403 },
+    { "lat": 50.1108434, "lon": 8.7000444 },
+    { "lat": 50.1108016, "lon": 8.7000484 },
+    { "lat": 50.1108036, "lon": 8.7000980 },
+    { "lat": 50.1107481, "lon": 8.7001032 },
+    { "lat": 50.1107397, "lon": 8.6998891 },
+    { "lat": 50.1108370, "lon": 8.6998799 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "26",
+    "addr:postcode": "60314",
+    "addr:street": "Rückertstraße",
+    "building": "apartments",
+    "building:levels": "5",
+    "roof:levels": "1"
+  }
+},
+{
+  "type": "way",
+  "id": 151086843,
+  "bounds": {
+    "minlat": 50.1108370,
+    "minlon": 8.6998708,
+    "maxlat": 50.1109450,
+    "maxlon": 8.7001616
+  },
+  "geometry": [
+    { "lat": 50.1109311, "lon": 8.6998708 },
+    { "lat": 50.1109450, "lon": 8.7001563 },
+    { "lat": 50.1108923, "lon": 8.7001616 },
+    { "lat": 50.1108892, "lon": 8.7000670 },
+    { "lat": 50.1109015, "lon": 8.7000512 },
+    { "lat": 50.1109004, "lon": 8.7000343 },
+    { "lat": 50.1108433, "lon": 8.7000403 },
+    { "lat": 50.1108370, "lon": 8.6998799 },
+    { "lat": 50.1109311, "lon": 8.6998708 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "28",
+    "addr:postcode": "60314",
+    "addr:street": "Rückertstraße",
+    "building": "apartments",
+    "building:levels": "4",
+    "roof:levels": "1"
+  }
+},
+{
+  "type": "way",
+  "id": 151086844,
+  "bounds": {
+    "minlat": 50.1109311,
+    "minlon": 8.6998614,
+    "maxlat": 50.1110376,
+    "maxlon": 8.7001563
+  },
+  "geometry": [
+    { "lat": 50.1110302, "lon": 8.6998614 },
+    { "lat": 50.1110376, "lon": 8.7000178 },
+    { "lat": 50.1109825, "lon": 8.7000239 },
+    { "lat": 50.1109833, "lon": 8.7000458 },
+    { "lat": 50.1109939, "lon": 8.7000601 },
+    { "lat": 50.1109971, "lon": 8.7001509 },
+    { "lat": 50.1109450, "lon": 8.7001563 },
+    { "lat": 50.1109311, "lon": 8.6998708 },
+    { "lat": 50.1110302, "lon": 8.6998614 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "30",
+    "addr:postcode": "60314",
+    "addr:street": "Rückertstraße",
+    "building": "apartments",
+    "building:levels": "4",
+    "roof:levels": "1"
+  }
+},
+{
+  "type": "way",
+  "id": 151086850,
+  "bounds": {
+    "minlat": 50.1110302,
+    "minlon": 8.6998510,
+    "maxlat": 50.1111420,
+    "maxlon": 8.7001410
+  },
+  "geometry": [
+    { "lat": 50.1111286, "lon": 8.6998510 },
+    { "lat": 50.1111420, "lon": 8.7001371 },
+    { "lat": 50.1110889, "lon": 8.7001410 },
+    { "lat": 50.1110850, "lon": 8.7000512 },
+    { "lat": 50.1110934, "lon": 8.7000360 },
+    { "lat": 50.1110929, "lon": 8.7000190 },
+    { "lat": 50.1110376, "lon": 8.7000241 },
+    { "lat": 50.1110376, "lon": 8.7000178 },
+    { "lat": 50.1110302, "lon": 8.6998614 },
+    { "lat": 50.1111286, "lon": 8.6998510 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "32",
+    "addr:postcode": "60314",
+    "addr:street": "Rückertstraße",
+    "building": "apartments",
+    "building:levels": "4",
+    "roof:levels": "1"
+  }
+},
+{
+  "type": "way",
+  "id": 151086857,
+  "bounds": {
+    "minlat": 50.1111286,
+    "minlon": 8.6998417,
+    "maxlat": 50.1112321,
+    "maxlon": 8.7001371
+  },
+  "geometry": [
+    { "lat": 50.1112247, "lon": 8.6998417 },
+    { "lat": 50.1112321, "lon": 8.7000028 },
+    { "lat": 50.1111793, "lon": 8.7000076 },
+    { "lat": 50.1111800, "lon": 8.7000244 },
+    { "lat": 50.1111887, "lon": 8.7000415 },
+    { "lat": 50.1111927, "lon": 8.7001319 },
+    { "lat": 50.1111420, "lon": 8.7001371 },
+    { "lat": 50.1111286, "lon": 8.6998510 },
+    { "lat": 50.1112247, "lon": 8.6998417 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "34",
+    "addr:postcode": "60314",
+    "addr:street": "Rückertstraße",
+    "building": "apartments",
+    "building:levels": "4",
+    "roof:levels": "1"
+  }
+},
+{
+  "type": "way",
+  "id": 151086885,
+  "bounds": {
+    "minlat": 50.1105170,
+    "minlon": 8.7001321,
+    "maxlat": 50.1106514,
+    "maxlon": 8.7003465
+  },
+  "geometry": [
+    { "lat": 50.1105846, "lon": 8.7001466 },
+    { "lat": 50.1105961, "lon": 8.7001405 },
+    { "lat": 50.1106128, "lon": 8.7001321 },
+    { "lat": 50.1106232, "lon": 8.7001805 },
+    { "lat": 50.1106261, "lon": 8.7001788 },
+    { "lat": 50.1106418, "lon": 8.7002528 },
+    { "lat": 50.1106514, "lon": 8.7002968 },
+    { "lat": 50.1105519, "lon": 8.7003465 },
+    { "lat": 50.1105170, "lon": 8.7001810 },
+    { "lat": 50.1105846, "lon": 8.7001466 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "43",
+    "addr:postcode": "60314",
+    "addr:street": "Sonnemannstraße",
+    "building": "apartments",
+    "building:levels": "4",
+    "roof:levels": "1",
+    "roof:shape": "gabled"
+  }
+},
+{
+  "type": "way",
+  "id": 151086888,
+  "bounds": {
+    "minlat": 50.1105519,
+    "minlon": 8.7002902,
+    "maxlat": 50.1106876,
+    "maxlon": 8.7004876
+  },
+  "geometry": [
+    { "lat": 50.1106514, "lon": 8.7002968 },
+    { "lat": 50.1106638, "lon": 8.7002902 },
+    { "lat": 50.1106748, "lon": 8.7003414 },
+    { "lat": 50.1106876, "lon": 8.7003994 },
+    { "lat": 50.1106778, "lon": 8.7004044 },
+    { "lat": 50.1106849, "lon": 8.7004386 },
+    { "lat": 50.1106810, "lon": 8.7004403 },
+    { "lat": 50.1105831, "lon": 8.7004876 },
+    { "lat": 50.1105519, "lon": 8.7003465 },
+    { "lat": 50.1106514, "lon": 8.7002968 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "45",
+    "addr:postcode": "60314",
+    "addr:street": "Sonnemannstraße",
+    "building": "apartments",
+    "building:levels": "4",
+    "roof:levels": "2",
+    "roof:shape": "gambrel"
+  }
+},
+{
+  "type": "way",
+  "id": 151086890,
+  "bounds": {
+    "minlat": 50.1105831,
+    "minlon": 8.7004403,
+    "maxlat": 50.1107451,
+    "maxlon": 8.7006331
+  },
+  "geometry": [
+    { "lat": 50.1106810, "lon": 8.7004403 },
+    { "lat": 50.1106880, "lon": 8.7004732 },
+    { "lat": 50.1107011, "lon": 8.7004661 },
+    { "lat": 50.1107042, "lon": 8.7004803 },
+    { "lat": 50.1107170, "lon": 8.7005402 },
+    { "lat": 50.1107297, "lon": 8.7005333 },
+    { "lat": 50.1107363, "lon": 8.7005293 },
+    { "lat": 50.1107451, "lon": 8.7005680 },
+    { "lat": 50.1107357, "lon": 8.7005748 },
+    { "lat": 50.1106152, "lon": 8.7006331 },
+    { "lat": 50.1105831, "lon": 8.7004876 },
+    { "lat": 50.1106810, "lon": 8.7004403 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "47",
+    "addr:postcode": "60314",
+    "addr:street": "Sonnemannstraße",
+    "building": "apartments",
+    "building:levels": "4",
+    "roof:levels": "2",
+    "roof:shape": "gambrel"
+  }
+},
+{
+  "type": "way",
+  "id": 151086895,
+  "bounds": {
+    "minlat": 50.1106152,
+    "minlon": 8.7005748,
+    "maxlat": 50.1107491,
+    "maxlon": 8.7007786
+  },
+  "geometry": [
+    { "lat": 50.1107357, "lon": 8.7005748 },
+    { "lat": 50.1107431, "lon": 8.7006087 },
+    { "lat": 50.1107339, "lon": 8.7006136 },
+    { "lat": 50.1107491, "lon": 8.7006840 },
+    { "lat": 50.1107399, "lon": 8.7006939 },
+    { "lat": 50.1107463, "lon": 8.7007246 },
+    { "lat": 50.1107130, "lon": 8.7007426 },
+    { "lat": 50.1106469, "lon": 8.7007786 },
+    { "lat": 50.1106152, "lon": 8.7006331 },
+    { "lat": 50.1107357, "lon": 8.7005748 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "49",
+    "addr:postcode": "60314",
+    "addr:street": "Sonnemannstraße",
+    "building": "apartments",
+    "building:levels": "4",
+    "roof:levels": "2",
+    "roof:shape": "gambrel"
+  }
+},
+{
+  "type": "way",
+  "id": 151086897,
+  "bounds": {
+    "minlat": 50.1106469,
+    "minlon": 8.7007426,
+    "maxlat": 50.1107782,
+    "maxlon": 8.7009524
+  },
+  "geometry": [
+    { "lat": 50.1107130, "lon": 8.7007426 },
+    { "lat": 50.1107251, "lon": 8.7008058 },
+    { "lat": 50.1107553, "lon": 8.7007928 },
+    { "lat": 50.1107782, "lon": 8.7009163 },
+    { "lat": 50.1107000, "lon": 8.7009524 },
+    { "lat": 50.1106819, "lon": 8.7009390 },
+    { "lat": 50.1106469, "lon": 8.7007786 },
+    { "lat": 50.1107130, "lon": 8.7007426 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "51",
+    "addr:postcode": "60314",
+    "addr:street": "Sonnemannstraße",
+    "building": "apartments",
+    "building:levels": "4",
+    "roof:levels": "2",
+    "roof:shape": "gambrel"
+  }
+},
+{
+  "type": "way",
+  "id": 156432555,
+  "bounds": {
+    "minlat": 50.1086067,
+    "minlon": 8.7024735,
+    "maxlat": 50.1092550,
+    "maxlon": 8.7038971
+  },
+  "geometry": [
+    { "lat": 50.1092414, "lon": 8.7027860 },
+    { "lat": 50.1090852, "lon": 8.7027509 },
+    { "lat": 50.1090705, "lon": 8.7027235 },
+    { "lat": 50.1089756, "lon": 8.7025330 },
+    { "lat": 50.1089558, "lon": 8.7024932 },
+    { "lat": 50.1089387, "lon": 8.7025155 },
+    { "lat": 50.1089350, "lon": 8.7025086 },
+    { "lat": 50.1087762, "lon": 8.7024735 },
+    { "lat": 50.1087389, "lon": 8.7028656 },
+    { "lat": 50.1086067, "lon": 8.7032394 },
+    { "lat": 50.1088595, "lon": 8.7032988 },
+    { "lat": 50.1089518, "lon": 8.7038653 },
+    { "lat": 50.1089746, "lon": 8.7038557 },
+    { "lat": 50.1089755, "lon": 8.7038600 },
+    { "lat": 50.1091367, "lon": 8.7038971 },
+    { "lat": 50.1092550, "lon": 8.7035188 },
+    { "lat": 50.1092072, "lon": 8.7031611 },
+    { "lat": 50.1092414, "lon": 8.7027860 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "20",
+    "addr:postcode": "60314",
+    "addr:street": "Sonnemannstraße",
+    "architect": "Coop Himmelb(l)au",
+    "building": "public",
+    "building:levels": "45",
+    "building:material": "glass",
+    "height": "185",
+    "name": "Europäische Zentralbank",
+    "name:af": "Europese Sentrale Bank",
+    "name:av": "Европаялъул централияб банк",
+    "name:be": "Еўрапейскі цэнтральны банк",
+    "name:be-tarask": "Эўрапейскі цэнтральны банк",
+    "name:bg": "Европейска централна банка",
+    "name:de": "Europäische Zentralbank",
+    "name:dsb": "Europejska centralna banka",
+    "name:en": "European Central Bank",
+    "name:es": "Banco Central Europeo",
+    "name:fr": "Banque centrale européenne",
+    "name:grc": "Εὐρωπαϊκὴ Κεντρικὴ Τράπεζα",
+    "name:hsb": "Europska centralna banka",
+    "name:hy": "Եվրոպական կենտրոնական բանկ",
+    "name:it": "Banca centrale europea",
+    "name:mk": "Европска централна банка",
+    "name:nl": "Europese Centrale Bank",
+    "name:pt": "Banco Central Europeu",
+    "name:ro": "Banca Centrală Europeană",
+    "name:sr": "Европска централна банка",
+    "name:sv": "Europeiska centralbanken",
+    "name:uk": "Європейський центральний банк",
+    "name:ur": "یورپی مرکزی بینک",
+    "name:yi": "אייראפעישער צענטראלבאנק",
+    "roof:material": "glass",
+    "roof:shape": "skillion",
+    "start_date": "2014-10",
+    "wikidata": "Q126362911",
+    "wikimedia_commons": "Category:Skytower (ECB)",
+    "wikipedia": "de:Sitz der Europäischen Zentralbank"
+  }
+},
+{
+  "type": "way",
+  "id": 208119620,
+  "bounds": {
+    "minlat": 50.1076676,
+    "minlon": 8.7026507,
+    "maxlat": 50.1078157,
+    "maxlon": 8.7028311
+  },
+  "geometry": [
+    { "lat": 50.1078157, "lon": 8.7026639 },
+    { "lat": 50.1077758, "lon": 8.7026608 },
+    { "lat": 50.1076752, "lon": 8.7026507 },
+    { "lat": 50.1076676, "lon": 8.7028154 },
+    { "lat": 50.1078084, "lon": 8.7028311 },
+    { "lat": 50.1078157, "lon": 8.7026639 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "4",
+    "addr:postcode": "60314",
+    "addr:street": "Mayfarthstraße",
+    "amenity": "restaurant",
+    "building": "yes",
+    "capacity": "160",
+    "check_date": "2024-11-03",
+    "contact:website": "https://oosten-frankfurt.com/",
+    "cuisine": "international",
+    "diet:vegetarian": "yes",
+    "email": "be@oosten-frankfurt.com",
+    "name": "Oosten",
+    "opening_hours": "We-Fr 17:00-23:00; Sa 10:00-23:00; Su 10:00-17:00",
+    "outdoor_seating": "yes",
+    "phone": "+49 69 9494256814",
+    "toilets:wheelchair": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 208119621,
+  "bounds": {
+    "minlat": 50.1076229,
+    "minlon": 8.7026463,
+    "maxlat": 50.1076752,
+    "maxlon": 8.7028154
+  },
+  "geometry": [
+    { "lat": 50.1076676, "lon": 8.7028154 },
+    { "lat": 50.1076752, "lon": 8.7026507 },
+    { "lat": 50.1076295, "lon": 8.7026463 },
+    { "lat": 50.1076229, "lon": 8.7028110 },
+    { "lat": 50.1076676, "lon": 8.7028154 }
+  ],
+  "tags": {
+    "building": "yes",
+    "historic": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 208119622,
+  "bounds": {
+    "minlat": 50.1076657,
+    "minlon": 8.7024813,
+    "maxlat": 50.1078866,
+    "maxlon": 8.7026608
+  },
+  "geometry": [
+    { "lat": 50.1077765, "lon": 8.7026442 },
+    { "lat": 50.1078821, "lon": 8.7026548 },
+    { "lat": 50.1078866, "lon": 8.7025451 },
+    { "lat": 50.1077812, "lon": 8.7025345 },
+    { "lat": 50.1077830, "lon": 8.7024914 },
+    { "lat": 50.1076825, "lon": 8.7024813 },
+    { "lat": 50.1076808, "lon": 8.7025233 },
+    { "lat": 50.1076703, "lon": 8.7025223 },
+    { "lat": 50.1076657, "lon": 8.7026330 },
+    { "lat": 50.1076759, "lon": 8.7026340 },
+    { "lat": 50.1076752, "lon": 8.7026507 },
+    { "lat": 50.1077758, "lon": 8.7026608 },
+    { "lat": 50.1077765, "lon": 8.7026442 }
+  ],
+  "tags": {
+    "building": "roof",
+    "layer": "1"
+  }
+},
+{
+  "type": "way",
+  "id": 300429302,
+  "bounds": {
+    "minlat": 50.1091456,
+    "minlon": 8.7011730,
+    "maxlat": 50.1100966,
+    "maxlon": 8.7047601
+  },
+  "geometry": [
+    { "lat": 50.1093477, "lon": 8.7026375 },
+    { "lat": 50.1095738, "lon": 8.7045439 },
+    { "lat": 50.1095401, "lon": 8.7045548 },
+    { "lat": 50.1095494, "lon": 8.7046304 },
+    { "lat": 50.1095307, "lon": 8.7046366 },
+    { "lat": 50.1095368, "lon": 8.7046896 },
+    { "lat": 50.1095540, "lon": 8.7046843 },
+    { "lat": 50.1095628, "lon": 8.7047601 },
+    { "lat": 50.1100867, "lon": 8.7046104 },
+    { "lat": 50.1100771, "lon": 8.7045345 },
+    { "lat": 50.1100966, "lon": 8.7045283 },
+    { "lat": 50.1100895, "lon": 8.7044759 },
+    { "lat": 50.1100716, "lon": 8.7044808 },
+    { "lat": 50.1098019, "lon": 8.7022092 },
+    { "lat": 50.1097696, "lon": 8.7022342 },
+    { "lat": 50.1097671, "lon": 8.7022320 },
+    { "lat": 50.1097618, "lon": 8.7021785 },
+    { "lat": 50.1099455, "lon": 8.7020365 },
+    { "lat": 50.1098610, "lon": 8.7017088 },
+    { "lat": 50.1097188, "lon": 8.7018190 },
+    { "lat": 50.1097148, "lon": 8.7017868 },
+    { "lat": 50.1097501, "lon": 8.7017770 },
+    { "lat": 50.1096934, "lon": 8.7013038 },
+    { "lat": 50.1097128, "lon": 8.7012979 },
+    { "lat": 50.1097062, "lon": 8.7012431 },
+    { "lat": 50.1096869, "lon": 8.7012488 },
+    { "lat": 50.1096778, "lon": 8.7011730 },
+    { "lat": 50.1096086, "lon": 8.7011928 },
+    { "lat": 50.1092354, "lon": 8.7013000 },
+    { "lat": 50.1091558, "lon": 8.7013229 },
+    { "lat": 50.1091651, "lon": 8.7013985 },
+    { "lat": 50.1091456, "lon": 8.7014051 },
+    { "lat": 50.1091520, "lon": 8.7014605 },
+    { "lat": 50.1091714, "lon": 8.7014535 },
+    { "lat": 50.1091808, "lon": 8.7015300 },
+    { "lat": 50.1092146, "lon": 8.7015189 },
+    { "lat": 50.1092277, "lon": 8.7016288 },
+    { "lat": 50.1092395, "lon": 8.7017257 },
+    { "lat": 50.1092955, "lon": 8.7021725 },
+    { "lat": 50.1092028, "lon": 8.7022392 },
+    { "lat": 50.1092979, "lon": 8.7025380 },
+    { "lat": 50.1093324, "lon": 8.7025098 },
+    { "lat": 50.1093364, "lon": 8.7025433 },
+    { "lat": 50.1093403, "lon": 8.7025750 },
+    { "lat": 50.1093477, "lon": 8.7026375 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "20",
+    "addr:postcode": "60314",
+    "addr:street": "Sonnemannstraße",
+    "alt_name": "ehem.Großmarkthalle",
+    "architect": "Martin Elsaesser",
+    "building": "public",
+    "building:levels": "7",
+    "description": "From 1928 until it was closed on June 4, 2004, the wholesale market hall was a commercial wholesale market in which primarily fruit and vegetables were traded. The building was integrated into the new building of the European Central Bank",
+    "image": "https://de.wikipedia.org/wiki/Datei:Gro%C3%9Fmarkhalle_Frankfurt_Panorama.jpg",
+    "start_date": "1928",
+    "wikidata": "Q195220",
+    "wikimedia_commons": "Category:Großmarkthalle, Frankfurt",
+    "wikipedia": "de:Großmarkthalle (Frankfurt am Main)"
+  }
+},
+{
+  "type": "way",
+  "id": 300429304,
+  "bounds": {
+    "minlat": 50.1092028,
+    "minlon": 8.7017088,
+    "maxlat": 50.1099455,
+    "maxlon": 8.7025380
+  },
+  "geometry": [
+    { "lat": 50.1099455, "lon": 8.7020365 },
+    { "lat": 50.1097618, "lon": 8.7021785 },
+    { "lat": 50.1093324, "lon": 8.7025098 },
+    { "lat": 50.1092979, "lon": 8.7025380 },
+    { "lat": 50.1092028, "lon": 8.7022392 },
+    { "lat": 50.1092955, "lon": 8.7021725 },
+    { "lat": 50.1097188, "lon": 8.7018190 },
+    { "lat": 50.1098610, "lon": 8.7017088 },
+    { "lat": 50.1099455, "lon": 8.7020365 }
+  ],
+  "tags": {
+    "building:levels": "8",
+    "building:part": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 300429306,
+  "bounds": {
+    "minlat": 50.1089756,
+    "minlon": 8.7022127,
+    "maxlat": 50.1093477,
+    "maxlon": 8.7027235
+  },
+  "geometry": [
+    { "lat": 50.1093477, "lon": 8.7026375 },
+    { "lat": 50.1093403, "lon": 8.7025750 },
+    { "lat": 50.1092190, "lon": 8.7026099 },
+    { "lat": 50.1092308, "lon": 8.7026000 },
+    { "lat": 50.1093240, "lon": 8.7025735 },
+    { "lat": 50.1093218, "lon": 8.7025484 },
+    { "lat": 50.1093364, "lon": 8.7025433 },
+    { "lat": 50.1093324, "lon": 8.7025098 },
+    { "lat": 50.1092979, "lon": 8.7025380 },
+    { "lat": 50.1092028, "lon": 8.7022392 },
+    { "lat": 50.1091974, "lon": 8.7022228 },
+    { "lat": 50.1091949, "lon": 8.7022251 },
+    { "lat": 50.1091906, "lon": 8.7022127 },
+    { "lat": 50.1090177, "lon": 8.7024865 },
+    { "lat": 50.1090086, "lon": 8.7024987 },
+    { "lat": 50.1089756, "lon": 8.7025330 },
+    { "lat": 50.1090705, "lon": 8.7027235 },
+    { "lat": 50.1091074, "lon": 8.7026964 },
+    { "lat": 50.1091577, "lon": 8.7026924 },
+    { "lat": 50.1093477, "lon": 8.7026375 }
+  ],
+  "tags": {
+    "building": "government",
+    "building:levels": "3"
+  }
+},
+{
+  "type": "way",
+  "id": 311788285,
+  "bounds": {
+    "minlat": 50.1109983,
+    "minlon": 8.7010545,
+    "maxlat": 50.1111970,
+    "maxlon": 8.7015547
+  },
+  "geometry": [
+    { "lat": 50.1111970, "lon": 8.7012722 },
+    { "lat": 50.1111380, "lon": 8.7012995 },
+    { "lat": 50.1111443, "lon": 8.7013295 },
+    { "lat": 50.1111464, "lon": 8.7013284 },
+    { "lat": 50.1111830, "lon": 8.7015260 },
+    { "lat": 50.1110788, "lon": 8.7015547 },
+    { "lat": 50.1109983, "lon": 8.7011252 },
+    { "lat": 50.1111564, "lon": 8.7010545 },
+    { "lat": 50.1111970, "lon": 8.7012722 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "42",
+    "addr:postcode": "60314",
+    "addr:street": "Windeckstraße",
+    "building": "apartments"
+  }
+},
+{
+  "type": "way",
+  "id": 311788286,
+  "bounds": {
+    "minlat": 50.1111564,
+    "minlon": 8.7008222,
+    "maxlat": 50.1115110,
+    "maxlon": 8.7014912
+  },
+  "geometry": [
+    { "lat": 50.1111564, "lon": 8.7010545 },
+    { "lat": 50.1111864, "lon": 8.7010409 },
+    { "lat": 50.1112223, "lon": 8.7010244 },
+    { "lat": 50.1112649, "lon": 8.7010051 },
+    { "lat": 50.1113005, "lon": 8.7009889 },
+    { "lat": 50.1113430, "lon": 8.7009696 },
+    { "lat": 50.1113788, "lon": 8.7009530 },
+    { "lat": 50.1113975, "lon": 8.7009446 },
+    { "lat": 50.1113825, "lon": 8.7008639 },
+    { "lat": 50.1114745, "lon": 8.7008222 },
+    { "lat": 50.1115069, "lon": 8.7009899 },
+    { "lat": 50.1115110, "lon": 8.7010103 },
+    { "lat": 50.1114488, "lon": 8.7010375 },
+    { "lat": 50.1114702, "lon": 8.7011514 },
+    { "lat": 50.1113409, "lon": 8.7012102 },
+    { "lat": 50.1113455, "lon": 8.7012322 },
+    { "lat": 50.1113492, "lon": 8.7012305 },
+    { "lat": 50.1113926, "lon": 8.7014653 },
+    { "lat": 50.1113023, "lon": 8.7014912 },
+    { "lat": 50.1112606, "lon": 8.7012697 },
+    { "lat": 50.1112816, "lon": 8.7012613 },
+    { "lat": 50.1112768, "lon": 8.7012367 },
+    { "lat": 50.1111970, "lon": 8.7012722 },
+    { "lat": 50.1111564, "lon": 8.7010545 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "44",
+    "addr:postcode": "60314",
+    "addr:street": "Windeckstraße",
+    "building": "apartments"
+  }
+},
+{
+  "type": "way",
+  "id": 317520354,
+  "bounds": {
+    "minlat": 50.1102862,
+    "minlon": 8.7014723,
+    "maxlat": 50.1104181,
+    "maxlon": 8.7017109
+  },
+  "geometry": [
+    { "lat": 50.1103454, "lon": 8.7014723 },
+    { "lat": 50.1103867, "lon": 8.7015549 },
+    { "lat": 50.1103896, "lon": 8.7015654 },
+    { "lat": 50.1104181, "lon": 8.7016655 },
+    { "lat": 50.1104079, "lon": 8.7016735 },
+    { "lat": 50.1103594, "lon": 8.7017109 },
+    { "lat": 50.1103338, "lon": 8.7016365 },
+    { "lat": 50.1103271, "lon": 8.7016171 },
+    { "lat": 50.1103181, "lon": 8.7015991 },
+    { "lat": 50.1102862, "lon": 8.7015353 },
+    { "lat": 50.1103454, "lon": 8.7014723 }
+  ],
+  "tags": {
+    "addr:housenumber": "20",
+    "addr:street": "Sonnemannstraße",
+    "building": "yes",
+    "name": "Besucherzentrum",
+    "name:de": "Besucherzentrum",
+    "name:en": "Visitor Centre",
+    "name:fr": "Centre des visiteurs",
+    "note": "Die Telefonnummer für die Anmeldung zur Besucherführung",
+    "phone": "+49 69 13447535"
+  }
+},
+{
+  "type": "way",
+  "id": 600390898,
+  "bounds": {
+    "minlat": 50.1100589,
+    "minlon": 8.7069849,
+    "maxlat": 50.1112265,
+    "maxlon": 8.7085406
+  },
+  "geometry": [
+    { "lat": 50.1100589, "lon": 8.7085406 },
+    { "lat": 50.1100885, "lon": 8.7069849 },
+    { "lat": 50.1101417, "lon": 8.7070198 },
+    { "lat": 50.1104068, "lon": 8.7072089 },
+    { "lat": 50.1106888, "lon": 8.7074274 },
+    { "lat": 50.1110316, "lon": 8.7077134 },
+    { "lat": 50.1112265, "lon": 8.7078775 },
+    { "lat": 50.1112107, "lon": 8.7083675 },
+    { "lat": 50.1109152, "lon": 8.7084162 },
+    { "lat": 50.1107491, "lon": 8.7084413 },
+    { "lat": 50.1101539, "lon": 8.7085291 },
+    { "lat": 50.1100589, "lon": 8.7085406 }
+  ],
+  "tags": {
+    "building": "construction",
+    "construction": "apartments",
+    "name": "Hafenpark-Quartier Baufeld Nord"
+  }
+},
+{
+  "type": "way",
+  "id": 600390903,
+  "bounds": {
+    "minlat": 50.1088007,
+    "minlon": 8.7064173,
+    "maxlat": 50.1098790,
+    "maxlon": 8.7071628
+  },
+  "geometry": [
+    { "lat": 50.1097589, "lon": 8.7071575 },
+    { "lat": 50.1097608, "lon": 8.7070419 },
+    { "lat": 50.1096802, "lon": 8.7070007 },
+    { "lat": 50.1096632, "lon": 8.7070815 },
+    { "lat": 50.1095757, "lon": 8.7070345 },
+    { "lat": 50.1094581, "lon": 8.7069772 },
+    { "lat": 50.1093375, "lon": 8.7069219 },
+    { "lat": 50.1093530, "lon": 8.7068412 },
+    { "lat": 50.1091659, "lon": 8.7067656 },
+    { "lat": 50.1091068, "lon": 8.7067435 },
+    { "lat": 50.1090610, "lon": 8.7067438 },
+    { "lat": 50.1090029, "lon": 8.7067757 },
+    { "lat": 50.1089711, "lon": 8.7068138 },
+    { "lat": 50.1090026, "lon": 8.7069279 },
+    { "lat": 50.1088837, "lon": 8.7070105 },
+    { "lat": 50.1088627, "lon": 8.7069298 },
+    { "lat": 50.1088392, "lon": 8.7068203 },
+    { "lat": 50.1088294, "lon": 8.7067605 },
+    { "lat": 50.1088189, "lon": 8.7066892 },
+    { "lat": 50.1088099, "lon": 8.7066156 },
+    { "lat": 50.1088007, "lon": 8.7064816 },
+    { "lat": 50.1088022, "lon": 8.7064661 },
+    { "lat": 50.1088043, "lon": 8.7064563 },
+    { "lat": 50.1088079, "lon": 8.7064454 },
+    { "lat": 50.1088127, "lon": 8.7064362 },
+    { "lat": 50.1088197, "lon": 8.7064276 },
+    { "lat": 50.1088265, "lon": 8.7064220 },
+    { "lat": 50.1088335, "lon": 8.7064193 },
+    { "lat": 50.1088412, "lon": 8.7064173 },
+    { "lat": 50.1088508, "lon": 8.7064186 },
+    { "lat": 50.1089412, "lon": 8.7064461 },
+    { "lat": 50.1091311, "lon": 8.7065088 },
+    { "lat": 50.1092164, "lon": 8.7065381 },
+    { "lat": 50.1092179, "lon": 8.7065287 },
+    { "lat": 50.1092224, "lon": 8.7065015 },
+    { "lat": 50.1093228, "lon": 8.7065417 },
+    { "lat": 50.1093184, "lon": 8.7065686 },
+    { "lat": 50.1093168, "lon": 8.7065783 },
+    { "lat": 50.1094125, "lon": 8.7066162 },
+    { "lat": 50.1095187, "lon": 8.7066653 },
+    { "lat": 50.1096290, "lon": 8.7067181 },
+    { "lat": 50.1097284, "lon": 8.7067728 },
+    { "lat": 50.1098686, "lon": 8.7068496 },
+    { "lat": 50.1098790, "lon": 8.7068796 },
+    { "lat": 50.1098743, "lon": 8.7071628 },
+    { "lat": 50.1097589, "lon": 8.7071575 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "1",
+    "addr:postcode": "60314",
+    "addr:street": "Eytelweinstraße",
+    "brand": "Scandic Hotels",
+    "brand:wikidata": "Q129391",
+    "building": "hotel",
+    "description": "Konferenzhotel",
+    "internet_access": "wlan",
+    "internet_access:fee": "customers",
+    "name": "Scandic Frankfurt Hafenpark",
+    "tourism": "hotel",
+    "website": "https://www.scandichotels.de/hotelsuche/deutschland/frankfurt/scandic-frankfurt-hafenpark",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 600390904,
+  "bounds": {
+    "minlat": 50.1091283,
+    "minlon": 8.7076363,
+    "maxlat": 50.1094949,
+    "maxlon": 8.7080621
+  },
+  "geometry": [
+    { "lat": 50.1094913, "lon": 8.7080039 },
+    { "lat": 50.1094836, "lon": 8.7080319 },
+    { "lat": 50.1094663, "lon": 8.7080517 },
+    { "lat": 50.1094449, "lon": 8.7080593 },
+    { "lat": 50.1094119, "lon": 8.7080620 },
+    { "lat": 50.1093522, "lon": 8.7080621 },
+    { "lat": 50.1093003, "lon": 8.7080564 },
+    { "lat": 50.1092468, "lon": 8.7080471 },
+    { "lat": 50.1092056, "lon": 8.7080362 },
+    { "lat": 50.1091757, "lon": 8.7080259 },
+    { "lat": 50.1091563, "lon": 8.7080128 },
+    { "lat": 50.1091529, "lon": 8.7080105 },
+    { "lat": 50.1091375, "lon": 8.7079899 },
+    { "lat": 50.1091284, "lon": 8.7079568 },
+    { "lat": 50.1091283, "lon": 8.7079253 },
+    { "lat": 50.1091283, "lon": 8.7079206 },
+    { "lat": 50.1091377, "lon": 8.7078849 },
+    { "lat": 50.1091485, "lon": 8.7078597 },
+    { "lat": 50.1091805, "lon": 8.7077958 },
+    { "lat": 50.1092118, "lon": 8.7077430 },
+    { "lat": 50.1092452, "lon": 8.7076961 },
+    { "lat": 50.1092631, "lon": 8.7076750 },
+    { "lat": 50.1092903, "lon": 8.7076482 },
+    { "lat": 50.1093157, "lon": 8.7076363 },
+    { "lat": 50.1093384, "lon": 8.7076375 },
+    { "lat": 50.1093618, "lon": 8.7076554 },
+    { "lat": 50.1093891, "lon": 8.7077002 },
+    { "lat": 50.1094124, "lon": 8.7077449 },
+    { "lat": 50.1094411, "lon": 8.7078038 },
+    { "lat": 50.1094695, "lon": 8.7078791 },
+    { "lat": 50.1094895, "lon": 8.7079462 },
+    { "lat": 50.1094949, "lon": 8.7079742 },
+    { "lat": 50.1094913, "lon": 8.7080039 }
+  ],
+  "tags": {
+    "building:levels": "15",
+    "building:part": "yes",
+    "height": "52",
+    "min_height": "9",
+    "roof:shape": "flat"
+  }
+},
+{
+  "type": "way",
+  "id": 600390905,
+  "bounds": {
+    "minlat": 50.1089539,
+    "minlon": 8.7069879,
+    "maxlat": 50.1092644,
+    "maxlon": 8.7075138
+  },
+  "geometry": [
+    { "lat": 50.1091958, "lon": 8.7070446 },
+    { "lat": 50.1092621, "lon": 8.7073124 },
+    { "lat": 50.1092644, "lon": 8.7073708 },
+    { "lat": 50.1092593, "lon": 8.7074098 },
+    { "lat": 50.1092423, "lon": 8.7074461 },
+    { "lat": 50.1092031, "lon": 8.7074751 },
+    { "lat": 50.1091805, "lon": 8.7074855 },
+    { "lat": 50.1091491, "lon": 8.7074953 },
+    { "lat": 50.1090927, "lon": 8.7075052 },
+    { "lat": 50.1090322, "lon": 8.7075132 },
+    { "lat": 50.1090247, "lon": 8.7075138 },
+    { "lat": 50.1090055, "lon": 8.7075124 },
+    { "lat": 50.1089942, "lon": 8.7075093 },
+    { "lat": 50.1089847, "lon": 8.7075067 },
+    { "lat": 50.1089659, "lon": 8.7074846 },
+    { "lat": 50.1089557, "lon": 8.7074523 },
+    { "lat": 50.1089539, "lon": 8.7074181 },
+    { "lat": 50.1089576, "lon": 8.7073998 },
+    { "lat": 50.1089638, "lon": 8.7073693 },
+    { "lat": 50.1089738, "lon": 8.7073353 },
+    { "lat": 50.1089851, "lon": 8.7073002 },
+    { "lat": 50.1090056, "lon": 8.7072418 },
+    { "lat": 50.1090319, "lon": 8.7071731 },
+    { "lat": 50.1090579, "lon": 8.7071166 },
+    { "lat": 50.1090842, "lon": 8.7070635 },
+    { "lat": 50.1091109, "lon": 8.7070149 },
+    { "lat": 50.1091260, "lon": 8.7069986 },
+    { "lat": 50.1091431, "lon": 8.7069879 },
+    { "lat": 50.1091635, "lon": 8.7069933 },
+    { "lat": 50.1091782, "lon": 8.7070064 },
+    { "lat": 50.1091958, "lon": 8.7070446 }
+  ],
+  "tags": {
+    "building:levels": "16",
+    "building:part": "yes",
+    "height": "58",
+    "min_height": "9",
+    "roof:shape": "flat"
+  }
+},
+{
+  "type": "way",
+  "id": 737028654,
+  "bounds": {
+    "minlat": 50.1087104,
+    "minlon": 8.7047882,
+    "maxlat": 50.1088234,
+    "maxlon": 8.7050399
+  },
+  "geometry": [
+    { "lat": 50.1087325, "lon": 8.7047882 },
+    { "lat": 50.1087169, "lon": 8.7049509 },
+    { "lat": 50.1087104, "lon": 8.7050187 },
+    { "lat": 50.1088013, "lon": 8.7050399 },
+    { "lat": 50.1088123, "lon": 8.7049253 },
+    { "lat": 50.1088234, "lon": 8.7048094 },
+    { "lat": 50.1087325, "lon": 8.7047882 }
+  ],
+  "tags": {
+    "building": "office",
+    "building:levels": "1",
+    "roof:shape": "saltbox"
+  }
+},
+{
+  "type": "way",
+  "id": 786057242,
+  "bounds": {
+    "minlat": 50.1097188,
+    "minlon": 8.7017088,
+    "maxlat": 50.1099455,
+    "maxlon": 8.7021785
+  },
+  "geometry": [
+    { "lat": 50.1098610, "lon": 8.7017088 },
+    { "lat": 50.1097188, "lon": 8.7018190 },
+    { "lat": 50.1097360, "lon": 8.7019616 },
+    { "lat": 50.1097537, "lon": 8.7020172 },
+    { "lat": 50.1097579, "lon": 8.7020164 },
+    { "lat": 50.1097617, "lon": 8.7020174 },
+    { "lat": 50.1097649, "lon": 8.7020199 },
+    { "lat": 50.1097671, "lon": 8.7020234 },
+    { "lat": 50.1097684, "lon": 8.7020278 },
+    { "lat": 50.1097692, "lon": 8.7020333 },
+    { "lat": 50.1097690, "lon": 8.7020396 },
+    { "lat": 50.1097669, "lon": 8.7020448 },
+    { "lat": 50.1097633, "lon": 8.7020483 },
+    { "lat": 50.1097676, "lon": 8.7020617 },
+    { "lat": 50.1097718, "lon": 8.7020605 },
+    { "lat": 50.1097762, "lon": 8.7020613 },
+    { "lat": 50.1097799, "lon": 8.7020646 },
+    { "lat": 50.1097818, "lon": 8.7020691 },
+    { "lat": 50.1097831, "lon": 8.7020755 },
+    { "lat": 50.1097826, "lon": 8.7020830 },
+    { "lat": 50.1097809, "lon": 8.7020879 },
+    { "lat": 50.1097769, "lon": 8.7020925 },
+    { "lat": 50.1097802, "lon": 8.7021023 },
+    { "lat": 50.1097546, "lon": 8.7021244 },
+    { "lat": 50.1097618, "lon": 8.7021785 },
+    { "lat": 50.1099455, "lon": 8.7020365 },
+    { "lat": 50.1098610, "lon": 8.7017088 }
+  ],
+  "tags": {
+    "building:part": "yes",
+    "name": "Pressezentrum",
+    "name:de": "Pressezentrum",
+    "name:en": "Press Centre",
+    "name:es": "Centro de Prensa",
+    "name:fr": "Centre de presse"
+  }
+},
+{
+  "type": "way",
+  "id": 860195402,
+  "bounds": {
+    "minlat": 50.1088837,
+    "minlon": 8.7069279,
+    "maxlat": 50.1094949,
+    "maxlon": 8.7084182
+  },
+  "geometry": [
+    { "lat": 50.1088837, "lon": 8.7070105 },
+    { "lat": 50.1090026, "lon": 8.7069279 },
+    { "lat": 50.1090579, "lon": 8.7071166 },
+    { "lat": 50.1090842, "lon": 8.7070635 },
+    { "lat": 50.1091109, "lon": 8.7070149 },
+    { "lat": 50.1091260, "lon": 8.7069986 },
+    { "lat": 50.1091431, "lon": 8.7069879 },
+    { "lat": 50.1091635, "lon": 8.7069933 },
+    { "lat": 50.1091782, "lon": 8.7070064 },
+    { "lat": 50.1091958, "lon": 8.7070446 },
+    { "lat": 50.1092621, "lon": 8.7073124 },
+    { "lat": 50.1092644, "lon": 8.7073708 },
+    { "lat": 50.1092593, "lon": 8.7074098 },
+    { "lat": 50.1092423, "lon": 8.7074461 },
+    { "lat": 50.1092031, "lon": 8.7074751 },
+    { "lat": 50.1091805, "lon": 8.7074855 },
+    { "lat": 50.1092452, "lon": 8.7076961 },
+    { "lat": 50.1092631, "lon": 8.7076750 },
+    { "lat": 50.1092903, "lon": 8.7076482 },
+    { "lat": 50.1093157, "lon": 8.7076363 },
+    { "lat": 50.1093384, "lon": 8.7076375 },
+    { "lat": 50.1093618, "lon": 8.7076554 },
+    { "lat": 50.1093891, "lon": 8.7077002 },
+    { "lat": 50.1094124, "lon": 8.7077449 },
+    { "lat": 50.1094411, "lon": 8.7078038 },
+    { "lat": 50.1094695, "lon": 8.7078791 },
+    { "lat": 50.1094895, "lon": 8.7079462 },
+    { "lat": 50.1094949, "lon": 8.7079742 },
+    { "lat": 50.1094913, "lon": 8.7080039 },
+    { "lat": 50.1094836, "lon": 8.7080319 },
+    { "lat": 50.1094663, "lon": 8.7080517 },
+    { "lat": 50.1094449, "lon": 8.7080593 },
+    { "lat": 50.1094119, "lon": 8.7080620 },
+    { "lat": 50.1093522, "lon": 8.7080621 },
+    { "lat": 50.1094667, "lon": 8.7084182 },
+    { "lat": 50.1093246, "lon": 8.7084053 },
+    { "lat": 50.1092056, "lon": 8.7080362 },
+    { "lat": 50.1091757, "lon": 8.7080259 },
+    { "lat": 50.1091563, "lon": 8.7080128 },
+    { "lat": 50.1091529, "lon": 8.7080105 },
+    { "lat": 50.1091375, "lon": 8.7079899 },
+    { "lat": 50.1091284, "lon": 8.7079568 },
+    { "lat": 50.1091283, "lon": 8.7079253 },
+    { "lat": 50.1091283, "lon": 8.7079206 },
+    { "lat": 50.1091377, "lon": 8.7078849 },
+    { "lat": 50.1091485, "lon": 8.7078597 },
+    { "lat": 50.1090322, "lon": 8.7075132 },
+    { "lat": 50.1090247, "lon": 8.7075138 },
+    { "lat": 50.1090055, "lon": 8.7075124 },
+    { "lat": 50.1089942, "lon": 8.7075093 },
+    { "lat": 50.1089847, "lon": 8.7075067 },
+    { "lat": 50.1089659, "lon": 8.7074846 },
+    { "lat": 50.1089557, "lon": 8.7074523 },
+    { "lat": 50.1089539, "lon": 8.7074181 },
+    { "lat": 50.1089576, "lon": 8.7073998 },
+    { "lat": 50.1089638, "lon": 8.7073693 },
+    { "lat": 50.1089738, "lon": 8.7073353 },
+    { "lat": 50.1089558, "lon": 8.7072746 },
+    { "lat": 50.1088837, "lon": 8.7070105 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "3-9d",
+    "addr:postcode": "60314",
+    "addr:street": "Mayfarthstraße",
+    "building": "apartments"
+  }
+},
+{
+  "type": "way",
+  "id": 860195403,
+  "bounds": {
+    "minlat": 50.1092452,
+    "minlon": 8.7076363,
+    "maxlat": 50.1094949,
+    "maxlon": 8.7080621
+  },
+  "geometry": [
+    { "lat": 50.1092452, "lon": 8.7076961 },
+    { "lat": 50.1092631, "lon": 8.7076750 },
+    { "lat": 50.1092903, "lon": 8.7076482 },
+    { "lat": 50.1093157, "lon": 8.7076363 },
+    { "lat": 50.1093384, "lon": 8.7076375 },
+    { "lat": 50.1093618, "lon": 8.7076554 },
+    { "lat": 50.1093891, "lon": 8.7077002 },
+    { "lat": 50.1094124, "lon": 8.7077449 },
+    { "lat": 50.1094411, "lon": 8.7078038 },
+    { "lat": 50.1094695, "lon": 8.7078791 },
+    { "lat": 50.1094895, "lon": 8.7079462 },
+    { "lat": 50.1094949, "lon": 8.7079742 },
+    { "lat": 50.1094913, "lon": 8.7080039 },
+    { "lat": 50.1094836, "lon": 8.7080319 },
+    { "lat": 50.1094663, "lon": 8.7080517 },
+    { "lat": 50.1094449, "lon": 8.7080593 },
+    { "lat": 50.1094119, "lon": 8.7080620 },
+    { "lat": 50.1093522, "lon": 8.7080621 },
+    { "lat": 50.1092452, "lon": 8.7076961 }
+  ],
+  "tags": {
+    "building:part": "yes",
+    "height": "9"
+  }
+},
+{
+  "type": "way",
+  "id": 860195404,
+  "bounds": {
+    "minlat": 50.1097410,
+    "minlon": 8.7071575,
+    "maxlat": 50.1098743,
+    "maxlon": 8.7083956
+  },
+  "geometry": [
+    { "lat": 50.1097589, "lon": 8.7071575 },
+    { "lat": 50.1098743, "lon": 8.7071628 },
+    { "lat": 50.1098720, "lon": 8.7072995 },
+    { "lat": 50.1098703, "lon": 8.7074071 },
+    { "lat": 50.1098686, "lon": 8.7075051 },
+    { "lat": 50.1098669, "lon": 8.7076099 },
+    { "lat": 50.1098652, "lon": 8.7077095 },
+    { "lat": 50.1098645, "lon": 8.7077541 },
+    { "lat": 50.1098633, "lon": 8.7078293 },
+    { "lat": 50.1098614, "lon": 8.7079438 },
+    { "lat": 50.1098598, "lon": 8.7080364 },
+    { "lat": 50.1098578, "lon": 8.7081576 },
+    { "lat": 50.1098556, "lon": 8.7082898 },
+    { "lat": 50.1098539, "lon": 8.7083956 },
+    { "lat": 50.1097410, "lon": 8.7083912 },
+    { "lat": 50.1097503, "lon": 8.7077517 },
+    { "lat": 50.1097589, "lon": 8.7071575 }
+  ],
+  "tags": {
+    "building": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 860195405,
+  "bounds": {
+    "minlat": 50.1090579,
+    "minlon": 8.7069879,
+    "maxlat": 50.1092644,
+    "maxlon": 8.7074855
+  },
+  "geometry": [
+    { "lat": 50.1090579, "lon": 8.7071166 },
+    { "lat": 50.1090842, "lon": 8.7070635 },
+    { "lat": 50.1091109, "lon": 8.7070149 },
+    { "lat": 50.1091260, "lon": 8.7069986 },
+    { "lat": 50.1091431, "lon": 8.7069879 },
+    { "lat": 50.1091635, "lon": 8.7069933 },
+    { "lat": 50.1091782, "lon": 8.7070064 },
+    { "lat": 50.1091958, "lon": 8.7070446 },
+    { "lat": 50.1092621, "lon": 8.7073124 },
+    { "lat": 50.1092644, "lon": 8.7073708 },
+    { "lat": 50.1092593, "lon": 8.7074098 },
+    { "lat": 50.1092423, "lon": 8.7074461 },
+    { "lat": 50.1092031, "lon": 8.7074751 },
+    { "lat": 50.1091805, "lon": 8.7074855 },
+    { "lat": 50.1090579, "lon": 8.7071166 }
+  ],
+  "tags": {
+    "building:part": "yes",
+    "height": "9"
+  }
+},
+{
+  "type": "way",
+  "id": 860195406,
+  "bounds": {
+    "minlat": 50.1088837,
+    "minlon": 8.7069279,
+    "maxlat": 50.1094667,
+    "maxlon": 8.7084182
+  },
+  "geometry": [
+    { "lat": 50.1093246, "lon": 8.7084053 },
+    { "lat": 50.1092056, "lon": 8.7080362 },
+    { "lat": 50.1091485, "lon": 8.7078597 },
+    { "lat": 50.1090322, "lon": 8.7075132 },
+    { "lat": 50.1089738, "lon": 8.7073353 },
+    { "lat": 50.1089558, "lon": 8.7072746 },
+    { "lat": 50.1088837, "lon": 8.7070105 },
+    { "lat": 50.1090026, "lon": 8.7069279 },
+    { "lat": 50.1090579, "lon": 8.7071166 },
+    { "lat": 50.1091805, "lon": 8.7074855 },
+    { "lat": 50.1092452, "lon": 8.7076961 },
+    { "lat": 50.1093522, "lon": 8.7080621 },
+    { "lat": 50.1094667, "lon": 8.7084182 },
+    { "lat": 50.1093246, "lon": 8.7084053 }
+  ],
+  "tags": {
+    "building:levels": "3",
+    "building:part": "yes",
+    "height": "9",
+    "roof:shape": "flat"
+  }
+},
+{
+  "type": "way",
+  "id": 910256771,
+  "bounds": {
+    "minlat": 50.1090800,
+    "minlon": 8.7017257,
+    "maxlat": 50.1092955,
+    "maxlon": 8.7022392
+  },
+  "geometry": [
+    { "lat": 50.1092395, "lon": 8.7017257 },
+    { "lat": 50.1090951, "lon": 8.7017568 },
+    { "lat": 50.1090990, "lon": 8.7018045 },
+    { "lat": 50.1092028, "lon": 8.7017815 },
+    { "lat": 50.1090800, "lon": 8.7018769 },
+    { "lat": 50.1091752, "lon": 8.7021907 },
+    { "lat": 50.1091868, "lon": 8.7022022 },
+    { "lat": 50.1091906, "lon": 8.7022127 },
+    { "lat": 50.1091949, "lon": 8.7022251 },
+    { "lat": 50.1091974, "lon": 8.7022228 },
+    { "lat": 50.1092028, "lon": 8.7022392 },
+    { "lat": 50.1092955, "lon": 8.7021725 },
+    { "lat": 50.1092395, "lon": 8.7017257 }
+  ],
+  "tags": {
+    "building": "government"
+  }
+},
+{
+  "type": "way",
+  "id": 1000069628,
+  "bounds": {
+    "minlat": 50.1085165,
+    "minlon": 8.7036896,
+    "maxlat": 50.1086997,
+    "maxlon": 8.7041282
+  },
+  "geometry": [
+    { "lat": 50.1086997, "lon": 8.7041180 },
+    { "lat": 50.1086902, "lon": 8.7040403 },
+    { "lat": 50.1086696, "lon": 8.7038627 },
+    { "lat": 50.1086530, "lon": 8.7037256 },
+    { "lat": 50.1086487, "lon": 8.7037274 },
+    { "lat": 50.1086478, "lon": 8.7037222 },
+    { "lat": 50.1086419, "lon": 8.7037242 },
+    { "lat": 50.1085249, "lon": 8.7036896 },
+    { "lat": 50.1085165, "lon": 8.7037394 },
+    { "lat": 50.1085718, "lon": 8.7037983 },
+    { "lat": 50.1086056, "lon": 8.7038351 },
+    { "lat": 50.1086616, "lon": 8.7041282 },
+    { "lat": 50.1086952, "lon": 8.7041194 },
+    { "lat": 50.1086997, "lon": 8.7041180 }
+  ],
+  "tags": {
+    "building": "roof",
+    "layer": "1"
+  }
+},
+{
+  "type": "way",
+  "id": 1001506331,
+  "bounds": {
+    "minlat": 50.1086696,
+    "minlon": 8.7038552,
+    "maxlat": 50.1087169,
+    "maxlon": 8.7040403
+  },
+  "geometry": [
+    { "lat": 50.1086696, "lon": 8.7038627 },
+    { "lat": 50.1086963, "lon": 8.7038552 },
+    { "lat": 50.1087169, "lon": 8.7040328 },
+    { "lat": 50.1086902, "lon": 8.7040403 },
+    { "lat": 50.1086696, "lon": 8.7038627 }
+  ],
+  "tags": {
+    "building": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 1051409290,
+  "bounds": {
+    "minlat": 50.1107234,
+    "minlon": 8.7010739,
+    "maxlat": 50.1109325,
+    "maxlon": 8.7013077
+  },
+  "geometry": [
+    { "lat": 50.1107537, "lon": 8.7013077 },
+    { "lat": 50.1107393, "lon": 8.7012384 },
+    { "lat": 50.1107289, "lon": 8.7011888 },
+    { "lat": 50.1107234, "lon": 8.7011624 },
+    { "lat": 50.1109154, "lon": 8.7010739 },
+    { "lat": 50.1109325, "lon": 8.7011542 },
+    { "lat": 50.1108805, "lon": 8.7011809 },
+    { "lat": 50.1108924, "lon": 8.7012378 },
+    { "lat": 50.1107537, "lon": 8.7013077 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "53",
+    "addr:postcode": "60314",
+    "addr:street": "Sonnemannstraße",
+    "building": "apartments",
+    "building:levels": "7"
+  }
+},
+{
+  "type": "way",
+  "id": 1051409291,
+  "bounds": {
+    "minlat": 50.1107537,
+    "minlon": 8.7012378,
+    "maxlat": 50.1109224,
+    "maxlon": 8.7014490
+  },
+  "geometry": [
+    { "lat": 50.1109224, "lon": 8.7013795 },
+    { "lat": 50.1108924, "lon": 8.7012378 },
+    { "lat": 50.1107537, "lon": 8.7013077 },
+    { "lat": 50.1107644, "lon": 8.7013593 },
+    { "lat": 50.1107733, "lon": 8.7014024 },
+    { "lat": 50.1107830, "lon": 8.7014490 },
+    { "lat": 50.1109224, "lon": 8.7013795 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "55",
+    "addr:postcode": "60314",
+    "addr:street": "Sonnemannstraße",
+    "building": "apartments",
+    "building:levels": "4",
+    "roof:levels": "2"
+  }
+},
+{
+  "type": "way",
+  "id": 1051409292,
+  "bounds": {
+    "minlat": 50.1107830,
+    "minlon": 8.7013795,
+    "maxlat": 50.1109525,
+    "maxlon": 8.7015924
+  },
+  "geometry": [
+    { "lat": 50.1108131, "lon": 8.7015924 },
+    { "lat": 50.1108031, "lon": 8.7015441 },
+    { "lat": 50.1107923, "lon": 8.7014939 },
+    { "lat": 50.1107830, "lon": 8.7014490 },
+    { "lat": 50.1109224, "lon": 8.7013795 },
+    { "lat": 50.1109525, "lon": 8.7015231 },
+    { "lat": 50.1108131, "lon": 8.7015924 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "57",
+    "addr:postcode": "60314",
+    "addr:street": "Sonnemannstraße",
+    "building": "apartments",
+    "building:levels": "4",
+    "roof:levels": "2"
+  }
+},
+{
+  "type": "way",
+  "id": 1051409293,
+  "bounds": {
+    "minlat": 50.1108131,
+    "minlon": 8.7015231,
+    "maxlat": 50.1109756,
+    "maxlon": 8.7017048
+  },
+  "geometry": [
+    { "lat": 50.1109306, "lon": 8.7016772 },
+    { "lat": 50.1109586, "lon": 8.7016624 },
+    { "lat": 50.1109551, "lon": 8.7016462 },
+    { "lat": 50.1109756, "lon": 8.7016347 },
+    { "lat": 50.1109525, "lon": 8.7015231 },
+    { "lat": 50.1108131, "lon": 8.7015924 },
+    { "lat": 50.1108198, "lon": 8.7016243 },
+    { "lat": 50.1108311, "lon": 8.7016774 },
+    { "lat": 50.1108369, "lon": 8.7017048 },
+    { "lat": 50.1108421, "lon": 8.7017023 },
+    { "lat": 50.1109306, "lon": 8.7016772 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:housenumber": "59",
+    "addr:postcode": "60314",
+    "addr:street": "Sonnemannstraße",
+    "building": "apartments",
+    "building:levels": "7"
+  }
+},
+{
+  "type": "way",
+  "id": 1069645560,
+  "bounds": {
+    "minlat": 50.1111170,
+    "minlon": 8.7002082,
+    "maxlat": 50.1112498,
+    "maxlon": 8.7004026
+  },
+  "geometry": [
+    { "lat": 50.1112474, "lon": 8.7003443 },
+    { "lat": 50.1112498, "lon": 8.7003569 },
+    { "lat": 50.1111374, "lon": 8.7004026 },
+    { "lat": 50.1111274, "lon": 8.7003488 },
+    { "lat": 50.1111170, "lon": 8.7002951 },
+    { "lat": 50.1111860, "lon": 8.7002623 },
+    { "lat": 50.1111779, "lon": 8.7002195 },
+    { "lat": 50.1112219, "lon": 8.7002082 },
+    { "lat": 50.1112474, "lon": 8.7003443 }
+  ],
+  "tags": {
+    "building": "yes",
+    "fixme": "building-type"
+  }
+},
+{
+  "type": "way",
+  "id": 1069645578,
+  "bounds": {
+    "minlat": 50.1110294,
+    "minlon": 8.7025723,
+    "maxlat": 50.1111836,
+    "maxlon": 8.7028564
+  },
+  "geometry": [
+    { "lat": 50.1111364, "lon": 8.7025723 },
+    { "lat": 50.1111836, "lon": 8.7028015 },
+    { "lat": 50.1110771, "lon": 8.7028564 },
+    { "lat": 50.1110294, "lon": 8.7026269 },
+    { "lat": 50.1111364, "lon": 8.7025723 }
+  ],
+  "tags": {
+    "addr:city": "Frankfurt am Main",
+    "addr:country": "DE",
+    "addr:housenumber": "67",
+    "addr:postcode": "60314",
+    "addr:street": "Sonnemannstraße",
+    "building": "apartments",
+    "building:levels": "7",
+    "roof:levels": "0"
+  }
+},
+{
+  "type": "way",
+  "id": 1072468432,
+  "bounds": {
+    "minlat": 50.1107180,
+    "minlon": 8.7011888,
+    "maxlat": 50.1107393,
+    "maxlon": 8.7012440
+  },
+  "geometry": [
+    { "lat": 50.1107289, "lon": 8.7011888 },
+    { "lat": 50.1107180, "lon": 8.7011945 },
+    { "lat": 50.1107286, "lon": 8.7012440 },
+    { "lat": 50.1107393, "lon": 8.7012384 },
+    { "lat": 50.1107289, "lon": 8.7011888 }
+  ],
+  "tags": {
+    "building:part": "balcony"
+  }
+},
+{
+  "type": "way",
+  "id": 1414296693,
+  "bounds": {
+    "minlat": 50.1102166,
+    "minlon": 8.7053549,
+    "maxlat": 50.1103766,
+    "maxlon": 8.7056875
+  },
+  "geometry": [
+    { "lat": 50.1103254, "lon": 8.7056875 },
+    { "lat": 50.1102458, "lon": 8.7056527 },
+    { "lat": 50.1102166, "lon": 8.7056399 },
+    { "lat": 50.1102679, "lon": 8.7053549 },
+    { "lat": 50.1103766, "lon": 8.7054025 },
+    { "lat": 50.1103605, "lon": 8.7054923 },
+    { "lat": 50.1103332, "lon": 8.7056439 },
+    { "lat": 50.1103254, "lon": 8.7056875 }
+  ],
+  "tags": {
+    "building": "service",
+    "building:colour": "lightgrey",
+    "building:material": "concrete",
+    "power": "generator"
+  }
+},
+{
+  "type": "way",
+  "id": 1484939541,
+  "bounds": {
+    "minlat": 50.1097410,
+    "minlon": 8.7077517,
+    "maxlat": 50.1098645,
+    "maxlon": 8.7083956
+  },
+  "geometry": [
+    { "lat": 50.1098645, "lon": 8.7077541 },
+    { "lat": 50.1097503, "lon": 8.7077517 },
+    { "lat": 50.1097410, "lon": 8.7083912 },
+    { "lat": 50.1098539, "lon": 8.7083956 },
+    { "lat": 50.1098556, "lon": 8.7082898 },
+    { "lat": 50.1098578, "lon": 8.7081576 },
+    { "lat": 50.1098598, "lon": 8.7080364 },
+    { "lat": 50.1098614, "lon": 8.7079438 },
+    { "lat": 50.1098633, "lon": 8.7078293 },
+    { "lat": 50.1098645, "lon": 8.7077541 }
+  ],
+  "tags": {
+    "building:levels": "8",
+    "building:part": "yes",
+    "roof:shape": "flat"
+  }
+},
+{
+  "type": "way",
+  "id": 1484939542,
+  "bounds": {
+    "minlat": 50.1097503,
+    "minlon": 8.7071575,
+    "maxlat": 50.1098743,
+    "maxlon": 8.7077541
+  },
+  "geometry": [
+    { "lat": 50.1098743, "lon": 8.7071628 },
+    { "lat": 50.1098720, "lon": 8.7072995 },
+    { "lat": 50.1098703, "lon": 8.7074071 },
+    { "lat": 50.1098686, "lon": 8.7075051 },
+    { "lat": 50.1098669, "lon": 8.7076099 },
+    { "lat": 50.1098652, "lon": 8.7077095 },
+    { "lat": 50.1098645, "lon": 8.7077541 },
+    { "lat": 50.1097503, "lon": 8.7077517 },
+    { "lat": 50.1097589, "lon": 8.7071575 },
+    { "lat": 50.1098743, "lon": 8.7071628 }
+  ],
+  "tags": {
+    "building:levels": "7",
+    "building:part": "yes",
+    "roof:shape": "flat"
+  }
+},
+{
+  "type": "way",
+  "id": 1484939543,
+  "bounds": {
+    "minlat": 50.1095809,
+    "minlon": 8.7067181,
+    "maxlat": 50.1097470,
+    "maxlon": 8.7070007
+  },
+  "geometry": [
+    { "lat": 50.1096802, "lon": 8.7070007 },
+    { "lat": 50.1096995, "lon": 8.7069095 },
+    { "lat": 50.1097355, "lon": 8.7069315 },
+    { "lat": 50.1097470, "lon": 8.7068795 },
+    { "lat": 50.1097102, "lon": 8.7068591 },
+    { "lat": 50.1097284, "lon": 8.7067728 },
+    { "lat": 50.1096290, "lon": 8.7067181 },
+    { "lat": 50.1096094, "lon": 8.7068101 },
+    { "lat": 50.1096375, "lon": 8.7068249 },
+    { "lat": 50.1096276, "lon": 8.7068719 },
+    { "lat": 50.1095993, "lon": 8.7068567 },
+    { "lat": 50.1095809, "lon": 8.7069461 },
+    { "lat": 50.1096802, "lon": 8.7070007 }
+  ],
+  "tags": {
+    "building:levels": "7",
+    "building:part": "yes",
+    "roof:shape": "flat"
+  }
+},
+{
+  "type": "way",
+  "id": 1484939544,
+  "bounds": {
+    "minlat": 50.1094767,
+    "minlon": 8.7066653,
+    "maxlat": 50.1096375,
+    "maxlon": 8.7069461
+  },
+  "geometry": [
+    { "lat": 50.1095809, "lon": 8.7069461 },
+    { "lat": 50.1094767, "lon": 8.7068966 },
+    { "lat": 50.1094937, "lon": 8.7068071 },
+    { "lat": 50.1095170, "lon": 8.7068179 },
+    { "lat": 50.1095258, "lon": 8.7067715 },
+    { "lat": 50.1095008, "lon": 8.7067599 },
+    { "lat": 50.1095187, "lon": 8.7066653 },
+    { "lat": 50.1096290, "lon": 8.7067181 },
+    { "lat": 50.1096094, "lon": 8.7068101 },
+    { "lat": 50.1096375, "lon": 8.7068249 },
+    { "lat": 50.1096276, "lon": 8.7068719 },
+    { "lat": 50.1095993, "lon": 8.7068567 },
+    { "lat": 50.1095809, "lon": 8.7069461 }
+  ],
+  "tags": {
+    "building:levels": "8",
+    "building:part": "yes",
+    "roof:shape": "flat"
+  }
+},
+{
+  "type": "way",
+  "id": 1484939545,
+  "bounds": {
+    "minlat": 50.1096802,
+    "minlon": 8.7067728,
+    "maxlat": 50.1098790,
+    "maxlon": 8.7071628
+  },
+  "geometry": [
+    { "lat": 50.1097284, "lon": 8.7067728 },
+    { "lat": 50.1097102, "lon": 8.7068591 },
+    { "lat": 50.1097470, "lon": 8.7068795 },
+    { "lat": 50.1097355, "lon": 8.7069315 },
+    { "lat": 50.1096995, "lon": 8.7069095 },
+    { "lat": 50.1096802, "lon": 8.7070007 },
+    { "lat": 50.1097608, "lon": 8.7070419 },
+    { "lat": 50.1097589, "lon": 8.7071575 },
+    { "lat": 50.1098743, "lon": 8.7071628 },
+    { "lat": 50.1098790, "lon": 8.7068796 },
+    { "lat": 50.1098686, "lon": 8.7068496 },
+    { "lat": 50.1097284, "lon": 8.7067728 }
+  ],
+  "tags": {
+    "building:levels": "6",
+    "building:part": "yes",
+    "roof:shape": "flat"
+  }
+},
+{
+  "type": "way",
+  "id": 1484939546,
+  "bounds": {
+    "minlat": 50.1093682,
+    "minlon": 8.7066162,
+    "maxlat": 50.1095258,
+    "maxlon": 8.7068966
+  },
+  "geometry": [
+    { "lat": 50.1093682, "lon": 8.7068466 },
+    { "lat": 50.1093853, "lon": 8.7067568 },
+    { "lat": 50.1094174, "lon": 8.7067716 },
+    { "lat": 50.1094266, "lon": 8.7067232 },
+    { "lat": 50.1093949, "lon": 8.7067086 },
+    { "lat": 50.1094125, "lon": 8.7066162 },
+    { "lat": 50.1095187, "lon": 8.7066653 },
+    { "lat": 50.1095008, "lon": 8.7067599 },
+    { "lat": 50.1095258, "lon": 8.7067715 },
+    { "lat": 50.1095170, "lon": 8.7068179 },
+    { "lat": 50.1094937, "lon": 8.7068071 },
+    { "lat": 50.1094767, "lon": 8.7068966 },
+    { "lat": 50.1093682, "lon": 8.7068466 }
+  ],
+  "tags": {
+    "building:levels": "9",
+    "building:part": "yes",
+    "roof:shape": "flat"
+  }
+},
+{
+  "type": "way",
+  "id": 1484939547,
+  "bounds": {
+    "minlat": 50.1091659,
+    "minlon": 8.7065396,
+    "maxlat": 50.1094266,
+    "maxlon": 8.7068466
+  },
+  "geometry": [
+    { "lat": 50.1091659, "lon": 8.7067656 },
+    { "lat": 50.1091803, "lon": 8.7066770 },
+    { "lat": 50.1091974, "lon": 8.7066848 },
+    { "lat": 50.1092202, "lon": 8.7065396 },
+    { "lat": 50.1093168, "lon": 8.7065783 },
+    { "lat": 50.1094125, "lon": 8.7066162 },
+    { "lat": 50.1093949, "lon": 8.7067086 },
+    { "lat": 50.1094266, "lon": 8.7067232 },
+    { "lat": 50.1094174, "lon": 8.7067716 },
+    { "lat": 50.1093853, "lon": 8.7067568 },
+    { "lat": 50.1093682, "lon": 8.7068466 },
+    { "lat": 50.1093530, "lon": 8.7068412 },
+    { "lat": 50.1091659, "lon": 8.7067656 }
+  ],
+  "tags": {
+    "building:levels": "10",
+    "building:part": "yes",
+    "roof:shape": "flat"
+  }
+},
+{
+  "type": "way",
+  "id": 1484939548,
+  "bounds": {
+    "minlat": 50.1088007,
+    "minlon": 8.7064173,
+    "maxlat": 50.1092202,
+    "maxlon": 8.7069298
+  },
+  "geometry": [
+    { "lat": 50.1091659, "lon": 8.7067656 },
+    { "lat": 50.1091068, "lon": 8.7067435 },
+    { "lat": 50.1090610, "lon": 8.7067438 },
+    { "lat": 50.1090029, "lon": 8.7067757 },
+    { "lat": 50.1089711, "lon": 8.7068138 },
+    { "lat": 50.1088627, "lon": 8.7069298 },
+    { "lat": 50.1088392, "lon": 8.7068203 },
+    { "lat": 50.1088294, "lon": 8.7067605 },
+    { "lat": 50.1088189, "lon": 8.7066892 },
+    { "lat": 50.1088099, "lon": 8.7066156 },
+    { "lat": 50.1088007, "lon": 8.7064816 },
+    { "lat": 50.1088022, "lon": 8.7064661 },
+    { "lat": 50.1088043, "lon": 8.7064563 },
+    { "lat": 50.1088079, "lon": 8.7064454 },
+    { "lat": 50.1088127, "lon": 8.7064362 },
+    { "lat": 50.1088197, "lon": 8.7064276 },
+    { "lat": 50.1088265, "lon": 8.7064220 },
+    { "lat": 50.1088335, "lon": 8.7064193 },
+    { "lat": 50.1088412, "lon": 8.7064173 },
+    { "lat": 50.1088508, "lon": 8.7064186 },
+    { "lat": 50.1089412, "lon": 8.7064461 },
+    { "lat": 50.1091311, "lon": 8.7065088 },
+    { "lat": 50.1092164, "lon": 8.7065381 },
+    { "lat": 50.1092202, "lon": 8.7065396 },
+    { "lat": 50.1091974, "lon": 8.7066848 },
+    { "lat": 50.1091803, "lon": 8.7066770 },
+    { "lat": 50.1091659, "lon": 8.7067656 }
+  ],
+  "tags": {
+    "building:levels": "11",
+    "building:part": "yes",
+    "roof:shape": "flat"
+  }
+},
+{
+  "type": "way",
+  "id": 1484939549,
+  "bounds": {
+    "minlat": 50.1092164,
+    "minlon": 8.7065015,
+    "maxlat": 50.1093228,
+    "maxlon": 8.7065783
+  },
+  "geometry": [
+    { "lat": 50.1092164, "lon": 8.7065381 },
+    { "lat": 50.1092202, "lon": 8.7065396 },
+    { "lat": 50.1093168, "lon": 8.7065783 },
+    { "lat": 50.1093184, "lon": 8.7065686 },
+    { "lat": 50.1093228, "lon": 8.7065417 },
+    { "lat": 50.1092224, "lon": 8.7065015 },
+    { "lat": 50.1092179, "lon": 8.7065287 },
+    { "lat": 50.1092164, "lon": 8.7065381 }
+  ],
+  "tags": {
+    "building:part": "yes",
+    "height": "3.3",
+    "min_height": "3.1",
+    "roof:shape": "flat"
+  }
+},
+{
+  "type": "way",
+  "id": 1484939550,
+  "bounds": {
+    "minlat": 50.1093375,
+    "minlon": 8.7068412,
+    "maxlat": 50.1096802,
+    "maxlon": 8.7070815
+  },
+  "geometry": [
+    { "lat": 50.1096802, "lon": 8.7070007 },
+    { "lat": 50.1096632, "lon": 8.7070815 },
+    { "lat": 50.1095757, "lon": 8.7070345 },
+    { "lat": 50.1094581, "lon": 8.7069772 },
+    { "lat": 50.1093375, "lon": 8.7069219 },
+    { "lat": 50.1093530, "lon": 8.7068412 },
+    { "lat": 50.1093682, "lon": 8.7068466 },
+    { "lat": 50.1094767, "lon": 8.7068966 },
+    { "lat": 50.1095809, "lon": 8.7069461 },
+    { "lat": 50.1096802, "lon": 8.7070007 }
+  ],
+  "tags": {
+    "building:levels": "2",
+    "building:part": "yes",
+    "roof:shape": "flat"
+  }
+},
+{
+  "type": "way",
+  "id": 1484939551,
+  "bounds": {
+    "minlat": 50.1088627,
+    "minlon": 8.7068138,
+    "maxlat": 50.1090026,
+    "maxlon": 8.7070105
+  },
+  "geometry": [
+    { "lat": 50.1090026, "lon": 8.7069279 },
+    { "lat": 50.1088837, "lon": 8.7070105 },
+    { "lat": 50.1088627, "lon": 8.7069298 },
+    { "lat": 50.1089711, "lon": 8.7068138 },
+    { "lat": 50.1090026, "lon": 8.7069279 }
+  ],
+  "tags": {
+    "building:levels": "3",
+    "building:part": "yes",
+    "roof:shape": "flat"
+  }
+},
+{
+  "type": "way",
+  "id": 1484939552,
+  "bounds": {
+    "minlat": 50.1088626,
+    "minlon": 8.7064936,
+    "maxlat": 50.1090704,
+    "maxlon": 8.7067645
+  },
+  "geometry": [
+    { "lat": 50.1090704, "lon": 8.7065631 },
+    { "lat": 50.1090594, "lon": 8.7066317 },
+    { "lat": 50.1090538, "lon": 8.7066477 },
+    { "lat": 50.1090468, "lon": 8.7066547 },
+    { "lat": 50.1090106, "lon": 8.7066703 },
+    { "lat": 50.1089728, "lon": 8.7066968 },
+    { "lat": 50.1089408, "lon": 8.7067305 },
+    { "lat": 50.1089200, "lon": 8.7067530 },
+    { "lat": 50.1089062, "lon": 8.7067642 },
+    { "lat": 50.1088994, "lon": 8.7067645 },
+    { "lat": 50.1088911, "lon": 8.7067582 },
+    { "lat": 50.1088849, "lon": 8.7067445 },
+    { "lat": 50.1088626, "lon": 8.7065484 },
+    { "lat": 50.1088643, "lon": 8.7065307 },
+    { "lat": 50.1088705, "lon": 8.7065149 },
+    { "lat": 50.1088801, "lon": 8.7065022 },
+    { "lat": 50.1088933, "lon": 8.7064939 },
+    { "lat": 50.1089102, "lon": 8.7064936 },
+    { "lat": 50.1090636, "lon": 8.7065429 },
+    { "lat": 50.1090681, "lon": 8.7065460 },
+    { "lat": 50.1090703, "lon": 8.7065522 },
+    { "lat": 50.1090704, "lon": 8.7065631 }
+  ],
+  "tags": {
+    "building:levels": "12",
+    "building:part": "yes",
+    "roof:shape": "flat"
+  }
+},
+{
+  "type": "way",
+  "id": 1484939553,
+  "bounds": {
+    "minlat": 50.1090903,
+    "minlon": 8.7065892,
+    "maxlat": 50.1091666,
+    "maxlon": 8.7066998
+  },
+  "geometry": [
+    { "lat": 50.1091047, "lon": 8.7065892 },
+    { "lat": 50.1091666, "lon": 8.7066148 },
+    { "lat": 50.1091522, "lon": 8.7066998 },
+    { "lat": 50.1090903, "lon": 8.7066743 },
+    { "lat": 50.1091047, "lon": 8.7065892 }
+  ],
+  "tags": {
+    "building:levels": "12",
+    "building:part": "yes",
+    "roof:shape": "flat"
+  }
+},
+{
+  "type": "relation",
+  "id": 12356240,
+  "bounds": {
+    "minlat": 50.1102155,
+    "minlon": 8.7013533,
+    "maxlat": 50.1105340,
+    "maxlon": 8.7020503
+  },
+  "tags": {
+    "building": "roof",
+    "layer": "1",
+    "type": "multipolygon"
+  }
+}
+
+  ]
+}

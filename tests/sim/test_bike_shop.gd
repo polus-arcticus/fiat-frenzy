@@ -94,7 +94,7 @@ func test_riding_the_bike() -> void:
 	check(not w.riding.mount().ok, "and you can't get on while you're out cold")
 
 
-func test_saving_for_the_bike_is_the_tutorial_goal() -> void:
+func test_the_tutorial_does_not_send_you_for_the_bike() -> void:
 	var sw := _shop(0.0)
 	var w: World = sw[0]
 	var owner: Drone = sw[1]
@@ -102,24 +102,29 @@ func test_saving_for_the_bike_is_the_tutorial_goal() -> void:
 	var baker := w.add_vendor("bakery", Vector2(25, 0), 0.0, false, false)
 	var tent := w.add_vendor("tent", Vector2(30, 0), 0.0, false, false)
 	var t := Tutorial.new(w, {"hot_dog": hot, "bakery": baker, "tent": tent, "bike_shop": owner}, false)
-	var save := -1
-	for i in t.steps.size():
-		var line: Variant = t.steps[i].text
-		if (line.call() if line is Callable else line).begins_with("Save $%d" % int(Catalog.bike_price())):
-			save = i
-	check(save >= 0, "the tutorial has a 'save for a bicycle' step")
-	t.index = save
-	check(t.text().contains("$0 of $%d" % int(Catalog.bike_price())) and t.marker() == (sw[2] as Machine).pos, "it shows how much you have of $3000, and points at the counter")
-	w.ledger.player_cash = 1234.0
-	check(t.text().contains("$1234 of $%d" % int(Catalog.bike_price())), "and the number moves with your money")
-	t.update(w.player.pos)
-	check(t.index == save, "not done until the money is there")
-	w.ledger.player_cash = Catalog.bike_price()
-	t.update(w.player.pos)
-	check(t.index == save + 1 and t.text().contains("press E at the counter"), "with $3000 it moves on to buying the bike")
-	w.commerce.buy(sw[2], "bicycle")
-	t.update(w.player.pos)
-	check(t.index == save + 2 and t.text().contains("Press F"), "once you own it, it tells you to get on")
-	w.riding.mount()
-	t.update(w.player.pos)
-	check(t.index > save + 2, "and once you are riding it moves on")
+	var mentions := 0
+	for goal in t.goals:
+		var line: Variant = goal.text
+		var text: String = line.call() if line is Callable else line
+		if text.to_lower().contains("bicycle") or text.to_lower().contains("bike"):
+			mentions += 1
+	check(mentions == 0, "no tutorial step mentions the bicycle: it is too dear to be a goal yet")
+
+
+func test_the_skate_shop_sells_a_board_at_the_price_of_a_board() -> void:
+	var w := World.new()
+	var owner := w.add_vendor("skate_shop", Vector2(0, 0), 600.0, true, true)
+	var shop := w.machine_of(owner)
+	shop.front = Vector2(0, 1)
+	w.add_player(Vector2(0, 2), 500.0)
+	check(Catalog.base_price("skateboard") == 120.0 and shop.price_of("skateboard") == 120.0, "a board costs $120, set in one place")
+	check(shop.stock() == 3 and shop.offers("skateboard"), "the shop starts with a few on the wall")
+	check(owner.needless and not w.attention.wants_help(owner), "its owner is rich and needs nothing")
+	var before := w.ledger.player_cash
+	var res := w.commerce.buy(shop, "skateboard")
+	check(res.ok and w.player.carry.count("skateboard") == 1 and is_equal_approx(w.ledger.player_cash, before - 120.0), "buying one puts it in the bag for $120")
+	check(not Catalog.is_consumable("skateboard") and Catalog.class_of("skateboard") == "board", "and it is not something to eat")
+	w.tick(600.0)
+	check(shop.stock() == 2 and is_equal_approx(shop.price, 120.0), "the shop makes no more, and the price stays")
+	w.ledger.player_cash = 50.0
+	check(not w.commerce.buy(shop, "skateboard").ok, "without the money you can't")

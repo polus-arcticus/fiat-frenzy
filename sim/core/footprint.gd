@@ -11,6 +11,7 @@ extends RefCounted
 
 const BODY := 0.2        # a drone's radius: how far from a wall its middle stays
 const CORRIDOR := 1.3    # in front of a tent's opening, this far out and as wide as it, you go straight in
+const AT_CORNER := 0.6 # this close to a corner you are at it: a walker cannot get closer than its padding allows
 
 ## One box (or, with `r` > 0, a circle) on the ground.
 class Part:
@@ -146,6 +147,11 @@ func slide(from: Vector2, to: Vector2) -> Vector2:
 	return cand2 if _free(from, cand2) else from
 
 
+## Is the straight way from `a` to `b` clear of this thing's walls and boxes?
+func clear(a: Vector2, b: Vector2) -> bool:
+	return _free(a, b)
+
+
 func _free(a: Vector2, b: Vector2) -> bool:
 	for p in parts:
 		if not p.contains(a, BODY) and p.crosses(a, b, BODY):
@@ -154,9 +160,15 @@ func _free(a: Vector2, b: Vector2) -> bool:
 
 
 ## Where to head for `goal`, standing at `from`: the door if the goal is inside the tent and you are not
-## yet lined up with the opening.
+## yet lined up with the opening, and likewise the door if you are inside and the goal is outside: you leave by the
+## open end, not through the side. (A tent keeper behind his counter who headed straight for a stand beyond the tent's
+## wall used to stand pressed against the canvas for ever.)
 func approach(from: Vector2, goal: Vector2) -> Vector2:
-	if enclosure == null or not enclosure.contains(goal, 0.3) or enclosure.contains(from):
+	if enclosure == null:
+		return goal
+	if enclosure.contains(from) and not enclosure.contains(goal, 0.3):
+		return door
+	if not enclosure.contains(goal, 0.3) or enclosure.contains(from):
 		return goal
 	var e := enclosure
 	var az := Vector2(-e.ax.y, e.ax.x)
@@ -183,7 +195,11 @@ func detour(from: Vector2, goal: Vector2) -> Vector2:
 	for i in 4:
 		var hit: Part = null
 		for p in obstacles:
-			if not p.contains(from, BODY) and p.crosses(from, target, BODY):
+			# Standing in the swelled edge you are not held by it (someone sitting up in a bed by the wall can
+			# always walk out)... but a move from there that would go into the thing itself is still in the way,
+			# or the walker heads straight for it, is stopped at the wall, backs off, and repeats.
+			var in_edge := p.contains(from, BODY)
+			if (not in_edge and p.crosses(from, target, BODY)) or (in_edge and not p.contains(from, 0.0) and p.crosses(from, target, 0.0)):
 				hit = p
 				break
 		if hit == null:
@@ -194,10 +210,20 @@ func detour(from: Vector2, goal: Vector2) -> Vector2:
 
 ## The corner of `p` (swelled a little more than a body) that gives the shortest way from `from` to `to`.
 func _round(p: Part, from: Vector2, to: Vector2) -> Vector2:
-	var margin := BODY + 0.12
+	var margin := BODY + 0.3  # slack beyond a body's own width: a walker rounding the corner always drifts in a little
 	var corners: Array[Vector2] = []
 	if p.r > 0.0:
-		var n := (p.c - from).normalized().orthogonal() * (p.r + BODY + 0.5)  # wide: it stays clear while closing in
+		# The way round a circle is to a point out to its side. How far out depends on how close you already are: the straight
+		# line from near the circle to a point only just beside it clips the circle's padding, is blocked, and the same point
+		# is chosen again for ever. A point far enough out that the line clears the padding always works.
+		var swell := p.r + BODY
+		var gap := (p.c - from).length()
+		var side := p.r + BODY + 0.5
+		if gap > swell:
+			side = maxf(side, swell * gap / sqrt(maxf(gap * gap - swell * swell, 0.0001)) + 0.3)
+		else:
+			side = 3.0  # already in its padding: a wide berth
+		var n := (p.c - from).normalized().orthogonal() * minf(side, 6.0)
 		corners = [p.c + n, p.c - n]
 	else:
 		var az := Vector2(-p.ax.y, p.ax.x)
@@ -208,11 +234,21 @@ func _round(p: Part, from: Vector2, to: Vector2) -> Vector2:
 	# least be reached; the shortest of those.
 	var best := to
 	var best_score := INF
+	# Standing at a corner (within 0.2 m) the way on is the next one, planned from the corner itself: from where the
+	# walker actually stands, a little off it, the straight line along the wall can graze the wall's padding, and
+	# it would pick the corner it has just come from and shuttle back and forth between the two for ever.
+	var origin := from
 	for c in corners:
-		if from.distance_to(c) < 0.2:
-			continue  # already standing at this one: the way on is the next
-		var score := from.distance_to(c) + c.distance_to(to)
-		if p.crosses(from, c, BODY):
+		if from.distance_to(c) < AT_CORNER:
+			origin = c
+	# (Starting inside the thing's padding, which is where someone coming out of a tent's open end is, a line out of it
+	# always seems to cross it: judged against the thing itself, not its padding, the ways round tell themselves apart.)
+	var pad := 0.0 if p.contains(origin, BODY) else BODY
+	for c in corners:
+		if from.distance_to(c) < AT_CORNER:
+			continue  # already standing at this one
+		var score := origin.distance_to(c) + c.distance_to(to)
+		if p.crosses(origin, c, pad):
 			score += 1000.0
 		if p.crosses(c, to, BODY):
 			score += 100.0

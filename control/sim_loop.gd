@@ -26,6 +26,12 @@ func paused() -> bool:
 	return not _holds.is_empty()
 
 
+## How far through the current tick the real clock is (0 to 1): a view draws a moving thing that far between where it
+## was at the last tick and where it is now, so it moves smoothly even though the model moves in steps.
+func alpha() -> float:
+	return clampf(_acc / STEP, 0.0, 1.0)
+
+
 ## `reason` holds the sim still, or lets it go again.
 func hold(reason: String, on := true) -> void:
 	if on:

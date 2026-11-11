@@ -98,14 +98,14 @@ func aimed_doorman() -> Drone:
 	return d if aim.person() == d else null
 
 
-## The banker with the letter, if the crosshair is on him and he is close and has something to say.
+## A banker, if the crosshair is on one who is close and has something to say (any of them will do).
 func aimed_banker() -> Drone:
-	var g := world.quests.giver
-	if g == null or not world.quests.state.get(QuestBook.LETTER, "") in ["offered", "active"]:
+	if not world.quests.state.get(QuestBook.LETTER, "") in ["offered", "active"]:
 		return null
-	if player.ground_pos().distance_to(g.pos) > Sage.TALK_RANGE:
+	var who := aim.person()
+	if not world.quests.is_banker(who) or player.ground_pos().distance_to(who.pos) > Sage.TALK_RANGE:
 		return null
-	return g if aim.person() == g else null
+	return who
 
 
 func aimed_pickup() -> GunPickupView:

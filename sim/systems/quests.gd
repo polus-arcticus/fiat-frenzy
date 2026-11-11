@@ -30,6 +30,22 @@ func bankers() -> Array[Drone]:
 	return out
 
 
+## Is this one of the bankers (any of whom can give the letter)?
+func is_banker(d: Drone) -> bool:
+	return d != null and d.look == "banker"
+
+
+func _nearest_banker() -> Drone:
+	var best: Drone = giver
+	var bd := INF
+	for b in bankers():
+		var dist := b.pos.distance_to(_w.player.pos) if _w.player != null else 0.0
+		if dist < bd:
+			bd = dist
+			best = b
+	return best
+
+
 ## How many bankers have had a meal since they were hungry.
 func fed_count() -> int:
 	return fed.size()
@@ -54,13 +70,15 @@ func step() -> void:
 	for b in bankers():
 		if b.bars.hunger < HUNGRY:
 			_was_hungry[b.id] = true
-		elif b.bars.hunger >= FED and _was_hungry.has(b.id):
+		elif b.bars.hunger >= FED and _was_hungry.has(b.id) and not fed.has(b.id):
 			fed[b.id] = true
+			_w.events.append("%s has had a proper meal (%d of %d bankers fed)." % [b.label if b.label != "" else "A banker", fed.size(), bankers().size()])
 	if not state.has(QuestBook.LETTER) and letter_ready():
 		state[QuestBook.LETTER] = "offered"
 		giver = bankers()[0]
-		giver.label = "Banker with a letter"
-		_w.events.append("A banker wants a word with you: aim at him and press Q.")
+		for b in bankers():
+			b.label = "Banker with a letter"  # any of them will do: they are all in the same boat
+		_w.events.append("The bankers want a word with you: aim at any of them and press Q.")
 
 
 ## Accepts an offered quest. Returns false if it wasn't on offer.
@@ -90,6 +108,16 @@ func deliver() -> bool:
 	return true
 
 
+## The hero has said farewell to Mr. Nobody. If they came in on the bus and are on the letter quest, the traffic jam
+## clears, and the bus can go on. (Returns whether it did.)
+func farewell_to_sage() -> bool:
+	if active() != QuestBook.LETTER or not done("rode_bus") or not _w.sage.met or done("jam_cleared"):
+		return false
+	flags["jam_cleared"] = true
+	_w.events.append("The traffic starts to move again, and the bus waits at the kerb.")
+	return true
+
+
 func set_flag(key: String) -> void:
 	flags[key] = true
 
@@ -115,7 +143,7 @@ func active() -> String:
 func objective() -> Dictionary:
 	for id in state:
 		if state[id] == "offered" and giver != null:
-			return {"text": "A banker has a letter and wants a word: aim at him and press Q.", "at": giver.pos}
+			return {"text": "The bankers have a letter and want a word: aim at any of them and press Q.", "at": _nearest_banker().pos}
 	var id := active()
 	if id == "":
 		return {}
@@ -133,4 +161,6 @@ func _place(name: String) -> Variant:
 			return _w.sage_drone.pos if _w.sage_drone != null else null
 		"ecb":
 			return _w.ecb_doorman.pos if _w.ecb_doorman != null else null
+		"bus":
+			return _w.bus.pos if _w.bus != null else null
 	return null

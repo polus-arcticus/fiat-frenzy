@@ -23,6 +23,9 @@ const ROWS := [-4.2, -3.0, -1.8, -0.6, 0.6, 1.8]  # where the seat rows are, alo
 
 var door_open := false
 
+var _model: Bus = null
+var _loop: SimLoop = null
+var _glass_material: StandardMaterial3D = null
 var _solid: StaticBody3D
 var _door_block: CollisionShape3D
 var _panels: Array[Node3D] = []
@@ -59,7 +62,7 @@ func _shell() -> void:
 	_part(Vector3(WIDTH, 0.3, WALL), Vector3(0, CEILING - 0.15, LENGTH * 0.5 - WALL * 0.5), BODY, false)  # ...above it...
 	_slab(Vector3(WIDTH, CEILING - FLOOR, WALL), Vector3(0, (CEILING + FLOOR) * 0.5, LENGTH * 0.5 - WALL * 0.5))
 	_glass(Vector3(WIDTH - 0.1, CEILING - FLOOR - 1.1, 0.05), Vector3(0, FLOOR + 0.8 + (CEILING - FLOOR - 1.1) * 0.5, LENGTH * 0.5 - 0.04))  # ...the windscreen
-	_part(Vector3(WIDTH - 0.2, 0.5, 0.6), Vector3(0, FLOOR + 0.9, LENGTH * 0.5 - 0.5), Color(0.18, 0.18, 0.2), false)  # the dashboard
+	_part(Vector3(WIDTH - 0.2, 0.4, 0.6), Vector3(0, FLOOR + 0.5, LENGTH * 0.5 - 0.5), Color(0.18, 0.18, 0.2), false)  # the dashboard (low: you look over it from the front seat)
 	_side(-DOOR_SIDE * WIDTH * 0.5, -LENGTH * 0.5, LENGTH * 0.5)                                   # the side with no door
 	_side(DOOR_SIDE * WIDTH * 0.5, -LENGTH * 0.5, DOOR_Z - DOOR_WIDTH * 0.5)                       # the door side, behind the door...
 	_side(DOOR_SIDE * WIDTH * 0.5, DOOR_Z + DOOR_WIDTH * 0.5, LENGTH * 0.5)                        # ...and in front of it
@@ -139,8 +142,21 @@ func _slab(size: Vector3, at: Vector3) -> CollisionShape3D:
 	return shape
 
 
+## Window glass you can see through (a pale blue tint): the hero looks out of it at the town going by.
 func _glass(size: Vector3, at: Vector3) -> void:
-	Look.box(self, size, at, GLASS)
+	var mi := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = size
+	mi.mesh = bm
+	if _glass_material == null:
+		_glass_material = StandardMaterial3D.new()
+		_glass_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		_glass_material.albedo_color = Color(0.6, 0.75, 0.85, 0.22)
+		_glass_material.roughness = 0.15
+	mi.material_override = _glass_material
+	mi.position = at
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(mi)
 
 
 ## Slide the door open or shut. Returns the tween, so a caller can `await` it.
@@ -176,13 +192,43 @@ func doorway_point() -> Vector3:
 	return to_global(Vector3(DOOR_SIDE * 0.5, FLOOR, DOOR_Z))
 
 
+## Where the hero's feet are when they sit (on the floor in front of the seat, the head lower while seated), in the bus's
+## own frame and in the world.
+const SEAT_LOCAL := Vector3(DOOR_SIDE * 0.85, FLOOR, ROWS[-1] + 0.12)  # on the seat, in front of its back
+
+
 func seat_point() -> Vector3:
-	return to_global(Vector3(DOOR_SIDE * 0.85, FLOOR + 0.5, ROWS[-1]))
+	return to_global(SEAT_LOCAL)
 
 
 func place(at: Vector2, yaw: float) -> void:
 	position = Vector3(at.x, 0.0, at.y)
 	rotation.y = yaw
+
+
+## Follow the model's bus from now on. The model moves in ticks, so the bus is drawn `loop.alpha()` of the way between
+## where it was at the last tick and where it is now: that is what keeps it from moving in jumps. It updates early in
+## each physics frame, before the seated hero (who rides in it) is moved to their seat.
+func follow(model: Bus, loop: SimLoop = null) -> BusView:
+	_model = model
+	_loop = loop
+	process_physics_priority = -5
+	place(model.pos, _yaw_of(model.heading))
+	return self
+
+
+## The rotation.y that points the bus's front (+Z) along the model's heading (the angle of the way it is going).
+static func _yaw_of(heading: float) -> float:
+	return atan2(cos(heading), sin(heading))
+
+
+func _physics_process(_delta: float) -> void:
+	if _model == null:
+		return
+	var a := _loop.alpha() if _loop != null else 1.0
+	var at := _model.prev_pos.lerp(_model.pos, a)
+	position = Vector3(at.x, 0.0, at.y)
+	rotation.y = _yaw_of(lerp_angle(_model.prev_heading, _model.heading, a))
 
 
 ## A car stuck in the jam: a body, a cabin and four wheels.

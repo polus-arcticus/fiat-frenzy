@@ -17,6 +17,7 @@ const BIKE_SHOP_BUILDING := 174326357
 ## Mr. Nobody's house: a building on Battonnstraße, a little way along from the museum (which is left alone).
 const SAGE_STREET := "Battonnstraße"
 const SAGE_BUILDING := 249389854
+const HOSPITAL_SETBACK := 2.9  # from the road's edge to the middle of the medical tent: clear of the roadway
 const ECB_STREET := "Sonnemannstraße"
 const ECB_BUILDING := 156432555  # the European Central Bank
 
@@ -36,14 +37,19 @@ var gun_rest := Vector2.ZERO   # where the money gun lands: just ahead of where 
 ## depth, poly}. `edge` is which wall of the footprint (CityBuilder's order) and `t` how far along it the door's
 ## middle is; `out` points from the wall out to the street. Empty if the building isn't in the data.
 var bike_shop := {}
+var skate_shop := {}  # and the skate shop's, in the building next door
 var sage_house := {}  # the same, for Mr. Nobody's house
 var ecb := {}          # and for the European Central Bank (no door is cut in it: the doorman stands outside)
-## Whether the debug teleporter rings are built (run with --portals): a shortcut to Mr. Nobody's door.
-var with_portals := false
 ## The bus: where it waits at the start ({pos, yaw}), and the traffic jam it ends up in outside Mr. Nobody's house
 ## ({bus: {pos, yaw}, cars: [{pos, yaw, color}], arrival, arrival_yaw}: where the hero gets off). Empty if there is no house.
 var bus_stop := {}
 var jam := {}
+## Where the bus stops at the European Central Bank, and its doorman: {bus: pos, via: [points the bus drives through to
+## line up with the street], doorman: pos, doorman_faces: pos}. The named street is a long way from the building's own
+## wall in the data, so the gate is on the street. Empty if the street is not in the data.
+var ecb_stop := {}
+## The streets (also the world's road graph, see build()): the bus's way to the jam is worked out on them.
+var roads: RoadGraph
 
 var _frame: Dictionary
 
@@ -51,16 +57,60 @@ var _frame: Dictionary
 func _init(data: Dictionary) -> void:
 	district = data
 	_frame = MapSites.street_frame(district, STREET, NEAR)
+	roads = RoadGraph.new()
+	for r in district.roads:
+		roads.add_polyline(MapSites.pts(r.pts))
+	var street_dir: Vector2 = _frame.dir
+	bus_stop = {"pos": _at(-16.0, 1.0), "yaw": atan2(street_dir.x, street_dir.y)}
 	bike_shop = MapSites.plan_door(district, BIKE_SHOP_BUILDING, STREET)
 	sage_house = MapSites.plan_door(district, SAGE_BUILDING, SAGE_STREET)
-	jam = MapSites.plan_jam(district, sage_house)
+	var next_door := MapSites.neighbour(district, bike_shop, STREET)
+	skate_shop = MapSites.plan_door(district, next_door, STREET) if next_door >= 0 else {}
+	jam = _plan_jam()
 	ecb = MapSites.plan_door(district, ECB_BUILDING, ECB_STREET)
+	ecb_stop = _plan_ecb_stop()
+
+
+## The bus's last stop: on the named street nearest the European Central Bank, pulled up in its right-hand lane after
+## lining up with the street, and the doorman on the pavement on the bank's side.
+func _plan_ecb_stop() -> Dictionary:
+	if ecb.is_empty() or jam.is_empty():
+		return {}
+	var street := MapSites.street_frame(district, ECB_STREET, ecb.door)
+	if street.is_empty():
+		return {}
+	var from: Vector2 = jam.bus.pos
+	var along: Vector2 = street.dir
+	if along.dot((street.point as Vector2) - from) < 0.0:
+		along = -along
+	var right := Vector2(-along.y, along.x)
+	var width: float = street.width
+	var stop: Vector2 = (street.point as Vector2) + along * 8.0 + right * (width * 0.25)
+	var via: Vector2 = (street.point as Vector2) - along * 30.0 + right * (width * 0.25)  # lined up, a little before it
+	var bank_side := 1.0 if right.dot((ecb.door as Vector2) - (street.point as Vector2)) >= 0.0 else -1.0
+	var gate: Vector2 = (street.point as Vector2) + along * 8.0 + right * bank_side * (width * 0.5 + 2.0)
+	return {"bus": stop, "via": [via], "doorman": gate, "doorman_faces": gate - right * bank_side * 20.0}
+
+
+## The jam outside Mr. Nobody's house, with the bus joining it the way it arrives: the direction of the last stretch of
+## its journey along Battonnstraße.
+func _plan_jam() -> Dictionary:
+	if sage_house.is_empty():
+		return {}
+	var street := MapSites.street_frame(district, SAGE_STREET, sage_house.door)
+	if street.is_empty():
+		return {}
+	var probe := roads.route(bus_stop.pos, street.point)
+	var fwd: Vector2 = street.dir
+	if probe.size() >= 2 and fwd.dot(probe[probe.size() - 1] - probe[probe.size() - 2]) < 0.0:
+		fwd = -fwd
+	return MapSites.plan_jam(district, sage_house, fwd)
 
 
 ## Which buildings get a door cut into them, for CityBuilder: {building id: {edge, t, width, height}}.
 func openings() -> Dictionary:
 	var out := {}
-	for layout in [bike_shop, sage_house]:
+	for layout in [bike_shop, skate_shop, sage_house]:
 		if not layout.is_empty():
 			out[layout.id] = {"edge": layout.edge, "t": layout.t, "width": MapSites.DOOR_WIDTH, "height": MapSites.DOOR_HEIGHT}
 	return out
@@ -69,9 +119,7 @@ func openings() -> Dictionary:
 func build() -> World:
 	seed(1133)
 	var w := World.new()
-	w.roads = RoadGraph.new()
-	for r in district.roads:
-		w.roads.add_polyline(MapSites.pts(r.pts))
+	w.roads = roads
 	w.clock.time = 0.033 * Clock.DAY_SECONDS  # 6:47 in the morning, the time the intro names
 
 	# Same-side neighbours need about 4.5 m between centres (a stall is 2.2 m wide, the tent and its
@@ -87,8 +135,13 @@ func build() -> World:
 	facing[van] = (_frame.dir as Vector2).angle() * -1.0 + PI / 2.0
 
 	# The medical tent well down the street from the market, its ambulance parked out in the street in front.
-	var to_street: Vector2 = -Vector2(-(_frame.dir as Vector2).y, (_frame.dir as Vector2).x) * -1.0
-	hospital = w.add_hospital(_at(24.0, -1.0), to_street)
+	# Placed against the real road where it stands, not the straight frame the market is laid out on: the street bends
+	# there, and by the frame the tent stood in the middle of the roadway (in the way of the bus, and of walkers).
+	var here := MapSites.street_frame(district, STREET, _at(24.0, -1.0))
+	var kerb_normal := Vector2(-(here.dir as Vector2).y, (here.dir as Vector2).x)
+	var to_street: Vector2 = kerb_normal
+	var tent_at: Vector2 = (here.point as Vector2) - kerb_normal * (float(here.width) * 0.5 + HOSPITAL_SETBACK)
+	hospital = w.add_hospital(tent_at, to_street)
 	facing[hospital] = _yaw_to_street(-1.0)
 	facing[w.ambulances[0]] = facing[van]
 
@@ -113,13 +166,10 @@ func build() -> World:
 	_add_bike_shop(w)
 	_add_sage(w)
 	_add_doorman(w)
-	if with_portals:
-		_add_portals(w)
+	_add_skate_shop(w)
 	start = _at(-24.0, 0.0)  # far enough that "walk over to the hot dog vendor" is a real first step
 	start_yaw = atan2(-(_frame.dir as Vector2).x, -(_frame.dir as Vector2).y)
-	var street_dir: Vector2 = _frame.dir
-	bus_stop = {"pos": _at(-16.0, 1.0), "yaw": atan2(street_dir.x, street_dir.y)}
-	w.bus_stop = bus_stop.pos
+	w.add_bus(bus_stop.pos, (_frame.dir as Vector2).angle())
 	wreck_pos = offset_on_street(_at(34.0, 0.0), 0.0, 0.0)
 	wreck_yaw = start_yaw + 0.5
 	gun_rest = start + (_frame.dir as Vector2) * 3.4
@@ -143,6 +193,23 @@ func _add_bike_shop(w: World) -> void:
 	cast["bike_shop"] = owner
 
 
+## The skate shop, next to the bike shop: its owner behind a counter, like the bike shop's. Added after everyone else, so no
+## earlier drone changes its number.
+func _add_skate_shop(w: World) -> void:
+	if skate_shop.is_empty():
+		return
+	var inward: Vector2 = skate_shop.inward
+	var counter: Vector2 = (skate_shop.door as Vector2) + inward * minf(skate_shop.depth * 0.55, 9.0)
+	var owner := w.add_vendor("skate_shop", counter, 600.0, true, true)
+	owner.label = "Skate shop owner"
+	var m := w.machine_of(owner)
+	m.front = -inward
+	facing[m] = atan2(inward.x, inward.y)
+	_toward[m] = m.front
+	owner.pos = m.post()
+	cast["skate_shop"] = owner
+
+
 ## Mr. Nobody, standing on the pavement outside his door, looking along the street. Added last of all.
 func _add_sage(w: World) -> void:
 	if sage_house.is_empty():
@@ -160,8 +227,13 @@ func _add_doorman(w: World) -> void:
 	if ecb.is_empty():
 		return
 	var out: Vector2 = ecb.out
-	var d := w.add_doorman((ecb.door as Vector2) + out * 2.6)
-	d.face_to = d.pos + out * 20.0
+	var at: Vector2 = (ecb.door as Vector2) + out * 2.6
+	var faces: Vector2 = at + out * 20.0
+	if not ecb_stop.is_empty():  # at the gate on the street, where the bus stops
+		at = ecb_stop.doorman
+		faces = ecb_stop.doorman_faces
+	var d := w.add_doorman(at)
+	d.face_to = faces
 	cast["doorman"] = d
 
 
@@ -176,21 +248,9 @@ func landmarks(w: World) -> Array:
 	marks.append({"pos": bus_stop.pos, "label": "bus stop", "color": Color(0.85, 0.75, 0.2)})
 	if not bike_shop.is_empty():
 		marks.append({"pos": bike_shop.door, "label": "bike shop", "color": Color(0.3, 0.5, 0.85)})
+	if not skate_shop.is_empty():
+		marks.append({"pos": skate_shop.door, "label": "skate shop", "color": Color(0.9, 0.5, 0.2)})
 	return marks
-
-
-## The teleporter: one ring at the kerb just behind where the hero begins, its twin a few steps from Mr. Nobody
-## (so you arrive facing him). Nothing here moves any drone, so it can go in after everything else.
-func _add_portals(w: World) -> void:
-	if sage_house.is_empty():
-		return
-	var dir: Vector2 = _frame.dir
-	var side_in := -Vector2(-dir.y, dir.x)  # from the +1 kerb toward the middle of the street
-	var home := Portal.new(offset_on_street(_at(-30.0, 1.0), 0.0, -2.0), side_in, "To Mr. Nobody")
-	var out: Vector2 = sage_house.out
-	var along: Vector2 = sage_house.along
-	var far := Portal.new((sage_house.door as Vector2) + out * 3.5 - along * 6.0, along, "Back to the market")
-	w.portals.add_pair(home, far)
 
 
 func _vendor(w: World, kind: String, label: String, along: float, side: float, wallet: float) -> Drone:

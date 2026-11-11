@@ -131,9 +131,9 @@ rewrite; `sim/systems/sage.gd` is who has met whom; `view/dialogue_screen.gd` an
 are the conversation (the clock stops while it runs). The stories are about scarcity, trust and promises, never
 about what kind of people handle money, and a test keeps it that way. His house (door, floor, and furniture like anyone's: nothing in it gives him away) is `view/sage_house_view.gd`.
 
-**The teleporter** is a debug shortcut now: run with `--portals` and two rings stand, one at the kerb behind the start and
-one a few steps from Mr. Nobody (walk into either to come out of the other). Rule in `sim/entities/portal.gd` and
-`sim/systems/portals.gd`, walking through in `control/portal_controller.gd`, drawing in `view/portal_view.gd`.
+**Teleporter rings** are no longer placed anywhere in the town (the shortcut to Mr. Nobody let you skip the bus ride). The
+machinery stays, because rings are how zones connect: rule in `sim/entities/portal.gd` and `sim/systems/portals.gd`, walking
+through in `control/portal_controller.gd`, drawing in `view/portal_view.gd`; a scenario can place a pair with `w.portals.add_pair`.
 
 **Your level:** every dollar you give away is experience for you too (the same curve as everyone: $50 to level 2,
 then 1.5x each level), shown as a bar under "You" in the corner. Knowledge is the only reward so far.
@@ -146,16 +146,74 @@ rises. The sage's upgrades will be earned by bringing him materials (the insects
 
 A small questing system. `sim/core/quest_book.gd` is the data (who gives a quest, what they say, the objectives in
 order) and `sim/systems/quests.gd` is the state (offered, active, done; flags). The first quest comes from the
-bankers: once every stand is running and all the bankers are fed, one of them has a letter for the European Central
-Bank (their phones broke in the crash). Aim at him and press **Q**; reading his request through accepts it and gives you
-the letter (an item in your bag). Then take the **bus** from its stop by the market (E at it): a short fade, and the
-bus is stuck in a traffic jam on Battonnstraße right outside Mr. Nobody's house, where you meet him. The bus, cars and
-fade are `view/bus_view.gd` and `view/fade_screen.gd`; the talk and the ride are `control/quest_controller.gd`. The
-objective line and the beacon follow the quest while one is on. The last leg: ride or walk on
+bankers: once every stand is running and each banker has had a proper meal, they all want a word about a letter for the
+European Central Bank (their phones broke in the crash). Aim at **any** of them and press **Q**; reading the request
+through accepts it and gives you the letter (an item in your bag). People who still need your help (a vendor whose stand is
+wrecked, a banker who has not eaten) glow gold (`sim/systems/attention.gd`, `view/actors/parts/aura.gd`); the glow goes out
+when they have what they need, and the feed says what each goal you finish did.
+
+**The tutorial is a set of goals, not a list** (`sim/systems/tutorial.gd`): after meeting the vendors, funding each stand,
+feeding the bankers and so on are all open together, shown as the main goal plus "Also open", and the beacon points at the
+nearest. What depends on something else (investing needs the bakery open) waits for it.
+
+**The bus** (once you have the letter): go to its stop by the market and press E. The door slides open, you walk in and sit
+down, and the bus drives itself 1.5 km along the real streets to the end of a queue of stuck cars on Battonnstraße outside
+Mr. Nobody's house, where the door opens and you step out. The drive is smooth: `sim/core/bus_path.gd` rounds the street
+corners into curves and gives every point a speed (up from rest, slower through bends, braking to a stop), `sim/systems/transit.gd`
+moves it along by distance with limited acceleration, and the view draws it between sim ticks (`SimLoop.alpha`) so it never
+steps. When you say **farewell to Mr. Nobody** the jam clears (the cars drive off) and the bus waits for you: board it again
+(E) and it carries on to the gate on Sonnemannstraße, where the ECB doorman is. **The sim never stops during the ride**:
+the town carries on, and you can look about from your seat. The bus is hollow (`view/props/bus_view.gd`: seats, poles, a
+door, see-through windows); the boarding and the ride are `control/story/quest_controller.gd`, and the seated mode is
+`PlayerController.sit`. The medical tent was moved off the roadway so the bus can pass it (`Scenario.HOSPITAL_SETBACK`).
+`tools/capture_ride.gd` plays the whole ride for screenshots; `tools/probe_bus_route.gd` checks the route for clipping.
+The objective line and the beacon follow the quest while one is on. The last leg: ride or walk on
 east to the bank (the beacon points the way, with the real distance); aim at the **ECB doorman** outside the front wall
 (OpenStreetMap building 156432555, the only building given a name in the data) and press Q to hand the letter over. That
 completes the quest. `tools/capture_bus.gd` and `tools/capture_ecb.gd` take screenshots. The bank area is still in the
 default zone: giving it its own zone (and a gate to it) belongs with the zone work, not the plot.
+
+## First and third person (V)
+
+V toggles the camera. In third person it hangs 3.4 m behind the hero's head and a little to the right (a `SpringArm3D`, so it pulls
+in against walls), and the hero is drawn (`view/player/hero_body.gd`: the builder model with its idle and walk animations).
+The gun is held up in front of the hero's head, the aiming reach is counted from the hero and not the camera, and the bicycle
+shows under them. It is always first person while sitting on the bus or being moved by a script, and comes back afterwards.
+`tools/capture_view.gd` takes screenshots. Not yet: a run animation, hands on the gun, turning the body toward where it
+moves instead of where the camera looks (the skateboarding mode will want that).
+
+## Skateboarding (B)
+
+Buy a board at the skate shop ($120) and press **B** to get on, B again to get off. Arcade, pick-up-and-play: **W** pushes (it
+builds to a top speed of 12 m/s), **S** brakes, **A/D** steer (and the mouse turns you too), you coast to a stop and never
+roll backwards. **Hold Space** to crouch and **let go to ollie**: the longer you held (up to 0.45 s) the higher. **Tap Space
+again in the air for a kickflip**, once a jump, which **sprays $25 on the ground** round you in five $5 piles (it is printed, like
+the gun's money, and it is counted: the world total grows by exactly $25) and which you can roll over to pick up. Running into a
+wall stops the board dead. The rules are the model's (`sim/systems/skating.gd`, tested headless); the movement is in
+`control/player/skate_controller.gd` and the player body; the board and the crouch/flip are `view/player/board_view.gd`. It puts the
+camera in third person (a longer arm) and the gun away, and gets you off if you pass out or sit on the bus. The numbers to tune
+are the constants at the top of `Skating`. `tools/capture_skate.gd` takes screenshots. Not yet: grinds, manuals, combos and a score,
+bailing, and slopes/ramps.
+
+## The skate shop
+
+Next door to the bike shop (the neighbouring building on Kaiserstraße, found by `MapSites.neighbour`) is a **skate shop**: the
+same kind of business (a real building with a door, a rich owner, a flat price) selling **complete skateboards at $120**, three
+on the wall. The price is set once, on the item (`Catalog`, `skateboard`). You can buy one and it goes in your bag; riding it is
+what the planned skateboarding game mode is for. `view/props/skate_shop_view.gd` dresses the room; `tools/capture_skate_shop.gd`
+takes screenshots.
+
+## Landmarks
+
+A few real buildings are drawn with more character than a flat-topped extrusion (`view/world/landmarks.gd`, used by
+`CityBuilder`). OpenStreetMap has their outlines and sometimes a height but not their shape, so each gets a style: a height,
+colours, a roof (sloping top, hip, dome or gable) and sometimes a tower. Done so far: the **ECB tower** (185 m, glass-blue,
+sloping top), its **Grossmarkthalle** (gable), the **Paulskirche** (red sandstone rotunda with a copper-green dome and lantern), the
+**Kaiserdom St. Bartholomäus** (red sandstone nave with a 66 m tower and spire at the west end) and a stylised
+**Einheitsdenkmal** (stone slabs, placed at its OSM point). The OSM data behind them is in `data/raw/ecb_parts_raw.json` and
+`landmarks_raw.json`; only the ECB tower and hall are in `data/bahnhofsviertel.json` with their real tags. Not done: the
+ECB twin towers (OSM has one outline). The **Hauptbahnhof** is done too: its one 377-point outline is cut across its long axis, the
+city end drawn as the reception building (gable roof) and the rest as the train halls under a row of arched glass vaults. `tools/capture_landmarks.gd` takes screenshots.
 
 ## Scaling: limits and how to fence the sim (a plan, not built)
 

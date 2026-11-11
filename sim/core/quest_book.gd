@@ -24,7 +24,9 @@ const BOOK := {
 		"objectives": [
 			{"text": "Take the bus to the European Central Bank. The stop is by the market (E at the bus to board).", "key": "rode_bus", "at": "bus_stop"},
 			{"text": "The bus is stuck in traffic. Look around: someone is watching you.", "key": "met_sage", "at": "sage"},
-			{"text": "Carry the letter on to the European Central Bank, east of here. Ask at the door (aim at the doorman and press Q).", "key": "delivered", "at": "ecb"},
+			{"text": "Talk with Mr. Nobody as long as you like: when you are ready to move on, say farewell, and the traffic will clear.", "key": "jam_cleared", "at": "sage"},
+			{"text": "The traffic is moving again and the bus is waiting. Get back on (E at the bus) to carry on to the European Central Bank.", "key": "rode_on", "at": "bus"},
+			{"text": "You are at the European Central Bank. Give the letter to the doorman at the gate (aim at him and press Q).", "key": "delivered", "at": "ecb"},
 		],
 	},
 }

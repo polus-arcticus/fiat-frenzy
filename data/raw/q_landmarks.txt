@@ -1,0 +1,5 @@
+[out:json][timeout:60][maxsize:40000000];
+(
+  nwr["name"~"Hauptbahnhof|Paulskirche|Einheitsdenkmal|Bartholom|Kaiserdom|Einkaufsbahnhof"](50.100,8.655,50.118,8.705);
+);
+out geom tags;

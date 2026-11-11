@@ -15,6 +15,8 @@ static func register() -> void:
 	_key("interact", KEY_E)
 	_key("mount", KEY_F)
 	_key("map", KEY_M)
+	_key("view", KEY_V)
+	_key("board", KEY_B)
 	_keys("skip", [KEY_ENTER, KEY_SPACE])
 	_key("speed", KEY_T)
 	_key("help", KEY_F1)

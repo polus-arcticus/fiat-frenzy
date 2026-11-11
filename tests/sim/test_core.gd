@@ -112,7 +112,7 @@ func test_only_active_zones_tick() -> void:
 
 
 func test_the_catalog_is_consistent() -> void:
-	for id in ["bakery", "hot_dog_stand", "lemonade_stand", "tent", "bike_shop"]:
+	for id in ["bakery", "hot_dog_stand", "lemonade_stand", "tent", "bike_shop", "skate_shop"]:
 		var m := Catalog.machine(id)
 		check(Catalog.item(m.item) != null, "%s makes a known item" % id)
 		for raw in m.inputs:

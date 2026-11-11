@@ -5,14 +5,14 @@ extends SceneTree
 
 const SECTIONS := [
 	"s01_town", "s02_gun_gift", "s03_bars", "s04_inventory", "s05_bills", "s06_invest_contract", "s07_keys",
-	"s08_bike_shop", "s09_sage", "s10_portals", "s11_quest", "s12_map", "s13_chatter", "s14_collapse", "s15_days",
+	"s08_bike_shop", "s09_sage", "s11_quest", "s12_map", "s13_chatter", "s14_collapse", "s15_days", "s16_walking", "s17_view", "s18_skate",
 ]
 
 var failures := 0
 var checks := 0
 ## The number of checks a clean run makes; fewer means a script error stopped a test early. Raise it when
 ## tests are added.
-const EXPECTED_CHECKS := 149
+const EXPECTED_CHECKS := 172
 
 
 func check(ok: bool, what: String) -> void:
@@ -26,7 +26,6 @@ func _initialize() -> void:
 	var t0 := Time.get_ticks_msec()
 	var game: Node = load("res://main.tscn").instantiate()
 	game.skip_intro = true  # the intro has its own test (smoke_intro.gd)
-	game.portals = true
 	root.add_child(game)
 	await process_frame
 	await process_frame

@@ -25,6 +25,7 @@ static func _build_items() -> Dictionary[String, ItemDef]:
 		ItemDef.new("lemonade", "drink", 0.0, 0.6),
 		ItemDef.new("bed", "warmth"),
 		ItemDef.new("bicycle", "vehicle", 3000.0),  # not food: bought once, and ridden. THE price of a bicycle
+		ItemDef.new("skateboard", "board", 120.0),  # a complete board (deck, trucks, wheels), at about what one costs in a shop today
 		ItemDef.new("letter", "document"),  # carried for a quest, not used up
 	]
 	for d in defs:
@@ -71,7 +72,17 @@ static func _build_machines() -> Dictionary[String, MachineDef]:
 	bikes.flat_price = true
 	bikes.rich = true
 	bikes.footprint = {"boxes": [[0.0, 0.0, 1.6, 0.45]]}
-	for m in [bakery, dogs, lemonade, tent, bikes]:
+	# The skate shop, beside the bike shop: the same kind of business (a real building, a rich owner, a flat price), with a
+	# few boards on the wall instead of one bicycle.
+	var skates := MachineDef.new("skate_shop", "Skate shop", "skateboard")
+	skates.rate = 0.0
+	skates.cap = 6
+	skates.tick = 0.0
+	skates.repair = 1000000.0
+	skates.flat_price = true
+	skates.rich = true
+	skates.footprint = {"boxes": [[0.0, 0.0, 1.6, 0.45]]}
+	for m in [bakery, dogs, lemonade, tent, bikes, skates]:
 		out[m.id] = m
 	return out
 
@@ -89,8 +100,8 @@ static var food_bank: FoodBankDef = _build_food_bank()
 static func _build_food_bank() -> FoodBankDef:
 	var fb := FoodBankDef.new()
 	fb.add("flour", 1.2)
-	fb.add("bottled_water", 1.5)
-	fb.add("sugar", 0.8)
+	fb.add("bottled_water", 2.25)  # water and sugar are what lemonade is made of: 1.5x what they were, for 1.5x the lemonade
+	fb.add("sugar", 1.2)
 	fb.add("protein", 0.8)
 	return fb
 

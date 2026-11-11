@@ -10,6 +10,7 @@ var gun: GunController
 var hud: Hud
 
 var _rig: BikeRig
+var _riding := false
 var _view: BikeView = null
 
 
@@ -60,7 +61,13 @@ func _apply(on: bool) -> void:
 	player.speed_scale = world.riding.speed_factor()
 	player.set_riding(on)
 	gun.set_suppressed(on)
-	_rig.visible = on
+	_riding = on
+	refresh_view()
+
+
+## The handlebars are the view from the saddle: shown while riding, in first person only.
+func refresh_view() -> void:
+	_rig.visible = _riding and not player.third_person
 
 
 func _process(delta: float) -> void:

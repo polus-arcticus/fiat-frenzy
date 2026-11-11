@@ -45,6 +45,8 @@ func update(delta: float, time_scale: float) -> void:
 	hud.show_charge(gun.charge, gun.contract_value(gun.charge))
 	hud.show_target(null if inventory.visible else gun.aim().drone, world)
 	tutorial.update(player.ground_pos())
+	for line in tutorial.take_news():
+		hud.notify(line)  # what the player has just done, in words
 	var quest := world.quests.objective()
 	hud.show_objective(quest.text if not quest.is_empty() else tutorial.text())
 	var m: Variant = current_marker()

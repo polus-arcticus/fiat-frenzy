@@ -44,7 +44,7 @@ func setup(m: Machine, w: World, facing: float) -> MachineView:
 			add_child(_light)
 		"lemonade_stand":
 			_stall(Color(0.98, 0.86, 0.3), Color(1.0, 0.98, 0.9), Color(0.95, 0.9, 0.35))
-		"bike_shop":
+		"bike_shop", "skate_shop":
 			_shop_counter()
 		"bakery":
 			_stall(Color(0.72, 0.38, 0.28), Color(0.96, 0.9, 0.78), Color(0.85, 0.65, 0.35), false)

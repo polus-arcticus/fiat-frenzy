@@ -36,6 +36,8 @@ func _ready() -> void:
 	_objective.custom_minimum_size.x = 340
 
 	_feed = Ui.label(null, "", 15)
+	_feed.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART  # a long line wraps rather than running under the hint bar
+	_feed.custom_minimum_size.x = 400
 	var feed_box := Ui.panel(root, Control.PRESET_BOTTOM_LEFT, Vector2(16, -16))
 	feed_box.get_child(0).add_child(_feed)
 	feed_box.modulate.a = 0.85
@@ -43,7 +45,7 @@ func _ready() -> void:
 	_hint = Ui.label(null, "", 14)
 	var hint_box := Ui.panel(root, Control.PRESET_BOTTOM_RIGHT, Vector2(-16, -16))
 	hint_box.get_child(0).add_child(_hint)
-	_hint.text = "WASD move · Shift run · Space jump · hold LMB spray (invest: charge, release) · Tab inventory · Q talk · E use a stand · M map · scroll gun mode · T time speed · Esc back"
+	_hint.text = "WASD move · Shift run · Space jump · hold LMB spray (invest: charge, release) · V view · B board · Tab inventory · Q talk · E use a stand · M map · scroll gun mode · T time speed · Esc back"
 
 	_prompt = _outlined(root, "", 20, 8)
 	_prompt.set_anchors_preset(Control.PRESET_CENTER)
@@ -53,7 +55,10 @@ func _ready() -> void:
 	_caption = _outlined(root, "", 32, 10)
 	_caption.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	_caption.offset_top = 120
-	_caption.offset_bottom = 180
+	_caption.offset_bottom = 240
+	_caption.offset_left = 120   # inset from the edges (clear of the panels at the top corners), and wrapped
+	_caption.offset_right = -120
+	_caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_caption.modulate.a = 0.0
 

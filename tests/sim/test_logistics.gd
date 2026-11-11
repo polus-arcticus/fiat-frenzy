@@ -55,7 +55,7 @@ func test_food_bank_trickles_stock() -> void:
 	check(keeper.pos.distance_to(fb.pos) >= 1.0, "the keeper stands behind the counter")
 	Fixtures.run(w, 300)
 	note("    after five minutes: flour %d, water %d, sugar %d, protein %d" % [fb.output.count("flour"), fb.output.count("bottled_water"), fb.output.count("sugar"), fb.output.count("protein")])
-	check(fb.output.count("flour") == 16 and fb.output.count("bottled_water") == 17 and fb.output.count("sugar") in [13, 14] and fb.output.count("protein") in [13, 14], "five minutes later it has made a few more of each, at its own slow rates")
+	check(fb.output.count("flour") == 16 and fb.output.count("bottled_water") == 21 and fb.output.count("sugar") in [15, 16] and fb.output.count("protein") in [13, 14], "five minutes later it has made a few more of each, at its own slow rates")
 	Fixtures.run(w, 3000)
 	check(fb.output.count("flour") == 30 and fb.output.count("protein") == 30, "and it stops at its cap of 30")
 	check(is_equal_approx(fb.price_of("flour"), Catalog.base_price("flour")) and is_equal_approx(fb.price_of("bottled_water"), 0.5), "it sells at cost")

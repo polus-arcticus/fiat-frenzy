@@ -24,6 +24,8 @@ var pos := Vector2.ZERO
 var heading := 0.0
 var route := PackedVector2Array()  # waypoints still to walk
 var route_goal := Vector2(INF, INF)
+var steer_to := Vector2(INF, INF)   # the corner or door it is going round something by, and kept to until it gets there
+var steer_for := Vector2(INF, INF)  # ...for which goal (a different goal, and it is worked out afresh)
 var job := {}          # {for: demand class, target, item}
 var station := -1      # index of the machine this drone owns, or -1
 var depot := -1        # index of the food bank this drone keeps, or -1
@@ -44,7 +46,8 @@ var aloof := false     # takes no part in the town's errands: never fetches mone
 var needless := false  # has no needs: bars stay full (the rich shop owner)
 var care_rate := 1.0   # how fast the medical tent mends them, compared with an ordinary patient
 var wake_at := -1.0    # how well they are when the tent lets them go (below zero: the tent's usual)
-var care := ""         # "" fit; "down" collapsed; "carried" in the ambulance; "patient" in a hospital bed
+var aura := false      # shows a gold glow: they need the player's help (see Attention)
+var care := ""       # "" fit; "down" collapsed; "carried" in the ambulance; "patient" in a hospital bed
 
 
 func _init(drone_id: int, at: Vector2, start_wallet := 0.0) -> void:

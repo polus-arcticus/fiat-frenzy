@@ -1,0 +1,8 @@
+[out:json][timeout:60][maxsize:40000000];
+(
+  way["building:part"](50.1075,8.7000,50.1112,8.7080);
+  relation["building:part"](50.1075,8.7000,50.1112,8.7080);
+  way["building"](50.1075,8.7000,50.1112,8.7080);
+  relation["building"](50.1075,8.7000,50.1112,8.7080);
+);
+out geom tags;

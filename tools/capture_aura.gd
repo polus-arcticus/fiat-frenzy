@@ -1,8 +1,8 @@
-## Windowed screenshots of the teleporter rings: the one by the start and the one by Mr. Nobody.
-##   godot --path . --script tools/capture_portal.gd -- <output dir>
+## Windowed screenshots of the gold glow on people who need help, and the HUD with several goals open together.
+##   godot --path . --script tools/capture_aura.gd -- <output dir>
 extends SceneTree
 
-var out_dir := "/tmp/ff3d_portal"
+var out_dir := "/tmp/ff3d_aura"
 var game: Node
 
 
@@ -14,7 +14,6 @@ func _initialize() -> void:
 	root.size = Vector2i(1200, 700)
 	game = load("res://main.tscn").instantiate()
 	game.skip_intro = true
-	game.portals = true
 	root.add_child(game)
 	_run()
 
@@ -31,7 +30,7 @@ func _shot(name: String) -> void:
 	print("saved ", name)
 
 
-func _stand(at: Vector2, look_at: Vector2, eye := 1.5) -> void:
+func _stand(at: Vector2, look_at: Vector2, eye := 1.6) -> void:
 	var to := look_at - at
 	game.player.teleport(Vector3(at.x, 0.1, at.y), atan2(-to.x, -to.y))
 	game.player.look_toward(Vector3(look_at.x, eye, look_at.y))
@@ -39,15 +38,15 @@ func _stand(at: Vector2, look_at: Vector2, eye := 1.5) -> void:
 
 func _run() -> void:
 	await _frames(20)
-	var ring: Portal = game.world.portals.all[0]
+	var w: World = game.world
+	var cast: Dictionary = game.scenario.cast
 	game.sim_paused = true
-	game.hud.visible = false
-	game.portal_controller.set_process(false)
-	_stand(ring.exit_point() + ring.normal * 3.0, ring.pos)
-	await _shot("1_home_ring")
-	var far: Portal = ring.twin
-	_stand(far.exit_point() + far.normal * 2.0, far.pos)
-	await _shot("2_far_ring")
-	_stand(game.scenario.cast.sage.pos + (game.scenario.sage_house.out as Vector2) * 9.0, far.pos, 1.5)
-	await _shot("3_far_ring_wide")
-	quit()
+	var hot: Drone = cast.hot_dog
+	_stand(hot.pos + Vector2(-1.5, -9.0), hot.pos, 1.4)
+	await _frames(10)
+	await _shot("1_the_market_glows")
+	# fund the baker: his glow goes out, and the feed says what happened
+	w.machine_of(cast.bakery).working = true
+	await _frames(10)
+	await _shot("2_the_baker_is_funded")
+	quit(0)

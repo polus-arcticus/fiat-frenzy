@@ -83,3 +83,50 @@ func test_the_vendor_is_not_boxed_in_and_vehicles_ignore_footprints() -> void:
 		w.walking.step(a, Vector2(30, 8), 0.1)
 	check(a.pos.distance_to(Vector2(30, 8)) < 0.5, "the ambulance drives on the street and isn't kept out by the tent it serves")
 	check(h.solid().enclosure != null, "the medical tent has walls and an inside too")
+
+
+## Walkers all round a tent, each heading for the far side of it, with a street graph that offers its own way
+## round: none of them may end up shuttling at a corner (the medical tent used to hold people there for ever).
+func test_nobody_gets_stuck_going_round_a_tent() -> void:
+	var w := World.new()
+	w.roads = RoadGraph.new()
+	w.roads.add_polyline(PackedVector2Array([Vector2(-30, 8), Vector2(0, 8), Vector2(30, 8)]))  # a street in front
+	w.roads.add_polyline(PackedVector2Array([Vector2(-30, -14), Vector2(0, -14), Vector2(30, -14)]))  # and one behind
+	var h := w.add_hospital(Vector2(0, 0), Vector2(0.37, 0.93).normalized())
+	var stuck := 0
+	var tried := 0
+	for a in 24:
+		for r in [7.0, 12.0]:
+			var ang: float = TAU * a / 24.0
+			var start: Vector2 = Vector2.from_angle(ang) * 4.5
+			var goal: Vector2 = Vector2.from_angle(ang + PI) * r
+			var d := w.add_drifter(start)
+			tried += 1
+			var steps := 0
+			while d.pos.distance_to(goal) > 0.6 and steps < 900:
+				w.walking.step(d, goal, 0.1)
+				steps += 1
+			if d.pos.distance_to(goal) > 0.6:
+				stuck += 1
+	check(tried == 48 and stuck == 0, "every walker got round the tent (stuck: %d of %d)" % [stuck, tried])
+	check(h.solid().parts.size() == 3, "(a tent: two sides and a back)")
+
+
+## Someone inside a tent with somewhere to go beyond its side wall leaves by the open end, and gets there. (The tent keeper
+## used to head straight for the stand through the canvas, and stay pressed against it.)
+func test_someone_inside_a_tent_leaves_by_the_open_end() -> void:
+	var tw := _tent_world()
+	var w: World = tw[0]
+	var m: Machine = tw[1]
+	var arrived := 0
+	var goals := [Vector2(-6.0, -0.5), Vector2(6.0, -0.5), Vector2(-5.0, 3.0), Vector2(0.0, -8.0)]
+	for goal in goals:
+		var d := w.add_drifter(Vector2(0.3, -0.9), 0.0)  # inside, near the back, behind the counter
+		var steps := 0
+		while d.pos.distance_to(goal) > 0.5 and steps < 600:
+			w.walking.step(d, goal, 0.1)
+			steps += 1
+		if d.pos.distance_to(goal) <= 0.5:
+			arrived += 1
+	check(m.solid().enclosure.contains(Vector2(0.3, -0.9)), "(they start inside the tent)")
+	check(arrived == goals.size(), "from inside, they get out and reach all four places (%d of %d)" % [arrived, goals.size()])

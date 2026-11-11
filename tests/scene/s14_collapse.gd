@@ -14,7 +14,7 @@ func run() -> void:
 	check(w.hospitals.size() == 1 and w.ambulances.size() == 1 and hospital.pos.distance_to(game.scenario.start) < 70.0, "there is a medical tent and an ambulance near the market")
 	w.player.bars.hunger = 0.0
 	game.advance(1.0)
-	check(w.player.care != "" and not game.player.controls_enabled and not game.gun.enabled, "when a bar runs out the hero collapses: controls and the gun stop")
+	check(w.player.care != "" and not game.player.controls_enabled and not game.gun.enabled, "when a bar runs out the hero collapses: controls and the gun stop (care '%s', controls %s, gun %s)" % [w.player.care, game.player.controls_enabled, game.gun.enabled])
 	check(shade.modulate.a > 0.9, "and the screen goes black (%.2f)" % shade.modulate.a)
 	var in_bed := false
 	for i in 400:
