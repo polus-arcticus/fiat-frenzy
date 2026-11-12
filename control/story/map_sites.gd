@@ -20,7 +20,7 @@ static func street_frame(district: Dictionary, street: String, near: Vector2) ->
 			var d := c.distance_to(near)
 			if d < best_d and pts[k].distance_to(pts[k + 1]) > 0.5:
 				best_d = d
-				best = {"point": c, "dir": (pts[k + 1] - pts[k]).normalized(), "width": float(r.w)}
+				best = {"point": c, "dir": (pts[k + 1] - pts[k]).normalized(), "width": float(r.w), "pave": r.get("pave", []), "bike": r.get("bike", [])}
 	return best
 
 

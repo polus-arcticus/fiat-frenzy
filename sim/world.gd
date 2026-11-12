@@ -19,6 +19,8 @@
 ##   Portals     the teleporter rings
 ##   Transit     the bus: boarding, driving itself along the streets, arriving
 ##   Skating     the skateboard: rolling, the ollie, the kickflip (and its $25)
+##   Navigation  where people can walk: a grid per zone of what is solid, and paths round it
+##   Heating     the warm indoors: the shops, the sage's house, the bus
 ##   Zones       which patches of the map run, and the books of each
 ##   Quests      what the hero has been asked to do, and how far along it is
 ##   Attention   who needs the hero's help, as a gold glow
@@ -66,6 +68,8 @@ var sage: Sage
 var portals: Portals
 var transit: Transit
 var skating: Skating
+var nav: Navigation
+var heating: Heating
 var quests: Quests
 var attention: Attention
 
@@ -87,6 +91,8 @@ func _init() -> void:
 	portals = Portals.new()
 	transit = Transit.new(self)
 	skating = Skating.new(self)
+	nav = Navigation.new(self)
+	heating = Heating.new(self)
 	zones = Zones.new(self)
 	quests = Quests.new(self)
 	attention = Attention.new(self)

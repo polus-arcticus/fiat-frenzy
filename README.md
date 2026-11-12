@@ -42,14 +42,14 @@ At a stand, E opens a Planet Crafter-style screen: your inventory on the left, t
       game_controller.gd   the root: builds the town, the player, the screens and the story in four named steps, and hands the sim to SimLoop (fixed steps, speed, named holds so intro, talks and the bus ride cannot un-pause each other)
       hud_presenter.gd     every frame, tells the HUD what the model says (objective, bars, feed)
       world_views.gd       makes the views for what the world contains
-      screen_stack.gd      full-screen screens: owns Esc, and the player's controls and the mouse while one is open
-      player/     PlayerController, GunController, BikeController, InteractionController (E, Tab, Q), CollapseController, PortalController, Controls
-      story/      Scenario (the starting world), MapSites (map geometry: doors, streets, the jam), IntroController,
-                  SageController, QuestController
-    data/         the district (bahnhofsviertel.json, from tools/osm_to_district.py)
-    tests/        run.gd (the model: sim/test_*.gd, one method per test); smoke_scene.gd runs the real scene headlessly as ordered
-                  sections (scene/s01_*.gd ...); smoke_intro.gd; support/ (TestCase, Fixtures)
-    tools/        test.sh (all suites at once), osm_to_district.py, capture*.gd (windowed screenshots)
+	  screen_stack.gd      full-screen screens: owns Esc, and the player's controls and the mouse while one is open
+	  player/     PlayerController, GunController, BikeController, InteractionController (E, Tab, Q), CollapseController, PortalController, Controls
+	  story/      Scenario (the starting world), MapSites (map geometry: doors, streets, the jam), IntroController,
+				  SageController, QuestController
+	data/         the district (bahnhofsviertel.json, from tools/osm_to_district.py)
+	tests/        run.gd (the model: sim/test_*.gd, one method per test); smoke_scene.gd runs the real scene headlessly as ordered
+				  sections (scene/s01_*.gd ...); smoke_intro.gd; support/ (TestCase, Fixtures)
+	tools/        test.sh (all suites at once), osm_to_district.py, capture*.gd (windowed screenshots)
 
 Two conventions keep the controllers honest. **Screens** (bag, map, conversation) never switch the player's controls or the
 mouse themselves: they register with the ScreenStack, which does. **Conversations** are run by a controller that sets
@@ -165,13 +165,68 @@ steps. When you say **farewell to Mr. Nobody** the jam clears (the cars drive of
 (E) and it carries on to the gate on Sonnemannstraße, where the ECB doorman is. **The sim never stops during the ride**:
 the town carries on, and you can look about from your seat. The bus is hollow (`view/props/bus_view.gd`: seats, poles, a
 door, see-through windows); the boarding and the ride are `control/story/quest_controller.gd`, and the seated mode is
-`PlayerController.sit`. The medical tent was moved off the roadway so the bus can pass it (`Scenario.HOSPITAL_SETBACK`).
+`PlayerController.sit`. The medical tent sits on the pavement with its ambulance bay on the carriageway, so the bus can pass it.
 `tools/capture_ride.gd` plays the whole ride for screenshots; `tools/probe_bus_route.gd` checks the route for clipping.
 The objective line and the beacon follow the quest while one is on. The last leg: ride or walk on
 east to the bank (the beacon points the way, with the real distance); aim at the **ECB doorman** outside the front wall
 (OpenStreetMap building 156432555, the only building given a name in the data) and press Q to hand the letter over. That
 completes the quest. `tools/capture_bus.gd` and `tools/capture_ecb.gd` take screenshots. The bank area is still in the
 default zone: giving it its own zone (and a gate to it) belongs with the zone work, not the plot.
+
+## Bills and buildings
+
+A bill can no longer end up where nobody can get it. The city's collision now has the **roofs** as well as the walls, so a bill that
+arcs over a building stops on its roof instead of dropping through it. And in the model, any bill that comes down somewhere nobody
+could stand (inside a building's outline, or in a stand) is put on the nearest open ground (`Navigation.nearest_open`, called from
+`Gun.land`), which also covers the kickflip's $25 if you do it beside a wall. Before this, bills fell through the roof into the
+footprint and the NPCs pressed against the wall trying to fetch money they could not reach.
+
+## The money bar
+
+Over everyone's head, and on the target card in place of the old reputation bar, is a **money bar** (`sim/core/wealth.gd`), so who is
+broke shows from across the street: an empty bar and no dark notches. The dark-green strip above it has **a notch for every order of
+magnitude**: one at $10, two at $100, three at $1,000, four at $10,000 (the most it shows). The light bar fills toward the next
+order (under $1 it is empty; $1 to $10 fills the first stretch; $55 is half way from $10 to $100) and starts again from empty when
+they cross it. The level bar is gone everywhere (overhead, the target card, your own panel): level is just text now ("Lv 2" on the name tag,
+"level 2" on the card, "You · Level 2" on your panel). The card lists **reputation in points** ("reputation 37 points", reputation
+times 100) where the wallet line used to be, so an exact wallet is no longer shown: the money bar is how you read it. Money still moves only between wallets: a purchase raises the seller's wallet (and so their bar) by the price.
+
+## The sky and the bars overhead
+
+The sky is painted (`assets/shaders/sky.gdshader`, driven by `DayNight`): a gradient laid down in soft bands like a watercolour wash,
+toon clouds with a lit and a shaded side (gradient noise, so no hard edges), a sun with a halo, a warm glow along the horizon at dawn and
+dusk (lavender over peach), stars at night. The game opens at 6:47 on a lavender-and-peach dawn. The old grey was the fog covering the
+whole sky; it now only hazes the far buildings (`fog_sky_affect = 0`). The bars over heads each have a pale border and a solid dark
+backing (`BarsRig`), so the dark-green notches stand out from across the street. `tools/capture_sky.gd` shoots the five times of day.
+
+## Warmth indoors
+
+The two shops, Mr. Nobody's house and the bus are warm (`sim/systems/heating.gd`): anyone standing inside, the hero included,
+warms at about 0.012 a second (more than the night cools you), without stacking. So a night ride on the bus, or a browse in the
+bike shop, warms you up. Fires and a tent's own bed are still the Needs system's.
+
+## Navigation: where people can walk
+
+`sim/systems/navigation.gd`. Each zone has a grid of half-metre cells; everything solid (stands, tents, fires, the hospital, and
+the buildings the scenario tells it about) is stamped into it, grown by a body's width, and `Navigation.path` finds a way round
+all of it with `AStarGrid2D`, then pulls it straight so people walk in lines. `Walking` checks each leg of a street route against
+the grid and swaps in a way round when something is in the way. No shape needs its own rule: a tent's open end is just free
+cells. It is built to change, for base building: `imprint(zone, key, polygon)` stamps something down (a wall, a crate that has come
+to rest) and `release` takes it away; overlapping things count, so a cell is free only when nothing covers it; every walker
+whose way was built over replans (the zone's `version`). Moving things never touch it. The first and last 0.8 m of a walk
+ignore the padding (customers stand a step from a stand's front, inside it). `Footprint` keeps the shapes and the last guard
+(`slide`). Probes: `tools/probe_runners.gd` (20 sim minutes of the real town: who gets stuck), `probe_routes.gd`, `probe_tent.gd`.
+
+## The landing street
+
+The converter now measures how far each street's pavement runs out to the buildings on either side (`pave`: the carriageway is
+only its traffic lanes, the rest to the building line is pavement) and keeps bike lanes and tracks from the OSM tags (`bike`:
+301 of the 1,447 roads; the landing stretch is tagged `cycleway:both=no`, so none there). The city builder draws both. The landing
+street is laid out across its width (`Scenario._spot`, measured from the real road where it bends): stalls (hot dog, baker,
+lemonade, the food bank) at the kerb edge of the pavement serving the walkway, the tent against the buildings with its open end
+to the walkway, the walkway between them, the carriageway kept clear (the bus's lane, and room to walk). The **bus stop** has a
+shelter, bench and sign on the pavement and a painted bay (`view/props/bus_stop_view.gd`); the **medical tent** is on the
+pavement with the ambulance's painted bay on the road in front of it. `tools/capture_street.gd` takes screenshots.
 
 ## First and third person (V)
 
@@ -255,14 +310,14 @@ summaries of dormant people, per-zone ledgers for `sunk` and the hero's pocket, 
 
 ## Tests
 
-    tools/test.sh                      # everything at once, about 10 s (sim, scene, intro in parallel)
-    tools/test.sh sim --only=rescue    # just the model tests whose name contains "rescue" (about 1 s)
-    godot --headless --path . --script tests/run.gd -- [--only=x] [--verbose] [--update-manifest]
-    godot --headless --path . --script tests/smoke_scene.gd    # the real scene, headless (intro skipped)
-    godot --headless --path . --script tests/smoke_intro.gd    # the helicopter intro (engine time x4)
-    godot --path . --script tools/capture.gd -- /some/dir      # screenshots (opens a window)
-    godot --path . --script tools/capture_intro.gd -- /some/dir  # the intro beats (opens a window)
-    godot --path . --script tools/capture_rescue.gd -- /some/dir # the ambulance and medical tent
+	tools/test.sh                      # everything at once, about 10 s (sim, scene, intro in parallel)
+	tools/test.sh sim --only=rescue    # just the model tests whose name contains "rescue" (about 1 s)
+	godot --headless --path . --script tests/run.gd -- [--only=x] [--verbose] [--update-manifest]
+	godot --headless --path . --script tests/smoke_scene.gd    # the real scene, headless (intro skipped)
+	godot --headless --path . --script tests/smoke_intro.gd    # the helicopter intro (engine time x4)
+	godot --path . --script tools/capture.gd -- /some/dir      # screenshots (opens a window)
+	godot --path . --script tools/capture_intro.gd -- /some/dir  # the intro beats (opens a window)
+	godot --path . --script tools/capture_rescue.gd -- /some/dir # the ambulance and medical tent
 
 A sim test is a `test_*` method in `tests/sim/test_*.gd` (extends `TestCase`, uses `check(ok, what)` and the
 builders in `tests/support/fixtures.gd`). The runner reseeds the RNG before each one, so any test can run

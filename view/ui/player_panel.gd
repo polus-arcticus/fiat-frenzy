@@ -2,7 +2,7 @@
 class_name PlayerPanel
 extends RefCounted
 
-var bars := {}  # "level", "cash", "hunger", "thirst", "warmth" -> bar
+var bars := {}  # "cash", "hunger", "thirst", "warmth" -> bar
 
 var _status: Label
 var _mode: Label
@@ -15,7 +15,7 @@ func build(root: Control) -> void:
 	_mode = Ui.label(panel, "", 20)
 	var box: VBoxContainer = panel.get_child(0)
 	_title = Ui.label(box, "You", 15)
-	bars = Ui.bars(box, ["level", "cash", "hunger", "thirst", "warmth"])
+	bars = Ui.bars(box, ["cash", "hunger", "thirst", "warmth"])
 
 
 func show_world(w: World, time_scale: float) -> void:
@@ -25,9 +25,8 @@ func show_world(w: World, time_scale: float) -> void:
 
 func show_player(p: Drone, cash: float) -> void:
 	_title.text = "You  ·  Level %d" % p.growth.level
-	(bars["level"] as LevelBar).level = p.growth.level
 	for k in bars:
-		var v: float = p.growth.progress() if k == "level" else (clampf(cash / Look.CASH_FULL, 0.0, 1.0) if k == "cash" else p.bars[k])
+		var v: float = clampf(cash / Look.CASH_FULL, 0.0, 1.0) if k == "cash" else p.bars[k]
 		bars[k].value = v * 100.0
 
 

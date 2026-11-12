@@ -56,3 +56,33 @@ func run() -> void:
 	check(game.gun.mode == mode0, "but not while a screen is open")
 	game.player.controls_enabled = true
 
+
+	# Buildings stop bills: a ray from above lands on a roof, and a bill that comes down inside a building is put in the street.
+	var hollow: Dictionary = game.scenario.openings()
+	var chosen: PackedVector2Array
+	var chosen_height := 0.0
+	var best_d := INF
+	for bd in game.scenario.district.buildings:
+		if hollow.has(int(bd.id)) or float(bd.h) < 10.0:
+			continue
+		var poly := MapSites.pts(bd.poly)
+		var c := Vector2.ZERO
+		for p in poly:
+			c += p
+		c /= poly.size()
+		if Geometry2D.is_point_in_polygon(c, poly) and c.distance_to(game.scenario.start) < best_d and Geometry2D.triangulate_polygon(poly).size() >= 3:
+			best_d = c.distance_to(game.scenario.start)
+			chosen = poly
+			chosen_height = float(bd.h)
+	var middle := Vector2.ZERO
+	for p in chosen:
+		middle += p
+	middle /= chosen.size()
+	var query := PhysicsRayQueryParameters3D.create(Vector3(middle.x, 300.0, middle.y), Vector3(middle.x, 0.5, middle.y), 1)
+	var roof_hit: Dictionary = game.get_world_3d().direct_space_state.intersect_ray(query)
+	check(not roof_hit.is_empty() and roof_hit.position.y > chosen_height - 1.0, "a ray dropped from above a building stops on its roof (%.1f m of %.1f)" % [roof_hit.position.y if not roof_hit.is_empty() else -1.0, chosen_height])
+	var printed_before: float = w.ledger.printed
+	var dropped: Bill = w.gun.land(w.gun.fire(5.0, "cash"), middle)
+	check(not w.nav.unreachable("district", dropped.pos) and dropped.pos.distance_to(middle) > 1.0, "and a bill that comes down inside it is put on open ground (%.0f m away)" % dropped.pos.distance_to(middle))
+	w.bills.erase(dropped)  # (it is only for this check: take it, and what it printed, back out)
+	w.ledger.printed = printed_before

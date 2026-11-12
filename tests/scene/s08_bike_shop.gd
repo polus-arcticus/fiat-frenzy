@@ -58,3 +58,9 @@ func run() -> void:
 			break
 	check(game.gun.visible == gun_visible_before and not game.bike_controller._rig.visible, "and when you wake the gun is back and the handlebars are gone")
 
+
+	# the shops are warm inside, and the street outside them is not
+	for layout in [game.scenario.bike_shop, game.scenario.skate_shop]:
+		var warm_spot: Vector2 = (layout.door as Vector2) + (layout.inward as Vector2) * 4.0
+		var cold_spot: Vector2 = (layout.door as Vector2) + (layout.out as Vector2) * 4.0
+		check(game.world.heating.is_warm(warm_spot) and not game.world.heating.is_warm(cold_spot), "inside the shop is warm, outside it is not")

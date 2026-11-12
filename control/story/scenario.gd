@@ -17,7 +17,9 @@ const BIKE_SHOP_BUILDING := 174326357
 ## Mr. Nobody's house: a building on Battonnstraße, a little way along from the museum (which is left alone).
 const SAGE_STREET := "Battonnstraße"
 const SAGE_BUILDING := 249389854
-const HOSPITAL_SETBACK := 2.9  # from the road's edge to the middle of the medical tent: clear of the roadway
+const KERB_STALL := 4.6        # a stall's middle, this far from the centre line: at the kerb edge of the pavement
+const TENT_DEPTH := 2.6        # a tent's middle, this far in from the building line
+const HOSPITAL_CENTRE := 6.3   # the medical tent's middle: its open end a step back from the kerb, its back wall on the pavement
 const ECB_STREET := "Sonnemannstraße"
 const ECB_BUILDING := 156432555  # the European Central Bank
 
@@ -61,7 +63,8 @@ func _init(data: Dictionary) -> void:
 	for r in district.roads:
 		roads.add_polyline(MapSites.pts(r.pts))
 	var street_dir: Vector2 = _frame.dir
-	bus_stop = {"pos": _at(-16.0, 1.0), "yaw": atan2(street_dir.x, street_dir.y)}
+	var lane := _spot(-16.0, 1.0, float(_frame.width) * 0.25)  # the bus waits in its own (right-hand) lane, at the kerb
+	bus_stop = {"pos": lane.pos, "yaw": atan2(street_dir.x, street_dir.y), "dir": street_dir, "kerb_side": lane.away}
 	bike_shop = MapSites.plan_door(district, BIKE_SHOP_BUILDING, STREET)
 	sage_house = MapSites.plan_door(district, SAGE_BUILDING, SAGE_STREET)
 	var next_door := MapSites.neighbour(district, bike_shop, STREET)
@@ -122,44 +125,46 @@ func build() -> World:
 	w.roads = roads
 	w.clock.time = 0.033 * Clock.DAY_SECONDS  # 6:47 in the morning, the time the intro names
 
-	# Same-side neighbours need about 4.5 m between centres (a stall is 2.2 m wide, the tent and its
-	# barrel about 4 m); the two sides of the street face each other.
-	cast["hot_dog"] = _vendor(w, "hot_dog_stand", "Hot dog vendor", 0.0, 1.0, 8.0)
-	cast["tent"] = _vendor(w, "tent", "Tent keeper", 7.0, 1.0, 4.0)
-	cast["bakery"] = _vendor(w, "bakery", "Baker", -1.0, -1.0, 6.0)
-	cast["lemonade"] = _vendor(w, "lemonade_stand", "Lemonade seller", 4.5, -1.0, 10.0)
+	# The landing street, laid out across its width. From the centre line out to either building: the carriageway (the middle:
+	# the bus's lane, and where people walk, for there is no traffic now), the kerb, the stalls (their backs to the road,
+	# serving the pavement), the walkway down the middle of the pavement, and against the buildings the tents (open to the
+	# walkway). Along the street, neighbours on one side need about 4.5 m between centres.
+	var stall := KERB_STALL
+	cast["hot_dog"] = _vendor(w, "hot_dog_stand", "Hot dog vendor", 0.0, 1.0, 8.0, stall, false)
+	cast["bakery"] = _vendor(w, "bakery", "Baker", -1.0, -1.0, 6.0, stall, false)
+	cast["lemonade"] = _vendor(w, "lemonade_stand", "Lemonade seller", 4.5, -1.0, 10.0, stall, false)
+	cast["tent"] = _vendor(w, "tent", "Tent keeper", 7.0, 1.0, 4.0, -TENT_DEPTH, true)
 
-	var fire := w.add_fire(_at(-7.0, 1.0))
-	facing[fire] = _yaw_to_street(1.0)
-	van = w.add_relief_truck(_at(22.0, 0.0))
+	var fire_spot := _spot(3.5, 1.0, -2.0)  # by the tent, against the buildings: off the walkway
+	var fire := w.add_fire(fire_spot.pos)
+	facing[fire] = atan2(-(fire_spot.toward as Vector2).x, -(fire_spot.toward as Vector2).y)
+	var van_spot := _spot(22.0, 1.0, 0.0)
+	van = w.add_relief_truck(van_spot.pos)
 	facing[van] = (_frame.dir as Vector2).angle() * -1.0 + PI / 2.0
 
-	# The medical tent well down the street from the market, its ambulance parked out in the street in front.
-	# Placed against the real road where it stands, not the straight frame the market is laid out on: the street bends
-	# there, and by the frame the tent stood in the middle of the roadway (in the way of the bus, and of walkers).
-	var here := MapSites.street_frame(district, STREET, _at(24.0, -1.0))
-	var kerb_normal := Vector2(-(here.dir as Vector2).y, (here.dir as Vector2).x)
-	var to_street: Vector2 = kerb_normal
-	var tent_at: Vector2 = (here.point as Vector2) - kerb_normal * (float(here.width) * 0.5 + HOSPITAL_SETBACK)
-	hospital = w.add_hospital(tent_at, to_street)
-	facing[hospital] = _yaw_to_street(-1.0)
+	# The medical tent on the left-hand pavement, well down the street from the market, its open end toward the road and the
+	# ambulance's bay on the carriageway in front of it.
+	var clinic := _spot(26.0, -1.0, HOSPITAL_CENTRE)
+	hospital = w.add_hospital(clinic.pos, clinic.toward)
+	facing[hospital] = atan2(-(clinic.toward as Vector2).x, -(clinic.toward as Vector2).y)
 	facing[w.ambulances[0]] = facing[van]
 
 	for i in DRIFTER_COUNT:
 		var d := w.add_drifter(_at(randf_range(-12.0, 12.0), randf_range(-1.0, 1.0)), randf_range(3.0, 12.0))
 		d.label = DRIFTER_NAMES[i]
 
-	# The food bank, 40 m down the street from the market, with two cart runners waiting by it.
-	var keeper := w.add_food_bank(_at(-42.0, -1.0), 8.0)
+	# The food bank, 40 m down the street from the market on the left kerb like a stall, with two cart runners waiting on the
+	# pavement beside it.
+	var bank := _spot(-42.0, -1.0, KERB_STALL)
+	var keeper := w.add_food_bank(bank.pos, 8.0)
 	var fb := w.food_bank_of(keeper)
-	facing[fb] = _yaw_to_street(-1.0)
-	var dir: Vector2 = _frame.dir
-	fb.front = -Vector2(-dir.y, dir.x) * -1.0
+	facing[fb] = atan2(-(bank.away as Vector2).x, -(bank.away as Vector2).y)
+	fb.front = bank.away
 	keeper.pos = fb.post()
 	cast["food_bank"] = keeper
 	var runners: Array[Drone] = []
 	for k in 2:
-		var r := w.add_runner(_at(-38.0 - 3.0 * k, 1.0), 15.0)
+		var r := w.add_runner(_spot(-38.0 - 3.0 * k, -1.0, KERB_STALL + 2.2).pos, 15.0)
 		r.label = ["Runner Jakob", "Runner Lena"][k]
 		runners.append(r)
 	cast["runners"] = runners
@@ -170,6 +175,14 @@ func build() -> World:
 	start = _at(-24.0, 0.0)  # far enough that "walk over to the hot dog vendor" is a real first step
 	start_yaw = atan2(-(_frame.dir as Vector2).x, -(_frame.dir as Vector2).y)
 	w.add_bus(bus_stop.pos, (_frame.dir as Vector2).angle())
+	for layout in [bike_shop, skate_shop, sage_house]:  # the shops and the sage's house are warm inside
+		if not layout.is_empty():
+			w.heating.add_building(layout.poly)
+	# Walkers keep out of the buildings (the shops with a door cut in them are hollow: people stand inside those)
+	var hollow := openings()
+	for bd in district.buildings:
+		if not hollow.has(int(bd.id)):
+			w.nav.add_static("district", MapSites.pts(bd.poly))
 	wreck_pos = offset_on_street(_at(34.0, 0.0), 0.0, 0.0)
 	wreck_yaw = start_yaw + 0.5
 	gun_rest = start + (_frame.dir as Vector2) * 3.4
@@ -253,16 +266,34 @@ func landmarks(w: World) -> Array:
 	return marks
 
 
-func _vendor(w: World, kind: String, label: String, along: float, side: float, wallet: float) -> Drone:
-	var d := w.add_vendor(kind, _at(along, side), wallet, false, false)
+func _vendor(w: World, kind: String, label: String, along: float, side: float, wallet: float, lateral: float, faces_road: bool) -> Drone:
+	var spot := _spot(along, side, lateral)
+	var d := w.add_vendor(kind, spot.pos, wallet, false, false)
 	d.label = label
 	var m := w.machine_of(d)
-	facing[m] = _yaw_to_street(side)
-	var dir: Vector2 = _frame.dir
-	_toward[m] = -Vector2(-dir.y, dir.x) * side
-	m.front = _toward[m]
+	var toward: Vector2 = spot.toward if faces_road else spot.away
+	facing[m] = atan2(-toward.x, -toward.y)
+	_toward[m] = toward
+	m.front = toward
 	d.pos = m.post()
 	return d
+
+
+## A point on the street, laid out across it: `along` metres down it from the anchor, on `side` (+1 the right, -1 the left)
+## and `lateral` metres out from the centre line (negative: that far in from the building line instead). Returns {pos,
+## toward (a unit vector from there toward the middle of the street), away (the other way, toward the buildings)}. Measured
+## from the real road where it stands, which bends a little: a straight line through the market does not follow it.
+func _spot(along: float, side: float, lateral: float) -> Dictionary:
+	var global: Vector2 = (_frame.point as Vector2) + (_frame.dir as Vector2) * along
+	var here := MapSites.street_frame(district, STREET, global)
+	var nrm := Vector2(-(here.dir as Vector2).y, (here.dir as Vector2).x)
+	var out := lateral
+	if lateral < 0.0:  # measured in from the building line
+		var pave: Array = here.pave
+		var reach: float = float(pave[1 if side > 0.0 else 0]) if pave.size() == 2 else float(here.width) * 0.5 + 3.0
+		out = reach + lateral
+	var toward := -nrm * side
+	return {"pos": (here.point as Vector2) + nrm * side * out, "toward": toward, "away": -toward}
 
 
 ## A spot `dist` metres in front of a stand (on the customers' side, toward the middle of the street) and
@@ -278,6 +309,11 @@ func front_of(m: Machine, dist: float) -> Dictionary:
 func offset_on_street(from: Vector2, along: float, lateral: float) -> Vector2:
 	var dir: Vector2 = _frame.dir
 	return from + dir * along + Vector2(-dir.y, dir.x) * lateral
+
+
+## The carriageway's width where the market is.
+func street_width() -> float:
+	return float(_frame.width)
 
 
 ## The street's direction where the market is.

@@ -42,9 +42,12 @@ func hit(b: Bill, d: Drone) -> Dictionary:
 	return {"result": "dropped", "amount": b.value, "stake": 0.0, "overflow": 0.0}
 
 
-## The bill came down at `pos`. It becomes loose cash, joining a pile if one is right there. Returns
+## The bill came down at `pos` (or, if that is somewhere no one could stand, at the nearest open ground). It becomes loose
+## cash, joining a pile if one is right there. Returns
 ## the bill that is now lying there.
 func land(b: Bill, pos: Vector2) -> Bill:
+	if _w.nav.unreachable(b.zone, pos):
+		pos = _w.nav.nearest_open(b.zone, pos)  # it came down on a roof or in a stand: it ends up in the street, where it can be picked up
 	for o in _w.bills:
 		if o != b and o.loose and o.pos.distance_to(pos) <= MERGE:
 			o.value += b.value

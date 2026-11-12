@@ -13,6 +13,7 @@ extends RefCounted
 const COARSE_STEP := 10.0  # a dormant zone's businesses run in jumps of this many seconds
 
 var active: Array[String] = []
+var version := 0  # bumps whenever something is added to the world or moves zone: the indexes (and navigation grids) are rebuilt
 var _owed := {}  # zone -> seconds of dormant time not yet run
 var _index := {}  # zone -> {drones, machines, food_banks, fires, runners}: what a search in that zone looks at
 var _dirty := true
@@ -27,6 +28,7 @@ func _init(world: World) -> void:
 ## Something was added to the world, or moved zone: the per-zone lists are rebuilt next time they are asked for.
 func invalidate() -> void:
 	_dirty = true
+	version += 1
 
 
 ## Everyone, every machine, food bank and fire in `zone`. The systems search these, never the world's whole lists,

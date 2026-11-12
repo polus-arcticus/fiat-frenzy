@@ -36,7 +36,7 @@ func decay(d: Drone, dt: float) -> void:
 
 
 ## Warmth a second this drone feels from the heat sources round it: every fire in range (strongest beside
-## it, by Shelter's inverse-square falloff), plus the tent it has a bed in.
+## it, by Shelter's inverse-square falloff), plus the tent it has a bed in, plus being indoors (see Heating).
 func warmth_gain(d: Drone) -> float:
 	var g := 0.0
 	var range_sq := Shelter.RANGE * Shelter.RANGE
@@ -44,6 +44,7 @@ func warmth_gain(d: Drone) -> float:
 		var d2: float = f.pos.distance_squared_to(d.pos)
 		if d2 <= range_sq:
 			g += f.shelter.gain_at_sq(d2)
+	g += _w.heating.gain_at(d.pos)  # indoors: a shop, the sage's house, the bus
 	var s: Shelter = d.sheltered_in
 	if s != null and not s.open_air:
 		g += s.gain_at_sq(s.centre.distance_squared_to(d.pos))

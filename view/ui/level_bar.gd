@@ -12,6 +12,11 @@ var level := 1:
 	set(v):
 		level = v
 		queue_redraw()
+## How many notches the dark strip has room for: the levels there are (for a level bar), or Wealth.MAX_TIER (for money).
+var steps := Growth.MAX_LEVEL - 1:
+	set(v):
+		steps = v
+		queue_redraw()
 var value := 0.0:
 	set(v):
 		value = v
@@ -26,7 +31,7 @@ func _init() -> void:
 
 func _draw() -> void:
 	var w := size.x
-	var tier := clampf(float(level - 1) / float(Growth.MAX_LEVEL - 1), 0.0, 1.0)
+	var tier := clampf(float(level - 1) / float(maxi(steps, 1)), 0.0, 1.0)
 	draw_rect(Rect2(0, 0, w, 6), BACK)
 	draw_rect(Rect2(0, 0, w * tier, 6), DARK)
 	draw_rect(Rect2(0, 8, w, 10), BACK)

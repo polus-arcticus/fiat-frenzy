@@ -43,12 +43,12 @@ static func label(parent: Node, text: String, size: int) -> Label:
 	return l
 
 
-## The "level" row: its name and a LevelBar (two layers: how many levels, and how far through this one).
-static func level_row(parent: Node) -> LevelBar:
+## A two-layer row: its name and a LevelBar (how many notches, and how far through this one). The "level" row, and money.
+static func level_row(parent: Node, title := "level") -> LevelBar:
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parent.add_child(row)
-	var l := label(row, "level", 14)
+	var l := label(row, title, 14)
 	l.custom_minimum_size.x = 64
 	var b := LevelBar.new()
 	row.add_child(b)
@@ -80,9 +80,14 @@ static func bar(parent: Node, title: String, color: Color) -> ProgressBar:
 	return b
 
 
-## A row of bars by name: "level" gets the two-layer bar, the rest ordinary ones. Returns {name: bar}.
+## A row of bars by name: "level" and "money" get the two-layer bar, the rest ordinary ones. Returns {name: bar}.
 static func bars(parent: Node, names: Array) -> Dictionary:
 	var out := {}
 	for k in names:
-		out[k] = level_row(parent) if k == "level" else bar(parent, k, BAR_COLORS[k])
+		if k == "money":
+			var m := level_row(parent, "money")
+			m.steps = Wealth.MAX_TIER
+			out[k] = m
+		else:
+			out[k] = level_row(parent) if k == "level" else bar(parent, k, BAR_COLORS[k])
 	return out

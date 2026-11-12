@@ -24,6 +24,21 @@ KX = 111320.0 * math.cos(math.radians(lat0))
 KZ = 110574.0
 
 
+def bike_lanes(t):
+    """[left, right] bike provision of a street from its OpenStreetMap tags: '', 'lane' or 'track' ('separate' and the like are
+    ways of their own that we do not read, and 'no' is none)."""
+    out = ["", ""]
+    for k, v in t.items():
+        if k == "cycleway" or k.startswith("cycleway:"):
+            if v not in ("lane", "track"):
+                continue
+            sides = {"cycleway": (0, 1), "cycleway:both": (0, 1), "cycleway:left": (0,), "cycleway:right": (1,)}.get(k, ())
+            for i in sides:
+                if out[i] != "track":
+                    out[i] = v
+    return out
+
+
 def project(p):
     return ((p["lon"] - lon0) * KX, -(p["lat"] - lat0) * KZ)
 
@@ -93,8 +108,71 @@ for e in els:
         cls = t["highway"]
         if cls not in ROAD_WIDTH:
             continue
-        roads.append({"name": t.get("name", ""), "class": cls, "w": ROAD_WIDTH[cls],
-                      "pts": [round(c, 1) for p in pts for c in p]})
+        r = {"name": t.get("name", ""), "class": cls, "w": ROAD_WIDTH[cls],
+             "pts": [round(c, 1) for p in pts for c in p]}
+        bike = bike_lanes(t)
+        if bike != ["", ""]:
+            r["bike"] = bike
+        roads.append(r)
+
+# How far each street's pavement runs out to the buildings on either side (the carriageway is only its traffic lanes: the
+# rest, out to the building line, is pavement, parking and kerb that OpenStreetMap maps as separate ways we do not read).
+_edges = []
+for b in buildings:
+    q = list(zip(b["poly"][0::2], b["poly"][1::2]))
+    for i in range(len(q)):
+        _edges.append((q[i], q[(i + 1) % len(q)]))
+_cell = 40.0
+_grid = {}
+for (a, c) in _edges:
+    for gx in range(int(min(a[0], c[0]) // _cell) - 1, int(max(a[0], c[0]) // _cell) + 2):
+        for gz in range(int(min(a[1], c[1]) // _cell) - 1, int(max(a[1], c[1]) // _cell) + 2):
+            _grid.setdefault((gx, gz), []).append((a, c))
+
+
+def _nearest_building(px, pz, nx, nz, reach=18.0):
+    """Distance from (px, pz) along the unit normal (nx, nz) to the first building edge, or None."""
+    best = None
+    for (a, c) in _grid.get((int(px // _cell), int(pz // _cell)), []):
+        # ray from p along n against the segment a-c
+        dx, dz = c[0] - a[0], c[1] - a[1]
+        den = nx * dz - nz * dx
+        if abs(den) < 1e-9:
+            continue
+        t = ((a[0] - px) * dz - (a[1] - pz) * dx) / den
+        u = ((a[0] - px) * nz - (a[1] - pz) * nx) / den
+        if 0.3 < t < reach and 0.0 <= u <= 1.0 and (best is None or t < best):
+            best = t
+    return best
+
+
+for r in roads:
+    pts = list(zip(r["pts"][0::2], r["pts"][1::2]))
+    sides = [[], []]
+    for i in range(len(pts) - 1):
+        (x1, z1), (x2, z2) = pts[i], pts[i + 1]
+        length = math.hypot(x2 - x1, z2 - z1)
+        if length < 1.0:
+            continue
+        dx, dz = (x2 - x1) / length, (z2 - z1) / length
+        nx, nz = -dz, dx  # the right-hand side of the way, as the game's +normal is
+        for k in range(max(1, int(length // 8.0))):
+            tt = (k + 0.5) * min(8.0, length / max(1, int(length // 8.0)))
+            px, pz = x1 + dx * tt, z1 + dz * tt
+            for side, sgn in ((0, -1.0), (1, 1.0)):
+                d = _nearest_building(px, pz, nx * sgn, nz * sgn)
+                if d is not None:
+                    sides[side].append(d)
+    half = r["w"] / 2.0
+    pave = []
+    for side in sides:
+        if len(side) >= 2:
+            side.sort()
+            m = side[len(side) // 2]  # the typical distance to the building line
+            pave.append(round(max(half + 1.7, min(m - 0.3, 16.0)), 1))
+        else:
+            pave.append(round(half + 1.7, 1))
+    r["pave"] = pave
 
 xs = [c for b in buildings for c in b["poly"][0::2]] + [c for r in roads for c in r["pts"][0::2]]
 zs = [c for b in buildings for c in b["poly"][1::2]] + [c for r in roads for c in r["pts"][1::2]]

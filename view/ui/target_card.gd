@@ -1,4 +1,4 @@
-## VIEW (HUD part). The card for whoever the crosshair is on: their level and bars, their wallet, and what they run
+## VIEW (HUD part). The card for whoever the crosshair is on: their money and survival bars, their reputation (with you) in points, and what they run
 ## (a stand's price, stock, worth and your stake; a runner's cart; the food bank's shelves).
 class_name TargetCard
 extends RefCounted
@@ -13,7 +13,7 @@ var _panel: PanelContainer
 func build(root: Control) -> void:
 	_panel = Ui.panel(root, Control.PRESET_CENTER_BOTTOM, Vector2(0, -120))
 	title = Ui.label(_panel, "", 20)
-	bars = Ui.bars(_panel.get_child(0), ["level", "hunger", "thirst", "warmth", "rep"])
+	bars = Ui.bars(_panel.get_child(0), ["money", "hunger", "thirst", "warmth"])
 	info = Ui.label(_panel, "", 15)
 	_panel.visible = false
 
@@ -24,17 +24,16 @@ func show_target(d: Drone, w: World) -> void:
 		return
 	_panel.visible = true
 	title.text = "%s  ·  level %d" % [d.label if d.label != "" else d.kind, d.growth.level]
-	(bars["level"] as LevelBar).level = d.growth.level
-	bars["level"].value = d.growth.progress() * 100.0
 	for k in ["hunger", "thirst", "warmth"]:
 		bars[k].value = d.bars[k] * 100.0
-	bars["rep"].value = d.rep * 100.0
+	(bars["money"] as LevelBar).level = Wealth.tiers(d.wallet) + 1  # a notch for every order of magnitude: $10, $100, $1,000...
+	bars["money"].value = Wealth.progress(d.wallet) * 100.0
 	info.text = _describe(d, w)
 
 
 ## The lines under the bars.
 func _describe(d: Drone, w: World) -> String:
-	var text := "wallet $%.2f" % d.wallet
+	var text := "reputation %d points" % roundi(d.rep * 100.0)
 	if d.kind == "runner":
 		var load_text := ", ".join(d.cart.counts.keys().filter(func(k): return d.cart.count(k) > 0).map(func(k): return "%d %s" % [d.cart.count(k), k.replace("_", " ")]))
 		text += "\ncart: %s" % (load_text if load_text != "" else "empty")

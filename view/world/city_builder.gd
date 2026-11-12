@@ -11,6 +11,8 @@ const PALETTE: Array[Color] = [
 	Color(0.66, 0.72, 0.80), Color(0.78, 0.50, 0.42), Color(0.90, 0.84, 0.80), Color(0.80, 0.74, 0.60),
 ]
 const ROOFS: Array[Color] = [Color(0.36, 0.34, 0.38), Color(0.52, 0.30, 0.25), Color(0.42, 0.40, 0.36)]
+const BIKE_LANE := Color(0.62, 0.42, 0.36)   # a bike lane painted on the carriageway
+const BIKE_TRACK := Color(0.70, 0.34, 0.30)  # and a track beside the kerb
 const GLASS := Color(0.24, 0.30, 0.38)
 const LIT := Color(1.0, 0.82, 0.45)
 const ASPHALT := Color(0.30, 0.30, 0.34)
@@ -102,7 +104,7 @@ static func build(district: Dictionary, openings := {}) -> Node3D:
 		Vector3(b[2] + pad, 0, b[3] + pad), Vector3(b[0] - pad, 0, b[3] + pad), up, GROUND)
 
 	for r in district.roads:
-		_road(streets, _pts(r.pts), float(r.w), String(r["class"]))
+		_road(streets, _pts(r.pts), float(r.w), String(r["class"]), r.get("pave", []), r.get("bike", []))
 	for bd in district.buildings:
 		for piece in Landmarks.pieces(int(bd.id), _pts(bd.poly)):  # (usually the one: its whole footprint)
 			_building(bd, walls, windows, lit, roofs, streets, openings.get(int(bd.id), {}), piece.pts, piece.style)
@@ -131,7 +133,9 @@ static func build(district: Dictionary, openings := {}) -> Node3D:
 	body.name = "Collision"
 	body.collision_layer = 1
 	var wall_shape := ConcavePolygonShape3D.new()
-	wall_shape.set_faces(walls.faces())
+	var solid_faces := walls.faces()  # walls and roofs: a bill that arcs over a building comes down on its roof, not through it
+	solid_faces.append_array(roofs.faces())
+	wall_shape.set_faces(solid_faces)
 	var wc := CollisionShape3D.new()
 	wc.shape = wall_shape
 	body.add_child(wc)
@@ -253,11 +257,16 @@ static func _door_wall(walls: Buf, p0: Vector3, dir: Vector2, length: float, out
 		walls.quad(a + lintel, b + lintel, b + up, a + up, nrm, col)  # over the door
 
 
-## A street as a ribbon along its centre line: a wide sidewalk strip with the carriageway on top.
-static func _road(streets: Buf, pts: PackedVector2Array, width: float, cls: String) -> void:
+## A street as a ribbon along its centre line: the pavement out to the buildings on each side (`pave`: how far, [left,
+## right]), with the carriageway on top and a coloured strip down the edge where the street has a bike lane or track (`bike`:
+## ["lane" | "track" | "", ...], left and right: the way it is tagged in OpenStreetMap).
+static func _road(streets: Buf, pts: PackedVector2Array, width: float, cls: String, pave := [], bike := []) -> void:
 	var paved := cls == "pedestrian"
 	var side_w := width + (0.0 if paved else 3.4)
 	var side_col := STONE if paved else SIDEWALK
+	var reach := [side_w * 0.5, side_w * 0.5]  # how far the pavement runs out on the left and the right
+	if pave.size() == 2:
+		reach = [maxf(float(pave[0]), side_w * 0.5), maxf(float(pave[1]), side_w * 0.5)]
 	for k in pts.size() - 1:
 		var p := pts[k]
 		var q := pts[k + 1]
@@ -267,9 +276,29 @@ static func _road(streets: Buf, pts: PackedVector2Array, width: float, cls: Stri
 		var dir := e.normalized()
 		var nrm := Vector2(-dir.y, dir.x)
 		var ext := dir * width * 0.35  # overlap the joints so corners don't gap
-		_strip(streets, p - ext, q + ext, nrm, side_w * 0.5, 0.015, side_col)
+		for side in 2:
+			var sgn := 1.0 if side == 1 else -1.0  # the right-hand side is along +nrm
+			_band(streets, p - ext, q + ext, nrm * sgn, 0.0, float(reach[side]), 0.015, side_col)
 		if not paved:
 			_strip(streets, p - ext, q + ext, nrm, width * 0.5, 0.03, ASPHALT)
+		for side in mini(bike.size(), 2):
+			var kind := String(bike[side])
+			if kind == "":
+				continue
+			var sgn := 1.0 if side == 1 else -1.0
+			if kind == "lane":  # inside the carriageway, along its edge
+				_band(streets, p - ext, q + ext, nrm * sgn, width * 0.5 - 1.5, width * 0.5, 0.04, BIKE_LANE)
+			else:               # a track: on the pavement, beside the kerb
+				_band(streets, p - ext, q + ext, nrm * sgn, width * 0.5, width * 0.5 + 1.8, 0.04, BIKE_TRACK)
+
+
+## A band along the street from `inner` to `outer` metres to one side of its centre line.
+static func _band(streets: Buf, p: Vector2, q: Vector2, side: Vector2, inner: float, outer: float, y: float, col: Color) -> void:
+	var a := p + side * inner
+	var b := p + side * outer
+	var c := q + side * outer
+	var d := q + side * inner
+	streets.quad(Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(c.x, y, c.y), Vector3(d.x, y, d.y), Vector3.UP, col)
 
 
 static func _strip(streets: Buf, p: Vector2, q: Vector2, nrm: Vector2, half: float, y: float, col: Color) -> void:

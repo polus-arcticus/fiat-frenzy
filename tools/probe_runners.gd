@@ -44,6 +44,6 @@ func _initialize() -> void:
 				reported[d.id] = true
 				var tgt = d.job.get("target")
 				var where: Variant = tgt.pos if tgt != null and "pos" in tgt else null
-				print("STUCK t=%ds drone %d (%s) job %s at %s, target at %s, steer_to %s, route %d" % [t / 10, d.id, d.kind, d.job.get("for"), d.pos, where, d.steer_to, d.route.size()])
+				print("STUCK t=%ds drone %d (%s) job %s at %s, target at %s, route %d" % [t / 10, d.id, d.kind, d.job.get("for"), d.pos, where, d.route.size()])
 	print("done; stuck reports: ", reported.size())
 	quit()

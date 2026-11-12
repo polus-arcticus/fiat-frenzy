@@ -25,6 +25,24 @@ func setup(h: Hospital, facing: float) -> HospitalView:
 	Look.box(prop, Vector3(1.2, 0.5, 0.06), Vector3(0, 2.15, -1.8), white)                     # lintel over the open front
 	Look.box(prop, Vector3(0.22, 0.8, 0.05), Vector3(0, 2.15, -1.84), red)
 	Look.box(prop, Vector3(0.8, 0.22, 0.05), Vector3(0, 2.15, -1.84), red)
+	# the ambulance's bay, painted on the road in front: in the tent's own frame the bay is a few metres out and along
+	var bay := hospital.bay() - hospital.pos
+	var local := Vector2(bay.dot(Vector2(-hospital.front.y, hospital.front.x)), -bay.dot(hospital.front))  # (x across, z back)
+	var paint := Color(0.94, 0.94, 0.9)
+	for e in [-1.4, 1.4]:  # (the bay is long along the street, which is the tent's x axis)
+		Look.box(prop, Vector3(6.4, 0.012, 0.12), Vector3(local.x, 0.035, local.y + e), paint)
+	for e in [-3.2, 3.2]:
+		Look.box(prop, Vector3(0.12, 0.012, 2.9), Vector3(local.x + e, 0.035, local.y), paint)
+	var ground := Label3D.new()
+	ground.text = "AMBULANCE"
+	ground.font_size = 80
+	ground.pixel_size = 0.012
+	ground.modulate = paint
+	ground.double_sided = true
+	ground.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+	ground.rotation = Vector3(-PI * 0.5, PI, 0.0)  # lying flat, reading along the bay from the road
+	ground.position = Vector3(local.x, 0.04, local.y - 0.2)
+	prop.add_child(ground)
 	for i in Hospital.BEDS:
 		var x := -1.35 + 0.9 * float(i)
 		Look.box(prop, Vector3(0.7, 0.12, 1.9), Vector3(x, 0.38, 0.2), Color(0.55, 0.6, 0.66))

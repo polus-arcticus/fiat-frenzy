@@ -192,3 +192,24 @@ func test_investing_gets_a_broken_stand_going() -> void:
 	check(stand.working and is_equal_approx(w.ledger.sunk, stand.repair_cost), "with the player's money it was repaired")
 	Fixtures.run(w, 200, true)
 	check(stand.stock() > 0 and stand.equity.stake > 0.4, "and it makes hot dogs, nearly half of whose takings belong to the player")
+
+
+## A bill that comes down on a roof, in a building's footprint or inside a stand, is put on the nearest open ground: nobody can walk
+## to it where it fell (people used to press against the wall trying to fetch money that had gone through the roof).
+func test_a_bill_that_lands_where_nobody_can_stand_ends_up_in_the_street() -> void:
+	var w := World.new()
+	w.add_vendor("bakery", Vector2(0, 0), 5.0)  # (a solid, so the zone has a grid)
+	w.nav.add_static("district", PackedVector2Array([Vector2(10, -10), Vector2(30, -10), Vector2(30, 10), Vector2(10, 10)]))  # a building
+	var printed := w.ledger.printed
+	var b := w.gun.fire(5.0, "cash")
+	var laid := w.gun.land(b, Vector2(20, 0))  # right in the middle of it
+	check(laid.loose and not w.nav.unreachable("district", laid.pos), "a bill dropped in the middle of a building comes to rest outside it (%s)" % str(laid.pos))
+	check(laid.pos.distance_to(Vector2(20, 0)) >= 9.0 and laid.pos.distance_to(Vector2(20, 0)) <= 12.0, "at the nearest edge: about ten metres off, not across town")
+	var stand := w.gun.land(w.gun.fire(2.0, "cash"), Vector2(0.2, 0.1))  # in the bakery's counter
+	check(not w.nav.unreachable("district", stand.pos), "one dropped on a stand's counter is put beside it")
+	var plain := w.gun.land(w.gun.fire(1.0, "cash"), Vector2(-20, 5))
+	check(plain.pos == Vector2(-20, 5), "but a bill on open ground stays exactly where it fell")
+	check(is_equal_approx(w.ledger.printed - printed, 8.0) and is_equal_approx(w.total_money(), w.ledger.printed), "and the money is all accounted for")
+	var bare := World.new()
+	var free := bare.gun.land(bare.gun.fire(3.0, "cash"), Vector2(5, 5))
+	check(free.pos == Vector2(5, 5), "with nothing solid in the world, nothing moves")
