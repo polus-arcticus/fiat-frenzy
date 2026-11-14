@@ -159,3 +159,38 @@ func test_warmth_falls_off_with_the_square_of_distance() -> void:
 	note("    from 30%% warmth at night: 1 m from the fire reaches 90%% after %d s; 7 m away it is at %.0f%%" % [t, distant.bars.warmth * 100.0])
 	check(t >= 0 and t < 90, "beside the fire a cold person warms through in under 90 s (it took the old fire about 340)")
 	check(distant.bars.warmth < 0.3, "seven metres off they just keep getting colder")
+
+
+func test_the_needier_walk_faster_to_what_they_need() -> void:
+	note("pace: a stroll when barely in need, a rush when nearly out; ordinary for every other errand")
+	var w := World.new()
+	var d := w.add_drifter(Vector2.ZERO, 20.0)
+	d.bars = Fixtures.bars(1.0, 0.45, 1.0)
+	var barely := w.needs.pace(d, {"for": "drink"})
+	d.bars = Fixtures.bars(1.0, 0.25, 1.0)
+	var middling := w.needs.pace(d, {"for": "drink"})
+	d.bars = Fixtures.bars(1.0, 0.02, 1.0)
+	var nearly_out := w.needs.pace(d, {"for": "drink"})
+	note("    drink at 0.45 / 0.25 / 0.02 thirst: x%.2f / x%.2f / x%.2f" % [barely, middling, nearly_out])
+	check(barely < middling and middling < nearly_out, "the lower the bar, the faster they go")
+	check(barely >= Needs.SLOWEST_PACE and nearly_out <= Needs.FASTEST_PACE, "within the slowest and the fastest")
+	check(barely < 0.7 and nearly_out > 1.25, "a real difference: a stroll against a rush")
+	check(w.needs.pace(d, {"for": "cash"}) == 1.0 and w.needs.pace(d, {"for": "restock"}) == 1.0 and w.needs.pace(d, {}) == 1.0, "other errands are an ordinary walk")
+	d.bars = Fixtures.bars(0.02, 1.0, 1.0)
+	check(w.needs.pace(d, {"for": "drink"}) == Needs.SLOWEST_PACE, "and it is the bar the errand answers that counts: not hungry-for-drink")
+
+
+func test_the_thirstiest_get_to_a_thin_shelf_first() -> void:
+	note("two drinkers the same distance from a stand with one drink left: the one who needs it more gets it")
+	var w := World.new()
+	var seller := w.add_vendor("lemonade_stand", Vector2(0, 0))
+	var stand := w.machine_of(seller)
+	stand.rate_per_min = 0.0
+	stand.output.take(stand.item, stand.stock() - 1)
+	var casual := w.add_drifter(Vector2(30, 0), 10.0)
+	casual.bars = Fixtures.bars(1.0, 0.45, 1.0)
+	var desperate := w.add_drifter(Vector2(30, 0), 10.0)
+	desperate.bars = Fixtures.bars(1.0, 0.08, 1.0)
+	Fixtures.until(w, func(): return stand.sold_total > 0, 120)
+	check(stand.sold_total == 1, "the one drink was sold")
+	check(desperate.wallet < 10.0 and casual.wallet == 10.0, "to the thirstier one, not to the one who set off from the same spot at the same moment")

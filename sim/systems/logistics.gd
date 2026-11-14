@@ -39,7 +39,7 @@ func act(d: Drone, dt: float) -> void:
 		return
 	var stand: Vector2 = d.job.stand
 	if d.pos.distance_to(stand) > ARRIVE:
-		_w.walking.step(d, stand, dt)
+		_w.walking.step(d, stand, dt * _w.needs.pace(d, d.job))
 		return
 	d.route = PackedVector2Array()
 	var done := d.job

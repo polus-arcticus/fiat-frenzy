@@ -14,6 +14,7 @@
 ##   Commerce    the player buying from stands and eating what they carry
 ##   Cash        loose money in the street, and who picks it up
 ##   Chatter     what people say
+##   Hero        how the hero is moving about: on foot, riding, skating or seated (one at a time)
 ##   Riding      getting on and off the bicycle
 ##   Sage        Mr. Nobody: who has met whom, and what he has told
 ##   Portals     the teleporter rings
@@ -27,6 +28,8 @@
 ##   Rescue      collapsing, the ambulance, and the medical tent
 ##   Levels      experience (money given) and what a level does to a business
 ##   Ledger      where the money is
+## Most of these live in features/<name>/ with their views and controllers (see the README); the engine they all stand on
+## (clock, zones, navigation, walking, logistics, needs, ledger) is in sim/systems.
 class_name World
 extends RefCounted
 
@@ -74,6 +77,9 @@ var heating: Heating
 var quests: Quests
 var attention: Attention
 
+## The systems that take a turn at the end of every tick, in this order (each has `step(dt)`). A new feature that needs
+## one adds its system here and nowhere in `tick`.
+var _end_of_tick: Array = []
 
 
 func _init() -> void:
@@ -98,6 +104,7 @@ func _init() -> void:
 	zones = Zones.new(self)
 	quests = Quests.new(self)
 	attention = Attention.new(self)
+	_end_of_tick = [transit, rescue, chatter, sage, quests, attention]
 
 
 # ---------------------------------------------------------------- building the town
@@ -281,9 +288,5 @@ func tick(dt := 1.0) -> void:
 			needs.decay(d, dt)
 	if player != null:
 		needs.decay(player, dt)
-	transit.step(dt)
-	rescue.step(dt)
-	chatter.step(dt)
-	sage.step(dt)
-	quests.step()
-	attention.step()
+	for system in _end_of_tick:
+		system.step(dt)

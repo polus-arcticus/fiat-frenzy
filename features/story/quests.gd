@@ -66,7 +66,7 @@ func letter_ready() -> bool:
 	return true
 
 
-func step() -> void:
+func step(_dt := 0.0) -> void:
 	for b in bankers():
 		if b.bars.hunger < HUNGRY:
 			_was_hungry[b.id] = true

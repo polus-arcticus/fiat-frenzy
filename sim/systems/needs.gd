@@ -16,6 +16,9 @@ const DAY_COOLING := 1800.0      # seconds for a full warmth bar to run out in t
 const NIGHT_COOLING := 240.0     # ...and at night
 const RESERVE := 10.0            # kept back for groceries before a vendor spends on stock or repairs
 const RESTOCK_BELOW := 3         # a vendor tops up an input when it holds fewer than this many crafts' worth
+const SLOWEST_PACE := 0.55       # how fast, against their usual walk, someone barely in need strolls to a stand...
+const FASTEST_PACE := 1.35       # ...and someone nearly out hurries. So the thirstiest reach a thin shelf first.
+const NEED_OF := {"food": "hunger", "drink": "thirst", "warmth": "warmth"}  # the bar each kind of errand answers
 
 var _w: World
 
@@ -33,6 +36,18 @@ func decay(d: Drone, dt: float) -> void:
 	d.bars.warmth = clampf(d.bars.warmth + warmth_gain(d) * dt - cooling, 0.0, 1.0)
 	if d.bars.hunger <= 0.0 or d.bars.thirst <= 0.0 or d.bars.warmth <= 0.0:
 		d.starved_ticks += 1
+
+
+## How fast, against their usual walk, this drone goes after `job`. A survival errand is hurried by how far the bar it answers
+## has fallen below the level that sent them looking: barely hungry, a stroll; nearly starving, a rush. (So the ones who need it
+## most are first to the counter, and a drone that is nearly full does not stand in the way.) Any other errand is an ordinary walk.
+func pace(d: Drone, job: Dictionary) -> float:
+	var bar: String = NEED_OF.get(job.get("for", ""), "")
+	if bar == "":
+		return 1.0
+	var below := NIGHT_SEEKS_WARMTH if bar == "warmth" and _w.clock.is_night() else NEED_BELOW
+	var urgency := clampf(1.0 - float(d.bars[bar]) / below, 0.0, 1.0)
+	return lerpf(SLOWEST_PACE, FASTEST_PACE, urgency)
 
 
 ## Warmth a second this drone feels from the heat sources round it: every fire in range (strongest beside

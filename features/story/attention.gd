@@ -11,7 +11,7 @@ func _init(world: World) -> void:
 	_w = world
 
 
-func step() -> void:
+func step(_dt := 0.0) -> void:
 	for z in _w.zones.running():
 		for d in _w.zones.drones_in(z):
 			d.aura = wants_help(d)

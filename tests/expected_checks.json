@@ -1,6 +1,7 @@
 {
 	"architecture.a_feature_folder_holds_its_whole_slice": 11,
 	"architecture.models_stay_headless_wherever_they_live": 2,
+	"architecture.the_end_of_tick_systems_each_take_their_turn_in_order": 4,
 	"architecture.the_old_layer_folders_hold_no_feature_files": 15,
 	"bike_shop.buying_the_bike": 7,
 	"bike_shop.investing_or_gifting_is_futile": 5,
@@ -81,6 +82,8 @@
 	"needs.maslow_demands": 14,
 	"needs.most_pressing_need_goes_first": 2,
 	"needs.night_is_colder_and_tent_docks_drones": 5,
+	"needs.the_needier_walk_faster_to_what_they_need": 5,
+	"needs.the_thirstiest_get_to_a_thin_shelf_first": 2,
 	"needs.warmth_falls_off_with_the_square_of_distance": 6,
 	"player.player_buy_refusals": 6,
 	"player.player_buys_and_consumes": 7,

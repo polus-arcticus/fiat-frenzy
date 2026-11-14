@@ -54,3 +54,13 @@ func test_a_feature_folder_holds_its_whole_slice() -> void:
 func test_the_old_layer_folders_hold_no_feature_files() -> void:
 	for stray in ["res://sim/entities/bike.gd", "res://sim/systems/riding.gd", "res://control/player/bike_controller.gd", "res://sim/systems/portals.gd", "res://sim/systems/transit.gd", "res://sim/systems/relief.gd", "res://sim/entities/food_bank.gd", "res://control/player/player_controller.gd", "res://sim/systems/gun.gd", "res://sim/entities/bill.gd", "res://control/player/gun_controller.gd", "res://control/player/aim.gd", "res://sim/systems/quests.gd", "res://sim/systems/tutorial.gd", "res://control/story/quest_controller.gd"]:
 		check(not FileAccess.file_exists(stray), "%s has moved into its feature" % stray)
+
+
+func test_the_end_of_tick_systems_each_take_their_turn_in_order() -> void:
+	var w := World.new()
+	check(w._end_of_tick.size() == 6, "six systems take a turn after the drones (%d)" % w._end_of_tick.size())
+	check(w._end_of_tick.all(func(s): return s.has_method("step")), "each one has a step")
+	check(w._end_of_tick[0] is Transit and w._end_of_tick[w._end_of_tick.size() - 1] is Attention, "the bus first, the gold glow last: the order the tick had")
+	w.add_player(Vector2(5, 5), 10.0)
+	w.tick(1.0)
+	check(w.clock.time > 0.0, "and a tick still runs them all without a fault")

@@ -28,6 +28,10 @@ At a stand, E opens a Planet Crafter-style screen: your inventory on the left, t
 controller side by side. What every feature stands on stays in the layer folders (`sim/core`, `sim/systems`, `view/ui`, ...). The model files
 (no `_view`, `_controller`, `_rig`, `_model` or `_screen` in the name) stay headless, and `tests/sim/test_architecture.gd` checks it.
 
+**Adding a feature:** make `features/<name>/` with its model (a RefCounted system that takes the `World`), its view and its controller;
+add a typed field and a `.new(self)` to `World`; if it needs a turn each tick, put it in `World._end_of_tick` (it has `step(dt)`); the
+controller is made in `GameController`. Views only read the model, and the model never touches a node.
+
     sim/          MODEL. Pure RefCounted, no nodes, headless-testable. Knows nothing of rendering or input.
       core/       Inventory, Stacks (slot layout), Catalog (the data) with ItemDef and MachineDef (one definition per kind of item or business), Pricing, Equity, Shelter, RoadGraph, Stories, QuestBook
       entities/   Drone (every NPC), Machine (an autocrafter), FoodBank, BarrelFire, ReliefTruck, Hospital, Ambulance, Bike, Bill, Portal
@@ -73,6 +77,11 @@ and moves the item, paying with a number. Prices move one tick per craft. Nights
 The Red Cross van brings a small free load of flour, protein, water and sugar twice a day. A food bank down
 the street trickles in the same goods slowly and sells them at cost; cart runners buy a load there and wheel it
 to whichever storefront is running short, and the shop pays them the cost plus a small fee per unit.
+
+**Need sets the pace.** On a survival errand a drone walks at a speed that follows how far the bar it is answering has fallen
+below the level that sent it looking (`Needs.pace`: from a stroll at 0.55x when barely in need to a rush at 1.35x when nearly out). So
+when a stand is thin, the thirstiest get there first, and people who are nearly full do not crowd the counter in front of them. Other
+errands (cash, restocking, hauling, repairs) are an ordinary walk. The two limits are `SLOWEST_PACE` and `FASTEST_PACE` in `needs.gd`.
 
 ## Levels, experience and the 49% cap
 
