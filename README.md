@@ -24,7 +24,7 @@ At a stand, E opens a Planet Crafter-style screen: your inventory on the left, t
 
 ## How it is built: model, view, controller
 
-**Folders are by feature.** A feature (hero, bike, skating, portal, transit, sage, medical, relief) lives in `features/<name>/` with its model, view and
+**Folders are by feature.** A feature (hero, gun, bike, skating, portal, transit, sage, medical, relief, inspector) lives in `features/<name>/` with its model, view and
 controller side by side. What every feature stands on stays in the layer folders (`sim/core`, `sim/systems`, `view/ui`, ...). The model files
 (no `_view`, `_controller`, `_rig`, `_model` or `_screen` in the name) stay headless, and `tests/sim/test_architecture.gd` checks it.
 

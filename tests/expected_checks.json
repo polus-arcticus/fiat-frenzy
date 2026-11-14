@@ -1,7 +1,7 @@
 {
-	"architecture.a_feature_folder_holds_its_whole_slice": 9,
+	"architecture.a_feature_folder_holds_its_whole_slice": 10,
 	"architecture.models_stay_headless_wherever_they_live": 2,
-	"architecture.the_old_layer_folders_hold_no_feature_files": 8,
+	"architecture.the_old_layer_folders_hold_no_feature_files": 12,
 	"bike_shop.buying_the_bike": 7,
 	"bike_shop.investing_or_gifting_is_futile": 5,
 	"bike_shop.riding_the_bike": 8,
