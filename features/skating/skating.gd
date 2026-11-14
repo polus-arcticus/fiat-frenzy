@@ -19,7 +19,9 @@ const OLLIE_MAX := 6.4      # and of a full charge
 const KICKFLIP_CASH := 25.0 # what a kickflip sprays on the ground...
 const KICKFLIP_BILLS := 5   # ...in this many bills
 
-var mounted := false
+var mounted: bool:
+	get:
+		return _w.hero.mode == Hero.Mode.SKATING
 var speed := 0.0
 var charge := 0.0           # 0..1: how far the ollie is wound up
 var in_air := false
@@ -37,15 +39,9 @@ func _init(world: World) -> void:
 
 ## Why the hero can't get on a board right now, or "".
 func why_not() -> String:
-	if mounted:
-		return "You're already on it."
 	if _w.player == null or _w.player.carry.count("skateboard") < 1:
 		return "You don't have a skateboard."
-	if _w.player.unconscious():
-		return "You're out cold."
-	if _w.riding.riding():
-		return "Get off the bike first."
-	return ""
+	return _w.hero.why_not(Hero.Mode.SKATING)
 
 
 ## Returns {ok, text}.
@@ -53,7 +49,7 @@ func mount() -> Dictionary:
 	var why := why_not()
 	if why != "":
 		return {"ok": false, "text": why}
-	mounted = true
+	_w.hero.enter(Hero.Mode.SKATING)
 	speed = 0.0
 	charge = 0.0
 	in_air = false
@@ -67,7 +63,8 @@ func bump() -> void:
 
 
 func dismount() -> void:
-	mounted = false
+	if mounted:
+		_w.hero.stand()
 	speed = 0.0
 	charge = 0.0
 	in_air = false

@@ -2,7 +2,7 @@
 ## the model files (no _view / _controller / _rig / _model / _screen in the name) stay headless.
 extends TestCase
 
-const PRESENTATION := ["_view.gd", "_controller.gd", "_rig.gd", "_model.gd", "_screen.gd"]
+const PRESENTATION := ["_view.gd", "_controller.gd", "_rig.gd", "_model.gd", "_screen.gd", "_body.gd"]
 ## What a model must never touch: scene nodes, input, the tree, or the view layer.
 const FORBIDDEN := ["extends Node", "extends Control", "Input.", "get_tree()", "add_child(", "Camera3D", "MeshInstance3D", "StandardMaterial3D"]
 
@@ -41,16 +41,16 @@ func test_models_stay_headless_wherever_they_live() -> void:
 
 
 func test_a_feature_folder_holds_its_whole_slice() -> void:
-	for feature in ["bike", "skating", "portal", "transit", "sage", "medical"]:
+	for feature in ["bike", "skating", "portal", "transit", "sage", "medical", "relief", "hero"]:
 		var names := DirAccess.get_files_at("res://features/%s" % feature)
 		var has_view := false
 		var has_model := false
 		for n in names:
-			has_view = has_view or n.ends_with("_view.gd")
+			has_view = has_view or (n.ends_with("_view.gd") or n.ends_with("_body.gd"))
 			has_model = has_model or (n.ends_with(".gd") and not _is_presentation(n))
 		check(has_model and has_view, "features/%s has a model and a view side by side" % feature)
 
 
 func test_the_old_layer_folders_hold_no_feature_files() -> void:
-	for stray in ["res://sim/entities/bike.gd", "res://sim/systems/riding.gd", "res://control/player/bike_controller.gd", "res://sim/systems/portals.gd", "res://sim/systems/transit.gd"]:
+	for stray in ["res://sim/entities/bike.gd", "res://sim/systems/riding.gd", "res://control/player/bike_controller.gd", "res://sim/systems/portals.gd", "res://sim/systems/transit.gd", "res://sim/systems/relief.gd", "res://sim/entities/food_bank.gd", "res://control/player/player_controller.gd"]:
 		check(not FileAccess.file_exists(stray), "%s has moved into its feature" % stray)

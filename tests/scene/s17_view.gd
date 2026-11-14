@@ -13,6 +13,8 @@ func run() -> void:
 	for i in 40:
 		await tree.physics_frame
 	check(p.third_person and p.body.visible, "V puts the camera behind the hero, and the hero is drawn")
+	check(not DroneView.MODELS.values().has(HeroBody.MODEL), "the hero wears a skin no one else in town does")
+	check(p.body.find_child("AnimationPlayer", true, false) != null and p.body.find_child("AnimationPlayer", true, false).has_animation("Walk"), "the hero's own body can idle and walk")
 	check(p.view_back() > 2.5 and p.view_back() <= PlayerController.ARM_LENGTH + 0.05, "the camera hangs a few metres behind (%.2f m)" % p.view_back())
 	check(game.gun.get_parent() == p.head, "the gun is held up in front of the hero's head")
 	var wall_from := Vector3(game.scenario.start.x, 0.1, game.scenario.start.y)

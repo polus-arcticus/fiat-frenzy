@@ -5,7 +5,6 @@ extends RefCounted
 
 var pos := Vector2.ZERO
 var heading := 0.0     # yaw, for the view to park it facing the way it was left
-var riding := false
 
 
 func _init(at: Vector2, yaw := 0.0) -> void:

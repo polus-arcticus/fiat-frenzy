@@ -24,7 +24,7 @@ At a stand, E opens a Planet Crafter-style screen: your inventory on the left, t
 
 ## How it is built: model, view, controller
 
-**Folders are by feature.** A feature (bike, skating, portal, transit, sage, medical) lives in `features/<name>/` with its model, view and
+**Folders are by feature.** A feature (hero, bike, skating, portal, transit, sage, medical, relief) lives in `features/<name>/` with its model, view and
 controller side by side. What every feature stands on stays in the layer folders (`sim/core`, `sim/systems`, `view/ui`, ...). The model files
 (no `_view`, `_controller`, `_rig`, `_model` or `_screen` in the name) stay headless, and `tests/sim/test_architecture.gd` checks it.
 
@@ -146,6 +146,15 @@ Next stage (designed, not built): the seven sins and seven virtues. Who you prin
 and person has a nature), and so is printing too much at one target at once; what you print decides what world
 rises. The sage's upgrades will be earned by bringing him materials (the insects and building materials he wants).
 
+## The hero
+
+`features/hero/`: `Hero` (`hero.gd`) is how the hero is moving about, one mode at a time: on foot, riding, skating or seated. Every
+change goes through `Hero.enter`, so "can I get on this?" has one answer (you can't ride and skate at once, or do either while out cold
+or seated) and nothing keeps its own "am I riding" flag: `Riding.riding()` and `Skating.mounted` just read the mode. The bike's reach and
+the board's tricks stay with their features. The hero's body in third person (`hero_body.gd`) wears a skin nobody else in town does
+(black tee, grey trousers), so they are never mistaken for a builder or a banker. `tools/capture_hero.gd` and `tools/capture_skins.gd`
+take the pictures. `player_controller.gd` (the first-person body and camera) lives here too.
+
 ## Quests: the letter for the bank
 
 A small questing system. `sim/core/quest_book.gd` is the data (who gives a quest, what they say, the objectives in
@@ -235,7 +244,7 @@ pavement with the ambulance's painted bay on the road in front of it. `tools/cap
 ## First and third person (V)
 
 V toggles the camera. In third person it hangs 3.4 m behind the hero's head and a little to the right (a `SpringArm3D`, so it pulls
-in against walls), and the hero is drawn (`view/player/hero_body.gd`: the builder model with its idle and walk animations).
+in against walls), and the hero is drawn (`features/hero/hero_body.gd`: the builder model with its idle and walk animations).
 The gun is held up in front of the hero's head, the aiming reach is counted from the hero and not the camera, and the bicycle
 shows under them. It is always first person while sitting on the bus or being moved by a script, and comes back afterwards.
 `tools/capture_view.gd` takes screenshots. Not yet: a run animation, hands on the gun, turning the body toward where it

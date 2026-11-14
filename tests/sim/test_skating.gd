@@ -27,9 +27,9 @@ func test_you_need_a_board_to_get_on_it() -> void:
 	check(not w.skating.mount().ok, "and not while out cold")
 	w.player.care = ""
 	w.bike = Bike.new(Vector2(10, 10))
-	w.bike.riding = true
+	w.hero.mode = Hero.Mode.RIDING
 	check(not w.skating.mount().ok, "nor on the bike")
-	w.bike.riding = false
+	w.hero.stand()
 	w.skating.mount()
 	check(not w.riding.mount().ok, "and the bike won't take you while you are on the board")
 

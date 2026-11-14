@@ -63,6 +63,7 @@ var cash: Cash
 var levels: Levels
 var rescue: Rescue
 var chatter: Chatter
+var hero: Hero
 var riding: Riding
 var sage: Sage
 var portals: Portals
@@ -86,6 +87,7 @@ func _init() -> void:
 	levels = Levels.new(self)
 	rescue = Rescue.new(self)
 	chatter = Chatter.new(self)
+	hero = Hero.new(self)
 	riding = Riding.new(self)
 	sage = Sage.new(self)
 	portals = Portals.new()

@@ -18,7 +18,7 @@ func setup(w: World) -> BikeView:
 func _process(_delta: float) -> void:
 	var b := world.bike
 	var me := get_tree().get_first_node_in_group("player")
-	visible = b != null and (not b.riding or (me != null and me.third_person))  # (seen from behind, the bike is under them)
+	visible = b != null and (not world.riding.riding() or (me != null and me.third_person))  # (seen from behind, the bike is under them)
 	if b == null:
 		return
 	global_position = Vector3(b.pos.x, 0.0, b.pos.y)

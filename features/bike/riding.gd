@@ -14,7 +14,7 @@ func _init(world: World) -> void:
 
 
 func riding() -> bool:
-	return _w.bike != null and _w.bike.riding
+	return _w.hero.mode == Hero.Mode.RIDING
 
 
 ## How many times faster than walking the player moves.
@@ -26,15 +26,12 @@ func speed_factor() -> float:
 func mount() -> Dictionary:
 	if _w.bike == null:
 		return _no("You don't have a bike.")
-	if _w.bike.riding:
-		return _no("You're already on it.")
-	if _w.player.unconscious():
-		return _no("You're out cold.")
-	if _w.skating.mounted:
-		return _no("Get off the skateboard first.")
+	var why := _w.hero.why_not(Hero.Mode.RIDING)
+	if why != "":
+		return _no(why)
 	if _w.player.pos.distance_to(_w.bike.pos) > MOUNT_REACH:
 		return _no("Your bike is too far away.")
-	_w.bike.riding = true
+	_w.hero.enter(Hero.Mode.RIDING)
 	_w.bike.pos = _w.player.pos
 	return {"ok": true, "text": "You get on the bike."}
 
@@ -43,7 +40,7 @@ func mount() -> Dictionary:
 func dismount(yaw := 0.0) -> Dictionary:
 	if not riding():
 		return _no("You're not on a bike.")
-	_w.bike.riding = false
+	_w.hero.stand()
 	_w.bike.pos = _w.player.pos
 	_w.bike.heading = yaw
 	return {"ok": true, "text": "You get off and leave the bike here."}

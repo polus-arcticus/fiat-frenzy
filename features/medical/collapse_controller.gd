@@ -98,6 +98,7 @@ func _wake_up() -> void:
 
 ## The body goes to where the model put the player, facing the way the tent does (out to the street).
 func _put_body_at_the_tent() -> void:
+	world.hero.stand()
 	player.stand()  # (someone who passed out on the bus is lifted out of their seat)
 	player.scripted = false
 	world.transit.disembark()

@@ -4,7 +4,8 @@
 class_name HeroBody
 extends Node3D
 
-const MODEL := preload("res://assets/models/builder.glb")
+## The hero is the one character nobody else shares: a black tee and grey trousers, not hi-vis or a suit.
+const MODEL := preload("res://assets/models/dealer.glb")
 
 var _model: Node3D
 var _anim: AnimationPlayer

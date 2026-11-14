@@ -85,7 +85,7 @@ func dialogue_closed() -> void:
 func can_board() -> bool:
 	if world.quests.active() != QuestBook.LETTER or riding_the_bus or world.bus == null:
 		return false
-	if world.riding.riding() or world.player.unconscious() or not player.controls_enabled:
+	if not world.hero.is_on_foot() or world.player.unconscious() or not player.controls_enabled:
 		return false
 	if not world.quests.done("rode_bus"):
 		return world.bus.state == Bus.State.AT_STOP and player.ground_pos().distance_to(world.bus_stop) <= BOARD_REACH
@@ -142,6 +142,7 @@ func _ride(leg: Dictionary) -> void:
 	player.teleport(bus.seat_point(), bus.rotation.y + PI)  # facing the front of the bus
 	player.level_gaze()
 	player.sit(bus, BusView.SEAT_LOCAL)
+	world.hero.enter(Hero.Mode.SEATED)
 	bus.close_door()
 	hud.show_caption(leg.board, 0.0 if fast else 3.0)
 	await _wait(0.8)
@@ -161,6 +162,7 @@ func _ride(leg: Dictionary) -> void:
 		return
 	hud.show_caption(leg.arrive, 0.0 if fast else 3.5)
 	await _wait(0.9)
+	world.hero.stand()
 	player.stand()
 	player.scripted = true
 	var out := bus.kerb_point()
@@ -222,6 +224,7 @@ func _follow_model() -> void:
 ## They are moved by this and not by the keys while it lasts. (Fast: they are simply put at the end.)
 func _walk(points: Array, seconds: float) -> void:
 	player.scripted = true
+	world.hero.stand()
 	player.stand()
 	if fast:
 		player.teleport(points[points.size() - 1], player.rotation.y)

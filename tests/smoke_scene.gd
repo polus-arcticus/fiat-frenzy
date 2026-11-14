@@ -12,7 +12,7 @@ var failures := 0
 var checks := 0
 ## The number of checks a clean run makes; fewer means a script error stopped a test early. Raise it when
 ## tests are added.
-const EXPECTED_CHECKS := 180
+const EXPECTED_CHECKS := 182
 
 
 func check(ok: bool, what: String) -> void:
