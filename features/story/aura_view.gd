@@ -1,6 +1,6 @@
 ## VIEW. A soft gold glow round someone who needs the player's help (see Attention): a tall translucent column of
 ## light around them that breathes slowly, so it can be seen from down the street without hiding the person inside it.
-class_name Aura
+class_name AuraView
 extends MeshInstance3D
 
 const GOLD := Color(1.0, 0.8, 0.25)

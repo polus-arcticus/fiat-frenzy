@@ -24,7 +24,7 @@ At a stand, E opens a Planet Crafter-style screen: your inventory on the left, t
 
 ## How it is built: model, view, controller
 
-**Folders are by feature.** A feature (hero, gun, bike, skating, portal, transit, sage, medical, relief, inspector) lives in `features/<name>/` with its model, view and
+**Folders are by feature.** A feature (hero, gun, story, bike, skating, portal, transit, sage, medical, relief, inspector) lives in `features/<name>/` with its model, view and
 controller side by side. What every feature stands on stays in the layer folders (`sim/core`, `sim/systems`, `view/ui`, ...). The model files
 (no `_view`, `_controller`, `_rig`, `_model` or `_screen` in the name) stay headless, and `tests/sim/test_architecture.gd` checks it.
 
@@ -168,15 +168,15 @@ route. `Inspector` (`inspector.gd`) is the read-only description, tested headles
 
 ## Quests: the letter for the bank
 
-A small questing system. `sim/core/quest_book.gd` is the data (who gives a quest, what they say, the objectives in
-order) and `sim/systems/quests.gd` is the state (offered, active, done; flags). The first quest comes from the
+A small questing system. `features/story/quest_book.gd` is the data (who gives a quest, what they say, the objectives in
+order) and `features/story/quests.gd` is the state (offered, active, done; flags). The first quest comes from the
 bankers: once every stand is running and each banker has had a proper meal, they all want a word about a letter for the
 European Central Bank (their phones broke in the crash). Aim at **any** of them and press **Q**; reading the request
 through accepts it and gives you the letter (an item in your bag). People who still need your help (a vendor whose stand is
-wrecked, a banker who has not eaten) glow gold (`sim/systems/attention.gd`, `view/actors/parts/aura.gd`); the glow goes out
+wrecked, a banker who has not eaten) glow gold (`features/story/attention.gd`, `features/story/aura_view.gd`); the glow goes out
 when they have what they need, and the feed says what each goal you finish did.
 
-**The tutorial is a set of goals, not a list** (`sim/systems/tutorial.gd`): after meeting the vendors, funding each stand,
+**The tutorial is a set of goals, not a list** (`features/story/tutorial.gd`): after meeting the vendors, funding each stand,
 feeding the bankers and so on are all open together, shown as the main goal plus "Also open", and the beacon points at the
 nearest. What depends on something else (investing needs the bakery open) waits for it.
 
@@ -188,7 +188,7 @@ moves it along by distance with limited acceleration, and the view draws it betw
 steps. When you say **farewell to Mr. Nobody** the jam clears (the cars drive off) and the bus waits for you: board it again
 (E) and it carries on to the gate on Sonnemannstraße, where the ECB doorman is. **The sim never stops during the ride**:
 the town carries on, and you can look about from your seat. The bus is hollow (`features/transit/bus_view.gd`: seats, poles, a
-door, see-through windows); the boarding and the ride are `control/story/quest_controller.gd`, and the seated mode is
+door, see-through windows); the boarding and the ride are `features/story/quest_controller.gd`, and the seated mode is
 `PlayerController.sit`. The medical tent sits on the pavement with its ambulance bay on the carriageway, so the bus can pass it.
 `tools/capture_ride.gd` plays the whole ride for screenshots; `tools/probe_bus_route.gd` checks the route for clipping.
 The objective line and the beacon follow the quest while one is on. The last leg: ride or walk on

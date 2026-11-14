@@ -23,7 +23,7 @@ var _label: Label3D
 var _bars: BarsRig
 var _cart: CartView = null  # a runner's
 var _bubble: Bubble
-var _aura: Aura
+var _aura: AuraView
 var _last_level := 1
 var _playing := ""
 var _hold_clip := ""
@@ -59,7 +59,7 @@ func setup(d: Drone, w: World) -> DroneView:
 	add_child(_bars)
 	_bubble = Bubble.new()
 	add_child(_bubble)
-	_aura = Aura.new()
+	_aura = AuraView.new()
 	add_child(_aura)
 	if d.kind == "runner":
 		_cart = CartView.new()
