@@ -24,6 +24,10 @@ At a stand, E opens a Planet Crafter-style screen: your inventory on the left, t
 
 ## How it is built: model, view, controller
 
+**Folders are by feature.** A feature (bike, skating, portal, transit, sage, medical) lives in `features/<name>/` with its model, view and
+controller side by side. What every feature stands on stays in the layer folders (`sim/core`, `sim/systems`, `view/ui`, ...). The model files
+(no `_view`, `_controller`, `_rig`, `_model` or `_screen` in the name) stay headless, and `tests/sim/test_architecture.gd` checks it.
+
     sim/          MODEL. Pure RefCounted, no nodes, headless-testable. Knows nothing of rendering or input.
       core/       Inventory, Stacks (slot layout), Catalog (the data) with ItemDef and MachineDef (one definition per kind of item or business), Pricing, Equity, Shelter, RoadGraph, Stories, QuestBook
       entities/   Drone (every NPC), Machine (an autocrafter), FoodBank, BarrelFire, ReliefTruck, Hospital, Ambulance, Bike, Bill, Portal
@@ -86,10 +90,10 @@ the part of a contract that would go over the cap is void.
 The hero's stay is short and kind: the tent mends them five times as fast and lets them go at 95%, so they wake with their survival bars right up, but mugged: whatever cash they carried went to the nearest drifter (the books still balance). The ambulance goes fast enough that no trip takes more than about 25 s, however far out the hero fell.
 
 When any survival bar reaches zero, that person (the player too) **collapses** where they stand: no plans, nothing
-drains. An idle **ambulance** (`sim/entities/ambulance.gd`, run by `sim/systems/rescue.gd`) drives to the nearest
-collapsed person, loads them and takes them to the **medical tent** (`sim/entities/hospital.gd`), but only when
+drains. An idle **ambulance** (`features/medical/ambulance.gd`, run by `features/medical/rescue.gd`) drives to the nearest
+collapsed person, loads them and takes them to the **medical tent** (`features/medical/hospital.gd`), but only when
 there is a free bed. Care is free: the bars refill and they are discharged at 60%. If the hero passes out, the
-screen fades to black (`control/collapse_controller.gd`) and they wake up outside the tent with control back.
+screen fades to black (`features/medical/collapse_controller.gd`) and they wake up outside the tent with control back.
 Cart runners walk a little faster than drifters and their carts hold 16 units.
 
 ## Chat bubbles
@@ -113,7 +117,7 @@ The business is worth $2 million before anyone gives it a cent, so spraying it w
 gets you nowhere (a full $250 contract buys 0.01%); its rich owner has no needs and stays at the counter. Save up
 (the tutorial's goal: print bills at your feet and pick them up, or live off your stakes), buy the bike at the
 counter, and press F next to it to ride: about 2.4x walking speed, no sprint or jump, the gun put away.
-`sim/systems/riding.gd` has the rules, `control/bike_controller.gd` the feel.
+`features/bike/riding.gd` has the rules, `features/bike/bike_controller.gd` the feel.
 
 ## Battonnstraße and Mr. Nobody
 
@@ -126,14 +130,14 @@ On Battonnstraße, in a building a little way from the museum (which is left alo
 lives **Mr. Nobody**: a vague, whimsical sage in a suit with a small red shield pinned to his lapel, who collects rare insects
 and is tiresome about architecture, but only ever says so. He is unassuming: a man in an ordinary suit with a little red pin on his lapel, nothing outside his house gives him away, and he is just a "Stranger" until he says who he is. The one thing that marks him out is that he never bends down for loose money. When you come within 12 m on foot with the money gun, he notices it, goes inside his house and asks you in (he waits in his room, and the talk begins once you have followed him in) (on the bike he calls out to you to step off it). After that, aim at him and press Q to talk again.
 He tells stories of the money of all ages (shells, stones, gold, beads, salt, tally sticks, paper, tulips, red
-feathers...) from a menu, and what is on it depends on your own level. `sim/core/stories.gd` is data, easy to
-rewrite; `sim/systems/sage.gd` is who has met whom; `view/dialogue_screen.gd` and `control/sage_controller.gd`
+feathers...) from a menu, and what is on it depends on your own level. `features/sage/stories.gd` is data, easy to
+rewrite; `features/sage/sage.gd` is who has met whom; `features/sage/dialogue_screen.gd` and `features/sage/sage_controller.gd`
 are the conversation (the clock stops while it runs). The stories are about scarcity, trust and promises, never
-about what kind of people handle money, and a test keeps it that way. His house (door, floor, and furniture like anyone's: nothing in it gives him away) is `view/sage_house_view.gd`.
+about what kind of people handle money, and a test keeps it that way. His house (door, floor, and furniture like anyone's: nothing in it gives him away) is `features/sage/sage_house_view.gd`.
 
 **Teleporter rings** are no longer placed anywhere in the town (the shortcut to Mr. Nobody let you skip the bus ride). The
-machinery stays, because rings are how zones connect: rule in `sim/entities/portal.gd` and `sim/systems/portals.gd`, walking
-through in `control/portal_controller.gd`, drawing in `view/portal_view.gd`; a scenario can place a pair with `w.portals.add_pair`.
+machinery stays, because rings are how zones connect: rule in `features/portal/portal.gd` and `features/portal/portals.gd`, walking
+through in `features/portal/portal_controller.gd`, drawing in `features/portal/portal_view.gd`; a scenario can place a pair with `w.portals.add_pair`.
 
 **Your level:** every dollar you give away is experience for you too (the same curve as everyone: $50 to level 2,
 then 1.5x each level), shown as a bar under "You" in the corner. Knowledge is the only reward so far.
@@ -158,12 +162,12 @@ nearest. What depends on something else (investing needs the bakery open) waits 
 
 **The bus** (once you have the letter): go to its stop by the market and press E. The door slides open, you walk in and sit
 down, and the bus drives itself 1.5 km along the real streets to the end of a queue of stuck cars on Battonnstraße outside
-Mr. Nobody's house, where the door opens and you step out. The drive is smooth: `sim/core/bus_path.gd` rounds the street
-corners into curves and gives every point a speed (up from rest, slower through bends, braking to a stop), `sim/systems/transit.gd`
+Mr. Nobody's house, where the door opens and you step out. The drive is smooth: `features/transit/bus_path.gd` rounds the street
+corners into curves and gives every point a speed (up from rest, slower through bends, braking to a stop), `features/transit/transit.gd`
 moves it along by distance with limited acceleration, and the view draws it between sim ticks (`SimLoop.alpha`) so it never
 steps. When you say **farewell to Mr. Nobody** the jam clears (the cars drive off) and the bus waits for you: board it again
 (E) and it carries on to the gate on Sonnemannstraße, where the ECB doorman is. **The sim never stops during the ride**:
-the town carries on, and you can look about from your seat. The bus is hollow (`view/props/bus_view.gd`: seats, poles, a
+the town carries on, and you can look about from your seat. The bus is hollow (`features/transit/bus_view.gd`: seats, poles, a
 door, see-through windows); the boarding and the ride are `control/story/quest_controller.gd`, and the seated mode is
 `PlayerController.sit`. The medical tent sits on the pavement with its ambulance bay on the carriageway, so the bus can pass it.
 `tools/capture_ride.gd` plays the whole ride for screenshots; `tools/probe_bus_route.gd` checks the route for clipping.
@@ -225,7 +229,7 @@ only its traffic lanes, the rest to the building line is pavement) and keeps bik
 street is laid out across its width (`Scenario._spot`, measured from the real road where it bends): stalls (hot dog, baker,
 lemonade, the food bank) at the kerb edge of the pavement serving the walkway, the tent against the buildings with its open end
 to the walkway, the walkway between them, the carriageway kept clear (the bus's lane, and room to walk). The **bus stop** has a
-shelter, bench and sign on the pavement and a painted bay (`view/props/bus_stop_view.gd`); the **medical tent** is on the
+shelter, bench and sign on the pavement and a painted bay (`features/transit/bus_stop_view.gd`); the **medical tent** is on the
 pavement with the ambulance's painted bay on the road in front of it. `tools/capture_street.gd` takes screenshots.
 
 ## First and third person (V)
@@ -244,8 +248,8 @@ builds to a top speed of 12 m/s), **S** brakes, **A/D** steer (and the mouse tur
 roll backwards. **Hold Space** to crouch and **let go to ollie**: the longer you held (up to 0.45 s) the higher. **Tap Space
 again in the air for a kickflip**, once a jump, which **sprays $25 on the ground** round you in five $5 piles (it is printed, like
 the gun's money, and it is counted: the world total grows by exactly $25) and which you can roll over to pick up. Running into a
-wall stops the board dead. The rules are the model's (`sim/systems/skating.gd`, tested headless); the movement is in
-`control/player/skate_controller.gd` and the player body; the board and the crouch/flip are `view/player/board_view.gd`. It puts the
+wall stops the board dead. The rules are the model's (`features/skating/skating.gd`, tested headless); the movement is in
+`features/skating/skate_controller.gd` and the player body; the board and the crouch/flip are `features/skating/board_view.gd`. It puts the
 camera in third person (a longer arm) and the gun away, and gets you off if you pass out or sit on the bus. The numbers to tune
 are the constants at the top of `Skating`. `tools/capture_skate.gd` takes screenshots. Not yet: grinds, manuals, combos and a score,
 bailing, and slopes/ramps.
@@ -255,7 +259,7 @@ bailing, and slopes/ramps.
 Next door to the bike shop (the neighbouring building on Kaiserstraße, found by `MapSites.neighbour`) is a **skate shop**: the
 same kind of business (a real building with a door, a rich owner, a flat price) selling **complete skateboards at $120**, three
 on the wall. The price is set once, on the item (`Catalog`, `skateboard`). You can buy one and it goes in your bag; riding it is
-what the planned skateboarding game mode is for. `view/props/skate_shop_view.gd` dresses the room; `tools/capture_skate_shop.gd`
+what the planned skateboarding game mode is for. `features/skating/skate_shop_view.gd` dresses the room; `tools/capture_skate_shop.gd`
 takes screenshots.
 
 ## Landmarks
