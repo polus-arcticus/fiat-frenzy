@@ -25,6 +25,7 @@ var dialogue: DialogueScreen
 var sage_controller: SageController
 var bike_controller: BikeController
 var skate_controller: SkateController
+var inspector: InspectorController
 var portal_controller: PortalController
 var quest_controller: QuestController
 var bus: BusView
@@ -140,6 +141,8 @@ func _build_story() -> void:
 	interaction.board_requested.connect(quest_controller.board)
 	collapse = CollapseController.new().setup(world, player, hud, screens, gun)
 	add_child(collapse)
+	inspector = InspectorController.new().setup(world, player, gun, screens, self)
+	add_child(inspector)
 	intro = IntroController.new().setup(world, player, hud, scenario, self, add_drone_view)
 	add_child(intro)
 	intro.pickup_spawned.connect(_on_pickup_spawned)

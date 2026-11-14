@@ -5,14 +5,14 @@ extends SceneTree
 
 const SECTIONS := [
 	"s01_town", "s02_gun_gift", "s03_bars", "s04_inventory", "s05_bills", "s06_invest_contract", "s07_keys",
-	"s08_bike_shop", "s09_sage", "s11_quest", "s12_map", "s13_chatter", "s14_collapse", "s15_days", "s16_walking", "s17_view", "s18_skate",
+	"s08_bike_shop", "s09_sage", "s11_quest", "s12_map", "s13_chatter", "s14_collapse", "s15_days", "s16_walking", "s17_view", "s18_skate", "s19_inspector",
 ]
 
 var failures := 0
 var checks := 0
 ## The number of checks a clean run makes; fewer means a script error stopped a test early. Raise it when
 ## tests are added.
-const EXPECTED_CHECKS := 182
+const EXPECTED_CHECKS := 190
 
 
 func check(ok: bool, what: String) -> void:

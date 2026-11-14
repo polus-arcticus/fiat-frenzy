@@ -155,6 +155,17 @@ the board's tricks stay with their features. The hero's body in third person (`h
 (black tee, grey trousers), so they are never mistaken for a builder or a banker. `tools/capture_hero.gd` and `tools/capture_skins.gd`
 take the pictures. `player_controller.gd` (the first-person body and camera) lives here too.
 
+## The inspector (F3)
+
+`features/inspector/`: press **F3** and the hero stays put while a free camera flies about the live world (WASD, Q/E down and up,
+Shift fast, hold the right mouse to look). The sim never pauses. Click anyone (or **N**/**P** for the next/previous, **G** to fly to
+them) and the panel on the left says who they are and what they are doing: their wallet and bars; whether they are aloof, needless,
+sheltered or collapsed; their job and the target and stand it is for, how far away; their route; if they have stood still for more than
+5 s on a job, that they may be stuck; and if they have no job, what they want and how many stands have it, and what the planner would
+send them to. A ring and a pillar mark them (red), the stand they will use (cyan) and what they are after (yellow), with lines along their
+route. `Inspector` (`inspector.gd`) is the read-only description, tested headless; the screen and camera are `inspector_view.gd` and
+`inspector_controller.gd`. `tools/capture_inspector.gd` takes the picture.
+
 ## Quests: the letter for the bank
 
 A small questing system. `sim/core/quest_book.gd` is the data (who gives a quest, what they say, the objectives in

@@ -45,7 +45,7 @@ func _ready() -> void:
 	_hint = Ui.label(null, "", 14)
 	var hint_box := Ui.panel(root, Control.PRESET_BOTTOM_RIGHT, Vector2(-16, -16))
 	hint_box.get_child(0).add_child(_hint)
-	_hint.text = "WASD move · Shift run · Space jump · hold LMB spray (invest: charge, release) · V view · B board · Tab inventory · Q talk · E use a stand · M map · scroll gun mode · T time speed · Esc back"
+	_hint.text = "WASD move · Shift run · Space jump · hold LMB spray (invest: charge, release) · V view · B board · Tab inventory · Q talk · E use a stand · M map · scroll gun mode · T time speed · F3 inspect · Esc back"
 
 	_prompt = _outlined(root, "", 20, 8)
 	_prompt.set_anchors_preset(Control.PRESET_CENTER)

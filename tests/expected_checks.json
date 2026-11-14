@@ -1,5 +1,5 @@
 {
-	"architecture.a_feature_folder_holds_its_whole_slice": 8,
+	"architecture.a_feature_folder_holds_its_whole_slice": 9,
 	"architecture.models_stay_headless_wherever_they_live": 2,
 	"architecture.the_old_layer_folders_hold_no_feature_files": 8,
 	"bike_shop.buying_the_bike": 7,
@@ -50,6 +50,11 @@
 	"hero.an_unconscious_hero_cannot_change_mode": 2,
 	"hero.the_bike_does_not_carry_its_own_riding_flag": 2,
 	"hero.the_hero_starts_on_foot_and_changes_mode_through_one_door": 7,
+	"inspector.a_job_shows_its_target_and_the_walk": 2,
+	"inspector.an_idle_hungry_drone_is_told_why_nothing_answers": 2,
+	"inspector.being_stuck_on_a_job_is_called_out": 2,
+	"inspector.flags_that_stop_errands_are_named": 2,
+	"inspector.it_names_the_drone_and_says_how_they_are": 2,
 	"levels.a_well_funded_business_costs_more": 3,
 	"levels.experience_levels_up_the_business": 20,
 	"levels.giving_money_levels_the_hero_up": 7,

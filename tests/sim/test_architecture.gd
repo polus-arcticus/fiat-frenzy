@@ -41,7 +41,7 @@ func test_models_stay_headless_wherever_they_live() -> void:
 
 
 func test_a_feature_folder_holds_its_whole_slice() -> void:
-	for feature in ["bike", "skating", "portal", "transit", "sage", "medical", "relief", "hero"]:
+	for feature in ["bike", "skating", "portal", "transit", "sage", "medical", "relief", "hero", "inspector"]:
 		var names := DirAccess.get_files_at("res://features/%s" % feature)
 		var has_view := false
 		var has_model := false
