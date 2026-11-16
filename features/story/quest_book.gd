@@ -16,6 +16,12 @@ const BOOK := {
 			"The bus leaves from the stop by the market. Do hurry. A banker's patience is measured in basis points.",
 		],
 		"reminder": "The bus, my dear fellow, the bus. The stop is by the market.",
+		"gate": [
+			"Good morning. European Central Bank, visitors' entrance. Nobody walks up to the building: it is three hundred metres of lawn and very good security.",
+			"A letter? In your hand? Let me see... a helicopter, a write-off, bankers in a state. Hm. I have seen stranger things come through this gate. Not many.",
+			"Right. I will lift the barrier. The shuttle is waiting just inside: hop on, keep your hands in the vehicle, and it will take you round to the main entrance. The reception desk will take the letter from you there.",
+		],
+		"gate_reminder": "The shuttle is just inside the gate, there. It drives itself. Sit down, keep your hands inside, and mind the lawn.",
 		"delivery": [
 			"Hm? A letter? Hand-delivered, in this age? Nobody has done that since the telegraph.",
 			"Stranded, hungry, the helicopter a write-off... and fed by a stranger with a very strange gun. I will see that it reaches the right desk. Eventually. We are, after all, a bank.",
@@ -26,7 +32,9 @@ const BOOK := {
 			{"text": "The bus is stuck in traffic. Look around: someone is watching you.", "key": "met_sage", "at": "sage"},
 			{"text": "Talk with Mr. Nobody as long as you like: when you are ready to move on, say farewell, and the traffic will clear.", "key": "jam_cleared", "at": "sage"},
 			{"text": "The traffic is moving again and the bus is waiting. Get back on (E at the bus) to carry on to the European Central Bank.", "key": "rode_on", "at": "bus"},
-			{"text": "You are at the European Central Bank. Give the letter to the doorman at the gate (aim at him and press Q).", "key": "delivered", "at": "ecb"},
+			{"text": "You are at the European Central Bank. Report to the doorman at the security gate (aim at him and press Q).", "key": "cleared_gate", "at": "ecb"},
+			{"text": "The gate is open. Hop on the shuttle just inside (E at the cart): it will take you to the main entrance.", "key": "rode_shuttle", "at": "shuttle"},
+			{"text": "Give the letter to the receptionist at the main entrance (aim at them and press Q).", "key": "delivered", "at": "reception"},
 		],
 	},
 }

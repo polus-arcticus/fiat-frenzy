@@ -10,10 +10,11 @@ extends Node
 
 ## Q at someone who will talk to you (Mr. Nobody, or the banker with the letter), close enough.
 signal talk_requested(who: Drone)
-## E at the bus, when the game says the hero may board it.
+## E at the bus or the shuttle, when the game says the hero may get on.
 signal board_requested
-## Set by the game: can the hero board the bus right now?
-var can_board := func() -> bool: return false
+## Set by the game: what the prompt says about getting on something right now ("E   board the bus"), or "" if nothing can be
+## boarded.
+var board_prompt := func() -> String: return ""
 
 const CLOSE_AT := 7.0  # walk this far from the stand and the screen closes itself
 
@@ -67,15 +68,18 @@ func _build_verbs() -> void:
 			func() -> String: return "Q   talk to the banker" if aimed_banker() != null else "",
 			func(): talk_requested.emit(aimed_banker())),
 		Verb.new("chat",
-			func() -> String: return "Q   give the letter to the doorman" if aimed_doorman() != null else "",
+			func() -> String: return "Q   show the doorman the letter" if aimed_doorman() != null and world.quests.can_clear_gate() else ("Q   talk to the doorman" if aimed_doorman() != null else ""),
 			func(): talk_requested.emit(world.ecb_doorman)),
+		Verb.new("chat",
+			func() -> String: return "Q   give the letter to the receptionist" if aimed_receptionist() != null else "",
+			func(): talk_requested.emit(world.ecb_receptionist)),
 		Verb.new("interact",
 			func() -> String:
 				var pickup := aim.pickup()
 				return pickup.prompt if pickup != null else "",
 			func(): aim.pickup().take()),
 		Verb.new("interact",
-			func() -> String: return "E   board the bus" if can_board.call() else "",
+			func() -> String: return board_prompt.call(),
 			func(): board_requested.emit()),
 	]
 
@@ -90,9 +94,18 @@ func aimed_sage() -> bool:
 	return world.sage_drone != null and world.sage.met and world.sage.in_talking_range() and aim.person() == world.sage_drone
 
 
-## The ECB doorman, if the hero has a letter for him and the crosshair is on him, close by.
+## The doorman at the bank's gate, if the crosshair is on him, close by. (Always: he checks the letter, reminds you where the
+## shuttle is, or asks your business, whichever fits.)
 func aimed_doorman() -> Drone:
 	var d := world.ecb_doorman
+	if d == null or player.ground_pos().distance_to(d.pos) > Sage.TALK_RANGE:
+		return null
+	return d if aim.person() == d else null
+
+
+## The receptionist at the bank's door, if the hero is through the gate with the letter, and the crosshair is on them, close by.
+func aimed_receptionist() -> Drone:
+	var d := world.ecb_receptionist
 	if d == null or not world.quests.can_deliver() or player.ground_pos().distance_to(d.pos) > Sage.TALK_RANGE:
 		return null
 	return d if aim.person() == d else null
@@ -145,7 +158,7 @@ func _unhandled_input(e: InputEvent) -> void:
 	if e.is_action_pressed("inventory"):
 		if screen.visible:
 			screen.close()
-		elif player.controls_enabled:
+		elif player.controls_enabled or player.is_seated():  # (the bag can be opened from a seat on the bus too: to eat and drink on the way)
 			open_player()
 		get_viewport().set_input_as_handled()
 	elif e.is_action_pressed("interact") and screen.visible:

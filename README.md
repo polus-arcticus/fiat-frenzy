@@ -195,16 +195,55 @@ Mr. Nobody's house, where the door opens and you step out. The drive is smooth: 
 corners into curves and gives every point a speed (up from rest, slower through bends, braking to a stop), `features/transit/transit.gd`
 moves it along by distance with limited acceleration, and the view draws it between sim ticks (`SimLoop.alpha`) so it never
 steps. When you say **farewell to Mr. Nobody** the jam clears (the cars drive off) and the bus waits for you: board it again
-(E) and it carries on to the gate on Sonnemannstraße, where the ECB doorman is. **The sim never stops during the ride**:
+(E) and it carries on to the bank on Sonnemannstraße, where the ECB doorman is at the security gate (see below). **The sim never stops during the ride**:
 the town carries on, and you can look about from your seat. The bus is hollow (`features/transit/bus_view.gd`: seats, poles, a
 door, see-through windows); the boarding and the ride are `features/story/quest_controller.gd`, and the seated mode is
 `PlayerController.sit`. The medical tent sits on the pavement with its ambulance bay on the carriageway, so the bus can pass it.
 `tools/capture_ride.gd` plays the whole ride for screenshots; `tools/probe_bus_route.gd` checks the route for clipping.
-The objective line and the beacon follow the quest while one is on. The last leg: ride or walk on
-east to the bank (the beacon points the way, with the real distance); aim at the **ECB doorman** outside the front wall
-(OpenStreetMap building 156432555, the only building given a name in the data) and press Q to hand the letter over. That
-completes the quest. `tools/capture_bus.gd` and `tools/capture_ecb.gd` take screenshots. The bank area is still in the
-default zone: giving it its own zone (and a gate to it) belongs with the zone work, not the plot.
+
+**Money fired inside the bus stays in it.** The bus has its own coordinates (`Bus.to_world` / `to_local`: x across, y along, the front
+positive). A bill fired from a seat flies in the bus's frame (`PaperProjectile.frame`), so it falls straight down as it would on a
+moving bus, and one that lands on the floor or a wall is put on the floor with `Gun.land_aboard`: it keeps its spot (`Bill.aboard`,
+`Bill.local`), `Transit.step` carries it with the bus, and its pile is drawn in the bus (`BillsView`) so it does not jitter. People in
+the street do not fetch it; the hero picks up what is within reach, and **gathers everything on the floor when they get off**
+(`Cash.scoop_aboard`, "picked up $N from the floor of the bus"). Fired out of the open door, the paper is in the street's frame again with
+the bus's speed. **The map (M) works from a seat**, follows you as the bus moves (drag or scroll to look elsewhere, C or right-click to come
+back) and draws the bus as a small yellow rectangle. `tools/capture_bus_money.gd` shows both.
+The objective line and the beacon follow the quest while one is on. `tools/capture_bus.gd` and `tools/capture_ecb.gd` take
+screenshots. The bank area is still in the default zone: giving it its own zone belongs with the zone work, not the plot.
+
+## The bank's gate and the shuttle
+
+`features/ecb/`. The bus stops on Sonnemannstraße, and the last leg of the letter quest goes through the bank's **security gate** (laid out
+from the street frontage by `SecurityGate.plan`, with the pieces' positions as data in `security_gate.gd`; drawn by
+`security_gate_view.gd`): a glass guard's booth, a red-and-white boom barrier and a sliding steel gate across the vehicle way in, a
+turnstile for people on foot, bollards and big concrete blocks along the frontage (they are solid), and four flagpoles flying the EU's
+blue and gold. The **doorman** (the builder model, in a hi-vis vest) stands in front of the booth. Quest steps: talk to him (Q), and he
+reads the letter and **lifts the barrier** (the quest flag `cleared_gate`: `SecurityGate.is_open` is that flag, and the view animates it
+and turns the barrier and gate off as solids); the **shuttle**, a little golf cart (`shuttle_view.gd`) waiting just inside, is then yours
+to board (E); it drives itself, with you in the front seat and the sim running, along a route laid out by hand round the **east end of
+the market hall** and west along the plaza between the hall and the tower (the plaza is closed at its west end, so there is no shorter
+way), about 400 m and under a minute, to the **main entrance** by the tower's door. There the **receptionist** (a suit) takes the letter (Q),
+which completes the quest. The shuttle is the bus's `Bus` model with its own limits (7 m/s, quicker off the mark, a tighter turn), driven
+by the same `Transit` along a hand-laid route (`Transit.board(..., vehicle, direct)`), and `VehicleView` is what the bus and the cart share.
+`tests/sim/test_ecb_gate.gd` checks, on the real map data, that every piece of the gate and the whole rounded route stay clear of every
+building. `tools/capture_gate.gd`, `capture_shuttle.gd` and `capture_ecb_overview.gd` take the pictures.
+
+## The market at the bank
+
+By the time the bus reaches the bank the hero's food and water have run down (thirst empties in seven minutes, hunger in ten), so
+the pavement across from the gate has a market of its own to invest in: a lemonade stand, a hot dog stand and a bakery (wrecked, like
+the first market's), a food bank with a cart runner to feed them, a medical tent with an ambulance, and three visitors who
+came to see the bank. `Scenario._add_ecb_market` lays it out on Sonnemannstraße, by the buildings opposite the bank's grounds (the
+street's mapped width is only a lane of what is really a broad avenue, so `MapSites.building_ahead` measures where the wall is).
+
+It is a **zone of its own** (`"ecb"`): a rectangle round the stop, the gate, the shuttle's whole way and the door
+(`Zones.regions`), so the first market's people, who search only their own zone, never trek 2 km to it, and its food bank, runner
+and ambulance serve only it. The hero's zone follows where they are (`Zones.zone_for`, each tick): bills printed at the bank belong to
+the bank's zone and its visitors pick them up. The letter is offered when the stands of the *bankers' own* zone run, so the bank's
+wrecked stands do not hold it back. `tests/sim/test_ecb_market.gd` checks the placement against every building, the zones, and that money
+put in starts the economy there. `tools/capture_ecb_market.gd` takes the pictures. (No relief van, fire or tent yet: the food bank
+trickles its stock on its own, and warmth at the bank is a later job.)
 
 ## Bills and buildings
 

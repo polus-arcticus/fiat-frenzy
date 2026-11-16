@@ -77,9 +77,17 @@ func test_accepting_gives_the_letter_and_the_objectives_go_in_order() -> void:
 	check(w.quests.objective().text.contains("bus is waiting") and w.quests.objective().at == Vector2(300, 0), "and the bus, waiting in the cleared street, is where to go")
 	w.quests.set_flag("rode_on")
 	check(w.quests.objective().text.contains("European Central Bank") and w.quests.objective().at == null, "then on to the bank (no doorman in this town to point at)")
+	var door := w.add_doorman(Vector2(2500, 0))
+	check(w.quests.objective().text.contains("security gate") and w.quests.objective().at == door.pos, "the doorman at the gate is who to see first")
+	check(w.quests.clear_gate() and not w.quests.clear_gate(), "he lets you through, once")
+	w.add_shuttle(Vector2(2510, 20), 0.0)
+	check(w.quests.objective().text.contains("shuttle") and w.quests.objective().at == w.shuttle.pos, "then the shuttle inside the gate")
+	w.quests.set_flag("rode_shuttle")
+	var desk := w.add_receptionist(Vector2(2600, 100))
+	check(w.quests.objective().text.contains("receptionist") and w.quests.objective().at == desk.pos, "and the receptionist at the door")
 
 
-func test_the_letter_is_handed_to_the_doorman_and_the_quest_is_done() -> void:
+func test_the_letter_is_handed_to_the_receptionist_after_the_gate_and_the_quest_is_done() -> void:
 	var t := _town()
 	var w: World = t[0]
 	for d in t[1]:
@@ -89,14 +97,17 @@ func test_the_letter_is_handed_to_the_doorman_and_the_quest_is_done() -> void:
 	(t[2] as Drone).bars.hunger = 0.9
 	w.tick(1.0)
 	var door := w.add_doorman(Vector2(2500, 0))
+	var desk := w.add_receptionist(Vector2(2600, 100))
 	check(not w.quests.can_deliver() and not w.quests.deliver(), "with no letter there is nothing to hand over")
 	w.quests.accept(QuestBook.LETTER)
 	w.quests.set_flag("rode_bus")
 	w.sage.tell(Stories.FIRST)
 	w.quests.set_flag("jam_cleared")
 	w.quests.set_flag("rode_on")
-	check(w.quests.objective().at == door.pos and w.quests.can_deliver(), "the last leg points the beacon at the doorman")
+	check(w.quests.objective().at == door.pos and w.quests.can_clear_gate() and not w.quests.can_deliver(), "the last leg starts at the gate: the doorman first, not the desk")
+	check(not w.quests.deliver(), "the letter cannot be handed over before the gate")
+	check(w.quests.clear_gate() and w.quests.can_deliver() and w.quests.objective().text.contains("shuttle"), "through the gate, the way on is the shuttle (and the desk will take the letter, shuttle or not)")
 	check(w.quests.deliver(), "handing it over works")
 	check(w.player.carry.count("letter") == 0 and w.quests.state[QuestBook.LETTER] == "done" and w.quests.active() == "", "the letter leaves the bag and the quest is done")
 	check(w.quests.objective().is_empty() and not w.quests.deliver(), "nothing more to do, and it can't be done twice")
-	check(door.needless and door.aloof and door.kind == "clerk", "the doorman stays at his post")
+	check(door.needless and door.aloof and door.kind == "clerk" and desk.needless and desk.aloof, "the doorman and the receptionist stay at their posts")

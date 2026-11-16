@@ -31,6 +31,7 @@ var _names: Array = []  # [{text, pos, major}]
 var _root: Control
 var _scale := START_SCALE
 var _center := Vector2.ZERO
+var _follow := true   # the map stays centred on the hero as they move (until you drag or zoom away; C or right-click comes back)
 var _dragging := false
 var _font: Font
 
@@ -61,6 +62,7 @@ func open() -> void:
 		return
 	_build_meshes()
 	_center = player.ground_pos()
+	_follow = true
 	_scale = START_SCALE
 	visible = true
 	_root.queue_redraw()
@@ -94,6 +96,8 @@ func facing() -> Vector2:
 
 func _process(_delta: float) -> void:
 	if visible:
+		if _follow:
+			_center = player.ground_pos()  # (so you can watch yourself ride)
 		_root.queue_redraw()
 
 
@@ -106,6 +110,7 @@ func _unhandled_input(e: InputEvent) -> void:
 	elif e is InputEventKey and e.pressed and not e.echo:
 		if e.physical_keycode == KEY_C:
 			_center = player.ground_pos()
+			_follow = true
 		elif e.physical_keycode == KEY_EQUAL or e.physical_keycode == KEY_KP_ADD:
 			_zoom(1.25, _root.size * 0.5)
 		elif e.physical_keycode == KEY_MINUS or e.physical_keycode == KEY_KP_SUBTRACT:
@@ -115,14 +120,18 @@ func _unhandled_input(e: InputEvent) -> void:
 func _on_gui_input(e: InputEvent) -> void:
 	if e is InputEventMouseButton:
 		if e.button_index == MOUSE_BUTTON_WHEEL_UP and e.pressed:
+			_follow = false  # (zooming at the cursor moves the map under it: it stays where you put it)
 			_zoom(1.15, e.position)
 		elif e.button_index == MOUSE_BUTTON_WHEEL_DOWN and e.pressed:
+			_follow = false
 			_zoom(1.0 / 1.15, e.position)
 		elif e.button_index == MOUSE_BUTTON_LEFT:
 			_dragging = e.pressed
 		elif e.button_index == MOUSE_BUTTON_RIGHT and e.pressed:
 			_center = player.ground_pos()
+			_follow = true
 	elif e is InputEventMouseMotion and _dragging:
+		_follow = false
 		_center -= e.relative / _scale
 
 
@@ -204,6 +213,7 @@ func _draw_map() -> void:
 	for m in landmarks:
 		_draw_landmark(m)
 	_draw_objective(size)
+	_draw_bus()
 	_draw_player()
 	_draw_frame(size)
 
@@ -229,6 +239,28 @@ func _draw_landmark(m: Dictionary) -> void:
 		var w := _font.get_string_size(m.label, HORIZONTAL_ALIGNMENT_LEFT, -1, 16).x
 		_root.draw_rect(Rect2(at + Vector2(9, -10), Vector2(w + 6, 20)), Color(PAPER, 0.85))
 		_root.draw_string(_font, at + Vector2(12, 5), m.label, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, INK)
+
+
+## The bus, a small yellow rectangle pointing the way it is going, wherever it is: you can watch it cross town.
+func _draw_bus() -> void:
+	if world.bus == null:
+		return
+	var at := to_screen(world.bus.pos)
+	if not Rect2(Vector2.ZERO, _root.size).grow(40).has_point(at):
+		return
+	var fwd := Vector2.from_angle(world.bus.heading)
+	var side := fwd.rotated(PI * 0.5)
+	var length := clampf(12.0 * _scale, 16.0, 44.0)
+	var half_l := fwd * length * 0.5
+	var half_w := side * length * 0.2
+	var hull := PackedVector2Array([at - half_l - half_w, at + half_l - half_w, at + half_l + half_w, at - half_l + half_w])
+	_root.draw_colored_polygon(hull, Color(0.96, 0.78, 0.2))
+	var outline := hull.duplicate()
+	outline.append(hull[0])
+	_root.draw_polyline(outline, INK, 2.0)
+	_root.draw_circle(at + half_l * 0.8, 2.5, INK)  # (the front)
+	if _scale >= 1.2:
+		_root.draw_string(_font, at + Vector2(length * 0.5 + 6.0, 5.0), "BUS", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, INK)
 
 
 ## A gold diamond where the tutorial wants you to go; if it is off the map, an arrow at the edge pointing to it.

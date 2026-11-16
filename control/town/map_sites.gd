@@ -24,6 +24,18 @@ static func street_frame(district: Dictionary, street: String, near: Vector2) ->
 	return best
 
 
+## How far from `from`, going in the direction `dir`, the first building's wall is (INF if there is none within `reach`).
+static func building_ahead(district: Dictionary, from: Vector2, dir: Vector2, reach := 60.0) -> float:
+	var best := INF
+	for bd in district.buildings:
+		var poly := pts(bd.poly)
+		for i in poly.size():
+			var hit: Variant = Geometry2D.segment_intersects_segment(from, from + dir * reach, poly[i], poly[(i + 1) % poly.size()])
+			if hit != null:
+				best = minf(best, from.distance_to(hit))
+	return best
+
+
 ## Puts a door in the middle of the wall of building `id` that is nearest the street called `street`. Returns
 ## {id, edge, t, door, out, inward, along, depth, poly}, or {} if the building or street is not in the data.
 static func plan_door(district: Dictionary, id: int, street: String) -> Dictionary:

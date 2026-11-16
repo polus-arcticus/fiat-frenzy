@@ -11,7 +11,7 @@ func run() -> void:
 	var hospital: Hospital = w.hospitals[0]
 	var gun_was_on: bool = game.gun.enabled
 	var shade: ColorRect = game.collapse._shade
-	check(w.hospitals.size() == 1 and w.ambulances.size() == 1 and hospital.pos.distance_to(game.scenario.start) < 70.0, "there is a medical tent and an ambulance near the market")
+	check(w.hospitals.size() == 2 and w.ambulances.size() == 2 and hospital.pos.distance_to(game.scenario.start) < 70.0, "there is a medical tent and an ambulance near the market (and another at the bank)")
 	w.player.bars.hunger = 0.0
 	game.advance(1.0)
 	check(w.player.care != "" and not game.player.controls_enabled and not game.gun.enabled, "when a bar runs out the hero collapses: controls and the gun stop (care '%s', controls %s, gun %s)" % [w.player.care, game.player.controls_enabled, game.gun.enabled])

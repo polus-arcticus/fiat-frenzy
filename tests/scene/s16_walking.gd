@@ -13,7 +13,7 @@ func run() -> void:
 		for kind in ["lemonade_stand", "bakery", "hot_dog_stand"]:
 			var m: Machine = null
 			for candidate in w.machines:
-				if candidate.kind == kind:
+				if candidate.kind == kind and candidate.zone == Zones.HOME:
 					m = candidate
 			var goal: Vector2 = m.pos + m.front * 1.6
 			var d := w.add_drifter(sc.offset_on_street(sc.wreck_pos, spot.x, spot.y), 0.0)

@@ -20,7 +20,7 @@ static func register() -> void:
 	_keys("skip", [KEY_ENTER, KEY_SPACE])
 	_key("speed", KEY_T)
 	_key("help", KEY_F1)
-	_key("release", KEY_ESCAPE)
+	_logical_key("release", KEY_ESCAPE)  # by what the key says, not where it sits: so a layout that moves Esc (caps:swapescape) still works
 	if not InputMap.has_action("fire"):
 		InputMap.add_action("fire")
 		var e := InputEventMouseButton.new()
@@ -40,3 +40,15 @@ static func _keys(action: String, keycodes: Array) -> void:
 		var e := InputEventKey.new()
 		e.physical_keycode = keycode
 		InputMap.action_add_event(action, e)
+
+
+## A key matched by the symbol the system layout gives it (`keycode`), where `_key` matches the physical place on the keyboard
+## (`physical_keycode`: right for WASD, which should stay under the left hand on any layout). Remapped keys like swapped Esc and
+## Caps Lock report their new symbol here, and nothing in the physical position.
+static func _logical_key(action: String, keycode: Key) -> void:
+	if InputMap.has_action(action):
+		return
+	InputMap.add_action(action)
+	var e := InputEventKey.new()
+	e.keycode = keycode
+	InputMap.action_add_event(action, e)

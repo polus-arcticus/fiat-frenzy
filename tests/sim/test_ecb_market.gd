@@ -1,0 +1,127 @@
+## Sim tests: the market across the street from the European Central Bank, on the real map. The hero gets off the bus hungry and
+## thirsty, and finds stands to invest in: they stand clear of the buildings, are a zone of their own (so the first market's
+## people do not trek to them), the hero's zone follows them there, and money put into them starts the little economy.
+extends TestCase
+
+
+func _scenario() -> Scenario:
+	var f := FileAccess.open("res://data/bahnhofsviertel.json", FileAccess.READ)
+	return Scenario.new(JSON.parse_string(f.get_as_text()))
+
+
+func _clearance(sc: Scenario, p: Vector2) -> float:
+	var best := INF
+	for bd in sc.district.buildings:
+		var poly := MapSites.pts(bd.poly)
+		if Geometry2D.is_point_in_polygon(p, poly):
+			return 0.0
+		for i in poly.size():
+			best = minf(best, p.distance_to(Geometry2D.get_closest_point_to_segment(p, poly[i], poly[(i + 1) % poly.size()])))
+	return best
+
+
+func test_the_market_is_a_zone_of_its_own_at_the_bus_stop() -> void:
+	var sc := _scenario()
+	var w := sc.build()
+	check(sc.ecb_region.has_point(sc.ecb_stop.bus) and sc.ecb_region.has_point(sc.ecb.door) and sc.ecb_region.has_point(sc.ecb_gate.pad) and sc.ecb_region.has_point(sc.ecb_gate.entrance), "the bank's zone covers the stop, the gate, the shuttle's pad and the door")
+	check(not sc.ecb_region.has_point(sc.start) and not sc.ecb_region.has_point(sc.jam.bus.pos) and not sc.ecb_region.has_point(sc.sage_house.door), "and not the first market, nor the traffic jam, nor Mr. Nobody's house")
+	var machines := w.zones.machines_in(Scenario.ECB_ZONE)
+	check(machines.size() == 3 and machines.map(func(m): return m.kind) .has("lemonade_stand") and machines.map(func(m): return m.kind).has("hot_dog_stand") and machines.map(func(m): return m.kind).has("bakery"), "a lemonade stand, a hot dog stand and a bakery")
+	check(machines.all(func(m): return not m.working and m.pos.distance_to(sc.ecb_stop.bus) < 40.0), "all wrecked, and within a short walk of where the bus stops")
+	check(w.zones.food_banks_in(Scenario.ECB_ZONE).size() == 1 and w.zones.drones_in(Scenario.ECB_ZONE).filter(func(d): return d.kind == "runner").size() == 1, "with a food bank to feed them and a cart runner")
+	check(w.hospitals.filter(func(h): return h.zone == Scenario.ECB_ZONE).size() == 1 and w.ambulances.size() == 2, "and a medical tent with an ambulance, for anyone who collapses there")
+	var visitors := w.zones.drones_in(Scenario.ECB_ZONE).filter(func(d): return d.kind == "drifter")
+	check(visitors.size() == 3 and visitors.all(func(d): return d.pos.distance_to(sc.ecb_stop.bus) < 40.0), "and three people the stands are for")
+	check(w.drones.filter(func(d): return d.zone == Zones.HOME).size() == 14, "the first market's cast is the one it always was (14 people)")
+
+
+func test_the_stands_stand_clear_of_the_buildings() -> void:
+	var sc := _scenario()
+	var w := sc.build()
+	for m in w.zones.machines_in(Scenario.ECB_ZONE):
+		check(_clearance(sc, m.pos) > 1.0 and _clearance(sc, m.post()) > 1.0, "the %s and its keeper are clear of every building (%.1f m)" % [m.display_name().to_lower(), _clearance(sc, m.pos)])
+	for fb in w.zones.food_banks_in(Scenario.ECB_ZONE):
+		check(_clearance(sc, fb.pos) > 1.0, "the food bank is clear of every building (%.1f m)" % _clearance(sc, fb.pos))
+	for h in w.hospitals:
+		check(_clearance(sc, h.pos) > 1.0, "the medical tent is clear of every building (%.1f m)" % _clearance(sc, h.pos))
+
+
+func test_the_heros_zone_follows_where_they_are() -> void:
+	var sc := _scenario()
+	var w := sc.build()
+	w.add_player(sc.start, 25.0)
+	check(w.player.zone == Zones.HOME, "at the start, home")
+	w.tick(0.1)
+	check(w.player.zone == Zones.HOME, "and still, after a tick")
+	w.player.pos = sc.ecb_stop.bus
+	w.tick(0.1)
+	check(w.player.zone == Scenario.ECB_ZONE, "getting off the bus at the bank is the bank's zone")
+	w.player.pos = sc.ecb.door
+	w.tick(0.1)
+	check(w.player.zone == Scenario.ECB_ZONE, "and so is the bank's door")
+	w.player.pos = sc.start
+	w.tick(0.1)
+	check(w.player.zone == Zones.HOME, "back at the first market, home again")
+	var a := _scenario().build()
+	check(a.player == null, "(no hero, no zone to follow)")
+
+
+func test_the_first_markets_people_do_not_go_to_the_banks_stands() -> void:
+	var sc := _scenario()
+	var w := sc.build()
+	for m in w.zones.machines_in(Scenario.ECB_ZONE):
+		m.working = true
+		m.output.add(m.item, 5)
+	var hungry: Drone = w.drones[4]  # a first-market drifter
+	hungry.wallet = 20.0
+	check(w.logistics.supply.best_supply(hungry, "food") == null and w.logistics.supply.best_supply(hungry, "drink") == null, "with only the bank's stands open, a drifter at the first market finds nothing to walk to")
+	var local := w.add_drifter(sc.ecb_stop.bus, 20.0)
+	local.zone = Scenario.ECB_ZONE
+	w.zones.invalidate()
+	check(w.logistics.supply.best_supply(local, "drink") != null, "while someone at the bank does")
+
+
+func test_money_put_into_the_banks_stands_starts_the_economy_there() -> void:
+	var sc := _scenario()
+	var w := sc.build()
+	w.add_player(sc.ecb_stop.bus, 25.0)
+	var lemonade: Drone = sc.cast.ecb_lemonade
+	var stand := w.machine_of(lemonade)
+	for i in 20:
+		w.tick(1.0)
+	check(not stand.working, "left alone, the stand stays wrecked")
+	var stake := w.gun.invest(lemonade, 60.0)  # (the most a stranger may own is 49% of what it is worth: the rest is a gift)
+	check(stake > 0.0 and stake <= 0.49 + 0.001, "the hero can buy into it (a %.0f%% stake)" % (stake * 100.0))
+	w.gun.gift(lemonade, 30.0)
+	var waited := 0
+	while not stand.working and waited < 900:
+		w.tick(1.0)
+		waited += 1
+	check(stand.working, "the seller fixes it up with what was put in (%d s)" % waited)
+	var visitors := w.zones.drones_in(Scenario.ECB_ZONE).filter(func(d): return d.kind == "drifter")
+	for v in visitors:
+		v.bars.thirst = 0.1
+		v.wallet = 8.0
+	for i in 1500:
+		w.tick(1.0)
+	check(stand.sold_total > 0 or stand.crafted_total > 0, "it makes lemonade (%d made, %d sold) from what the food bank gives it" % [stand.crafted_total, stand.sold_total])
+	check(visitors.any(func(v): return v.bars.thirst > 0.3), "and a thirsty visitor has had a drink (%s)" % [visitors.map(func(v): return snappedf(v.bars.thirst, 0.01))])
+	var first_market_untouched := w.zones.machines_in(Zones.HOME).filter(func(m): return m.working and m.kind != "bike_shop" and m.kind != "skate_shop").is_empty()
+	check(first_market_untouched, "and the first market is still wrecked: the zones do not mix")
+
+
+func test_money_the_hero_prints_at_the_bank_is_for_the_banks_people() -> void:
+	var sc := _scenario()
+	var w := sc.build()
+	w.add_player(sc.ecb_stop.bus + Vector2(2, 2), 25.0)
+	w.tick(0.1)
+	var visitor: Drone = w.zones.drones_in(Scenario.ECB_ZONE).filter(func(d): return d.kind == "drifter")[0]
+	var before := visitor.wallet
+	var b := w.gun.fire(2.0, "gift")
+	check(b.zone == Scenario.ECB_ZONE, "a bill fired at the bank belongs to the bank's zone")
+	w.gun.land(b, visitor.pos + Vector2(1.5, 0))
+	for i in 60:
+		w.tick(1.0)
+	check(visitor.wallet > before or not b.loose, "and a visitor there picks it up (wallet $%.2f -> $%.2f)" % [before, visitor.wallet])
+	var far := w.drones[4]
+	check(far.zone == Zones.HOME and far.wallet < 13.0, "while the first market's people did not take it")

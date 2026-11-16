@@ -8,6 +8,7 @@ extends RefCounted
 
 const STREET := "Kaiserstraße"
 const NEAR := Vector2(30, 0)
+const ECB_VISITORS := ["Sabine", "Joost", "Ana"]
 const DRIFTER_NAMES := ["Edda", "Karl", "Mehmet", "Dragan", "Ines", "Tobi"]
 ## How many of them are about at the start, besides the four vendors. Few, so the economy can be tuned.
 const DRIFTER_COUNT := 2
@@ -22,6 +23,9 @@ const TENT_DEPTH := 2.6        # a tent's middle, this far in from the building 
 const HOSPITAL_CENTRE := 6.3   # the medical tent's middle: its open end a step back from the kerb, its back wall on the pavement
 const ECB_STREET := "Sonnemannstraße"
 const ECB_BUILDING := 156432555  # the European Central Bank
+const ECB_ZONE := "ecb"          # the market at the bank is a zone of its own, so the first market's people do not trek 2 km to it
+const ECB_REGION_MARGIN := 90.0  # the zone reaches this far round the stop, the gate, the shuttle's way and the door
+const ECB_KERB_BACK := 9.0       # the stalls stand this far out from the buildings opposite the bank (the pavement and its yard), on that side
 
 var district: Dictionary
 var cast := {}      # "hot_dog", "bakery", "lemonade", "tent", "food_bank": the keeper; "runners": the cart runners
@@ -50,6 +54,12 @@ var jam := {}
 ## line up with the street], doorman: pos, doorman_faces: pos}. The named street is a long way from the building's own
 ## wall in the data, so the gate is on the street. Empty if the street is not in the data.
 var ecb_stop := {}
+## The security gate at the bank's frontage, and the shuttle's way to the door (see SecurityGate.plan). Empty if there is no stop.
+var ecb_gate := {}
+## The market for the hero's arrival at the bank: {street, frame (the street where the bus stops), side (+1/-1: the pavement
+## opposite the bank's grounds), kerb (how far out from the street's line that pavement's stalls stand)}, and the patch of map that is the zone of its own. Empty if there is no stop.
+var ecb_lane := {}
+var ecb_region := Rect2()
 ## The streets (also the world's road graph, see build()): the bus's way to the jam is worked out on them.
 var roads: RoadGraph
 
@@ -72,6 +82,8 @@ func _init(data: Dictionary) -> void:
 	jam = _plan_jam()
 	ecb = MapSites.plan_door(district, ECB_BUILDING, ECB_STREET)
 	ecb_stop = _plan_ecb_stop()
+	ecb_gate = SecurityGate.plan(ecb_stop, ecb)
+	_plan_ecb_market()
 
 
 ## The bus's last stop: on the named street nearest the European Central Bank, pulled up in its right-hand lane after
@@ -93,6 +105,23 @@ func _plan_ecb_stop() -> Dictionary:
 	var bank_side := 1.0 if right.dot((ecb.door as Vector2) - (street.point as Vector2)) >= 0.0 else -1.0
 	var gate: Vector2 = (street.point as Vector2) + along * 8.0 + right * bank_side * (width * 0.5 + 2.0)
 	return {"bus": stop, "via": [via], "doorman": gate, "doorman_faces": gate - right * bank_side * 20.0}
+
+
+## Where the market at the bank goes: on the pavement across the street from the bank's grounds, at the stop. And the patch of
+## map that is its zone: the stop, the gate, the shuttle's whole way and the door, and a margin.
+func _plan_ecb_market() -> void:
+	if ecb_stop.is_empty():
+		return
+	var frame := MapSites.street_frame(district, ECB_STREET, ecb_stop.bus)
+	var nrm := Vector2(-(frame.dir as Vector2).y, (frame.dir as Vector2).x)
+	var bank_side := 1.0 if nrm.dot((ecb.door as Vector2) - (frame.point as Vector2)) >= 0.0 else -1.0
+	# (The street's mapped width is only a lane of what is really a broad avenue: the stalls are put by the buildings instead.)
+	var wall := MapSites.building_ahead(district, frame.point, nrm * -bank_side, 80.0)
+	ecb_lane = {"street": ECB_STREET, "frame": frame, "side": -bank_side, "kerb": (wall if is_finite(wall) else 24.0) - ECB_KERB_BACK}
+	var r := Rect2(ecb_stop.bus, Vector2.ZERO)
+	for p in [ecb.door, ecb_gate.pad, ecb_gate.entrance] + Array(ecb_gate.route):
+		r = r.expand(p)
+	ecb_region = r.grow(ECB_REGION_MARGIN)
 
 
 ## The jam outside Mr. Nobody's house, with the bus joining it the way it arrives: the direction of the last stretch of
@@ -172,6 +201,8 @@ func build() -> World:
 	_add_sage(w)
 	_add_doorman(w)
 	_add_skate_shop(w)
+	_add_shuttle_and_reception(w)
+	_add_ecb_market(w)  # (last: the drones before it keep their numbers)
 	start = _at(-24.0, 0.0)  # far enough that "walk over to the hot dog vendor" is a real first step
 	start_yaw = atan2(-(_frame.dir as Vector2).x, -(_frame.dir as Vector2).y)
 	w.add_bus(bus_stop.pos, (_frame.dir as Vector2).angle())
@@ -182,7 +213,13 @@ func build() -> World:
 	var hollow := openings()
 	for bd in district.buildings:
 		if not hollow.has(int(bd.id)):
-			w.nav.add_static("district", MapSites.pts(bd.poly))
+			var outline := MapSites.pts(bd.poly)
+			w.nav.add_static("district", outline)
+			if not ecb_region.has_area() or not _bounds(outline).intersects(ecb_region):
+				continue
+			w.nav.add_static(ECB_ZONE, outline)  # (and the bank's neighbours are walls in the bank's zone too)
+	if ecb_region.has_area():
+		w.zones.regions[ECB_ZONE] = ecb_region
 	wreck_pos = offset_on_street(_at(34.0, 0.0), 0.0, 0.0)
 	wreck_yaw = start_yaw + 0.5
 	gun_rest = start + (_frame.dir as Vector2) * 3.4
@@ -245,12 +282,65 @@ func _add_doorman(w: World) -> void:
 	if not ecb_stop.is_empty():  # at the gate on the street, where the bus stops
 		at = ecb_stop.doorman
 		faces = ecb_stop.doorman_faces
+	if not ecb_gate.is_empty():  # in front of the guard's booth, facing the street the bus comes along
+		at = ecb_gate.guard
+		faces = at - (ecb_gate.into as Vector2) * 20.0
 	var d := w.add_doorman(at)
 	d.face_to = faces
 	cast["doorman"] = d
 
 
+## The shuttle, waiting inside the gate, and the receptionist at the bank's door.
+func _add_shuttle_and_reception(w: World) -> void:
+	if ecb_gate.is_empty():
+		return
+	w.add_shuttle(ecb_gate.pad, ecb_gate.pad_heading)
+	var r := w.add_receptionist(ecb_gate.reception)
+	r.face_to = (ecb_gate.reception as Vector2) + (ecb.out as Vector2) * 20.0
+	cast["receptionist"] = r
+
+
 ## The places the hero already knows of, for the map. (Mr. Nobody is not one of them.)
+## The market the hero finds on getting off the bus at the bank, in a zone of its own: the hero is hungry and thirsty by now, and
+## the stands here start wrecked, like the first market's. A lemonade stand, a hot dog stand and a bakery across the road from
+## the gate, a food bank to feed them with a cart runner, a medical tent, and a few people who need them. Everything is on the
+## pavement opposite the bank, with its back to the buildings and its front to the road (which has no traffic).
+func _add_ecb_market(w: World) -> void:
+	if ecb_lane.is_empty():
+		return
+	w.build_zone = ECB_ZONE
+	var side: float = ecb_lane.side
+	var kerb: float = ecb_lane.kerb
+	cast["ecb_lemonade"] = _vendor(w, "lemonade_stand", "Lemonade seller", 2.0, side, 10.0, kerb, true, ecb_lane)
+	cast["ecb_hot_dog"] = _vendor(w, "hot_dog_stand", "Hot dog vendor", 6.5, side, 8.0, kerb, true, ecb_lane)
+	cast["ecb_bakery"] = _vendor(w, "bakery", "Baker", -2.5, side, 6.0, kerb, true, ecb_lane)
+	var bank := _spot(-30.0, side, kerb, ecb_lane)
+	var keeper := w.add_food_bank(bank.pos, 8.0)
+	var fb := w.food_bank_of(keeper)
+	facing[fb] = atan2(-(bank.toward as Vector2).x, -(bank.toward as Vector2).y)
+	fb.front = bank.toward
+	keeper.pos = fb.post()
+	cast["ecb_food_bank"] = keeper
+	var runner := w.add_runner(_spot(-26.0, side, kerb, ecb_lane).pos, 15.0)
+	runner.label = "Runner Mara"
+	var clinic := _spot(30.0, side, kerb + 1.4, ecb_lane)
+	var tent := w.add_hospital(clinic.pos, clinic.toward)
+	var yaw := -(ecb_lane.frame.dir as Vector2).angle() + PI / 2.0  # (the way the street runs, as the van's is laid)
+	facing[tent] = atan2(-(clinic.toward as Vector2).x, -(clinic.toward as Vector2).y)
+	facing[w.ambulances[w.ambulances.size() - 1]] = yaw
+	for i in 3:  # the people the stands are for: they had come to see the bank
+		var d := w.add_drifter(_spot(randf_range(-10.0, 10.0), -side, randf_range(0.5, 3.0), ecb_lane).pos, randf_range(3.0, 12.0))
+		d.label = ECB_VISITORS[i]
+	w.build_zone = Zones.HOME
+
+
+func _bounds(poly: PackedVector2Array) -> Rect2:
+	var r := Rect2(poly[0], Vector2.ZERO)
+	for p in poly:
+		r = r.expand(p)
+	return r
+
+
 func landmarks(w: World) -> Array:
 	var marks: Array = []
 	marks.append({"pos": w.machine_of(cast.hot_dog).pos, "label": "market", "color": Color(0.9, 0.7, 0.25)})
@@ -266,8 +356,8 @@ func landmarks(w: World) -> Array:
 	return marks
 
 
-func _vendor(w: World, kind: String, label: String, along: float, side: float, wallet: float, lateral: float, faces_road: bool) -> Drone:
-	var spot := _spot(along, side, lateral)
+func _vendor(w: World, kind: String, label: String, along: float, side: float, wallet: float, lateral: float, faces_road: bool, lane := {}) -> Drone:
+	var spot := _spot(along, side, lateral, lane)
 	var d := w.add_vendor(kind, spot.pos, wallet, false, false)
 	d.label = label
 	var m := w.machine_of(d)
@@ -283,9 +373,11 @@ func _vendor(w: World, kind: String, label: String, along: float, side: float, w
 ## and `lateral` metres out from the centre line (negative: that far in from the building line instead). Returns {pos,
 ## toward (a unit vector from there toward the middle of the street), away (the other way, toward the buildings)}. Measured
 ## from the real road where it stands, which bends a little: a straight line through the market does not follow it.
-func _spot(along: float, side: float, lateral: float) -> Dictionary:
-	var global: Vector2 = (_frame.point as Vector2) + (_frame.dir as Vector2) * along
-	var here := MapSites.street_frame(district, STREET, global)
+## (`lane` names another street's frame, {street, frame}: the market at the bank is laid out the same way, on its own street.)
+func _spot(along: float, side: float, lateral: float, lane := {}) -> Dictionary:
+	var frame: Dictionary = lane.get("frame", _frame)
+	var global: Vector2 = (frame.point as Vector2) + (frame.dir as Vector2) * along
+	var here := MapSites.street_frame(district, lane.get("street", STREET), global)
 	var nrm := Vector2(-(here.dir as Vector2).y, (here.dir as Vector2).x)
 	var out := lateral
 	if lateral < 0.0:  # measured in from the building line

@@ -18,7 +18,7 @@ func best_supply(d: Drone, cls: String) -> Machine:
 	for m in _w.zones.machines_in(d.zone):
 		if m.owner_id == d.id or Catalog.class_of(m.item) != cls or not m.offers(m.item) or m.price > d.wallet:
 			continue
-		var value: float = m.price / Catalog.restores(m.item) + Logistics.DISTANCE_COST * d.pos.distance_to(m.pos)
+		var value: float = m.price / Catalog.restores(m.item) + Logistics.DISTANCE_COST * d.pos.distance_to(m.pos) + Queueing.WAIT_COST * _w.logistics.queues.length(m)
 		if value < best_value:
 			best_value = value
 			best = m
@@ -53,7 +53,7 @@ func restock_job(d: Drone) -> Dictionary:
 	for s in _w.zones.machines_in(d.zone):
 		if s == m or s.owner_id == d.id or not s.offers(raw) or s.price_of(raw) > d.wallet - Needs.RESERVE:
 			continue
-		var value: float = s.price_of(raw) + Logistics.DISTANCE_COST * d.pos.distance_to(s.pos)
+		var value: float = s.price_of(raw) + Logistics.DISTANCE_COST * d.pos.distance_to(s.pos) + Queueing.WAIT_COST * _w.logistics.queues.length(s)
 		if value < best_value:
 			best_value = value
 			best = s

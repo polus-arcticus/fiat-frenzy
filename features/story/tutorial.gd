@@ -164,7 +164,7 @@ func take_news() -> Array[String]:
 
 func _sold() -> int:
 	var n := 0
-	for m in _w.machines:
+	for m in _w.zones.machines_in(_cast.hot_dog.zone):  # (the first market's: the far one at the bank is not the lesson)
 		if m.kind in ["bakery", "hot_dog_stand", "lemonade_stand"]:
 			n += m.sold_total
 	return n

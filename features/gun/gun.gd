@@ -61,6 +61,25 @@ func land(b: Bill, pos: Vector2) -> Bill:
 	return b
 
 
+## The bill came down on the floor of the bus, at `local` in the bus's own coordinates. It lies there and goes where the bus
+## goes; only the hero picks it up (see Cash). Joins a pile if one is right there. Returns the bill now lying there.
+func land_aboard(b: Bill, local: Vector2) -> Bill:
+	local = Bus.on_the_floor(local)
+	for o in _w.bills:
+		if o != b and o.aboard and o.local.distance_to(local) <= MERGE:
+			o.value += b.value
+			_w.bills.erase(b)
+			return o
+	b.loose = true
+	b.mode = "cash"
+	b.aboard = true
+	b.local = local
+	b.pos = _w.bus.to_world(local) if _w.bus != null else local
+	if not _w.bills.has(b):
+		_w.bills.append(b)
+	return b
+
+
 ## Spits a contract for `value`. Nothing is printed yet.
 func fire_contract(value: float) -> Contract:
 	return Contract.new(value)

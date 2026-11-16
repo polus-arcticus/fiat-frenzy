@@ -17,8 +17,8 @@ func _init(world: World) -> void:
 
 ## The hero gets on and the bus sets off for `dest`; on arriving it sets quest flag `flag`. `via` is any places it must
 ## pass on the way (the last of them is where it ends up pointing from). False if it is already out, or there is no bus.
-func board(dest: Vector2, flag := "rode_bus", via: Array = []) -> bool:
-	var bus := _w.bus
+func board(dest: Vector2, flag := "rode_bus", via: Array = [], vehicle: Bus = null, direct := false) -> bool:
+	var bus := vehicle if vehicle != null else _w.bus
 	if bus == null or bus.state == Bus.State.DRIVING or not dest.is_finite():
 		return false
 	var route := PackedVector2Array([bus.pos])
@@ -26,37 +26,47 @@ func board(dest: Vector2, flag := "rode_bus", via: Array = []) -> bool:
 	legs.append(dest)
 	var at := bus.pos
 	for target in legs:
-		route.append_array(_route(at, target))
+		if direct:
+			route.append(target)  # (a route laid out by hand: not the streets)
+		else:
+			route.append_array(_route(at, target))
 		at = target
 	bus.aboard = true
 	bus.dest = dest
 	bus.flag = flag
-	bus.path = BusPath.build(route)
+	bus.path = BusPath.build(route, bus.top_speed, bus.accel, bus.brake, bus.turn_radius)
 	bus.s = 0.0
 	bus.speed = 0.0
 	bus.state = Bus.State.DRIVING
-	_w.events.append("t=%d the bus pulls out" % _w.clock.time)
+	_w.events.append("t=%d the %s pulls out" % [_w.clock.time, "shuttle" if bus == _w.shuttle else "bus"])
 	return true
 
 
-## The hero gets off. The bus stays where it is.
-func disembark() -> void:
-	if _w.bus != null:
-		_w.bus.aboard = false
+## The hero gets off `vehicle` (or whatever they are on). It stays where it is.
+func disembark(vehicle: Bus = null) -> void:
+	for v in ([vehicle] if vehicle != null else [_w.bus, _w.shuttle]):
+		if v != null:
+			v.aboard = false
 
 
 func step(dt: float) -> void:
-	var bus := _w.bus
-	if bus == null:
-		return
-	bus.prev_pos = bus.pos
-	bus.prev_heading = bus.heading
-	if bus.state != Bus.State.DRIVING:
-		return
-	# It aims at the speed the path allows a little way ahead, and gets there only as fast as a bus can speed up or
+	for v in [_w.bus, _w.shuttle]:
+		if v != null:
+			v.prev_pos = v.pos
+			v.prev_heading = v.heading
+			if v.state == Bus.State.DRIVING:
+				_drive(v, dt)
+	if _w.bus != null:
+		for b in _w.bills:
+			if b.aboard:
+				b.pos = _w.bus.to_world(b.local)  # (money on the floor of the bus goes where the bus goes)
+
+
+func _drive(bus: Bus, dt: float) -> void:
+	# It aims at the speed the path allows a little way ahead, and gets there only as fast as it can speed up or
 	# brake (so it never lurches), but keeps creeping until it is where it is going.
 	var target := bus.path.speed_at(minf(bus.s + 1.0 + bus.speed * 0.4, bus.path.length))
-	bus.speed = move_toward(bus.speed, target, (BusPath.ACCEL if target > bus.speed else BusPath.BRAKE) * dt)
+	bus.speed = move_toward(bus.speed, target, (bus.accel if target > bus.speed else bus.brake) * dt)
 	if bus.path.length - bus.s > ARRIVE_WITHIN:
 		bus.speed = maxf(bus.speed, SLOWEST)
 	bus.s = minf(bus.s + bus.speed * dt, bus.path.length)
@@ -69,7 +79,7 @@ func step(dt: float) -> void:
 		bus.state = Bus.State.ARRIVED
 		if bus.flag != "":
 			_w.quests.set_flag(bus.flag)
-		_w.events.append("t=%d the bus has stopped" % _w.clock.time)
+		_w.events.append("t=%d the %s has stopped" % [_w.clock.time, "shuttle" if bus == _w.shuttle else "bus"])
 	if bus.aboard and _w.player != null:
 		_w.player.pos = bus.pos
 

@@ -18,7 +18,7 @@ func nearest_loose(from: Vector2, within: float, zone: String) -> Bill:
 	var best: Bill = null
 	var best_d := within
 	for b in _w.bills:
-		if b.zone == zone and b.loose and b.pos.distance_to(from) <= best_d:
+		if b.zone == zone and b.loose and not b.aboard and b.pos.distance_to(from) <= best_d:
 			best_d = b.pos.distance_to(from)
 			best = b
 	return best
@@ -31,6 +31,17 @@ func collect(d: Drone, b: Bill) -> void:
 	d.rep = minf(1.0, d.rep + randf() * b.value / (b.value + 25.0) * 0.1)
 	_w.levels.award(d, b.value)
 	_w.chatter.say(d, Lines.CASH)
+
+
+## The hero gets off the bus with whatever is lying on its floor. Returns the total.
+func scoop_aboard() -> float:
+	var got := 0.0
+	for b in _w.bills.duplicate():
+		if b.aboard:
+			got += b.value
+			_w.bills.erase(b)
+	_w.ledger.player_cash += got
+	return got
 
 
 ## The player picks up everything within reach. Returns the total.

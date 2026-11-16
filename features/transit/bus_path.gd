@@ -18,12 +18,19 @@ var pts := PackedVector2Array()
 var cum := PackedFloat32Array()   # distance along the path to each point
 var speeds := PackedFloat32Array()  # the speed it should be doing at each point
 var length := 0.0
+var _top := MAX_SPEED
+var _accel := ACCEL
+var _brake := BRAKE
 
 
-## The path through `route` (its first point is where the bus is now).
-static func build(route: PackedVector2Array) -> BusPath:
+## The path through `route` (its first point is where the vehicle is now), for a vehicle with these limits (the bus's by
+## default).
+static func build(route: PackedVector2Array, top := MAX_SPEED, accel := ACCEL, brake := BRAKE, radius := RADIUS) -> BusPath:
 	var p := BusPath.new()
-	p.pts = _resampled(_rounded(route))
+	p._top = top
+	p._accel = accel
+	p._brake = brake
+	p.pts = _resampled(_rounded(route, radius))
 	p._measure()
 	p._profile()
 	return p
@@ -31,7 +38,7 @@ static func build(route: PackedVector2Array) -> BusPath:
 
 ## Each corner of `route` replaced by a curve (a quadratic one: its tangents are the two streets). A corner never
 ## uses more than 45% of either street, so two corners close together cannot overlap.
-static func _rounded(route: PackedVector2Array) -> PackedVector2Array:
+static func _rounded(route: PackedVector2Array, radius := RADIUS) -> PackedVector2Array:
 	var out := PackedVector2Array()
 	if route.is_empty():
 		return out
@@ -50,7 +57,7 @@ static func _rounded(route: PackedVector2Array) -> PackedVector2Array:
 		if turn < 0.04:
 			out.append(v)
 			continue
-		var d := minf(RADIUS * tan(turn * 0.5), minf(in_leg.length(), out_leg.length()) * 0.45)
+		var d := minf(radius * tan(turn * 0.5), minf(in_leg.length(), out_leg.length()) * 0.45)
 		var start := v - in_dir * d
 		var finish := v + out_dir * d
 		for k in CURVE_POINTS + 1:
@@ -96,23 +103,23 @@ func _profile() -> void:
 	speeds = PackedFloat32Array()
 	speeds.resize(n)
 	for i in n:
-		var v := MAX_SPEED
+		var v := _top
 		if i > 0 and i < n - 1:
 			var a := pts[i] - pts[i - 1]
 			var b := pts[i + 1] - pts[i]
 			var turn := acos(clampf(a.normalized().dot(b.normalized()), -1.0, 1.0))
 			if turn > 0.001:
 				var radius := (a.length() + b.length()) * 0.5 / turn
-				v = clampf(sqrt(LATERAL * radius), MIN_SPEED, MAX_SPEED)
+				v = clampf(sqrt(LATERAL * radius), minf(MIN_SPEED, _top), _top)
 		speeds[i] = v
 	if n == 0:
 		return
 	speeds[0] = 0.0
 	for i in range(1, n):
-		speeds[i] = minf(speeds[i], sqrt(speeds[i - 1] * speeds[i - 1] + 2.0 * ACCEL * (cum[i] - cum[i - 1])))
+		speeds[i] = minf(speeds[i], sqrt(speeds[i - 1] * speeds[i - 1] + 2.0 * _accel * (cum[i] - cum[i - 1])))
 	speeds[n - 1] = 0.0
 	for i in range(n - 2, -1, -1):
-		speeds[i] = minf(speeds[i], sqrt(speeds[i + 1] * speeds[i + 1] + 2.0 * BRAKE * (cum[i + 1] - cum[i])))
+		speeds[i] = minf(speeds[i], sqrt(speeds[i + 1] * speeds[i + 1] + 2.0 * _brake * (cum[i + 1] - cum[i])))
 
 
 ## Which stretch (between point i and i + 1) distance `s` along the path is in.

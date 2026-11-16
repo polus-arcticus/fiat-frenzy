@@ -15,9 +15,15 @@ var gravity := 3.2
 var drag := 0.9
 var flutter := 4.0   # how hard the air shoves it about
 
+## The bus, when this was fired from a seat in it. Then the flight is in the bus's own frame (it falls straight down inside, as
+## it would on a moving bus, and is not left streaming behind it), and what it lands on inside the bus stays there (see
+## Gun.land_aboard). Out through the open door it is in the street's frame again, with the bus's speed.
+var frame: BusView = null
+
 var _age := 0.0
 var _spin := Vector3.ZERO
 var _model: Node3D
+var _local := Vector3.ZERO   # where it is in the bus's frame, while it is in it
 
 
 ## Starts the flight. `model` is what it looks like.
@@ -46,6 +52,20 @@ func _miss(_at: Vector2) -> void:
 	pass
 
 
+## It came down on the floor of the bus, at `local` in the bus's own coordinates. (By default that is just a miss, wherever
+## the bus's floor is in the world just now: a contract that misses is void whatever it lands on.)
+func _miss_aboard(local: Vector2) -> void:
+	_miss(world.bus.to_world(local) if world.bus != null else local)
+
+
+func _ready() -> void:
+	if world != null and world.bus != null and world.bus.aboard and world.hero.mode == Hero.Mode.SEATED:
+		frame = get_tree().get_first_node_in_group("bus")
+	if frame != null:
+		_local = frame.to_local(global_position)
+		velocity = frame.global_basis.inverse() * velocity  # (it leaves the muzzle at the hero's own pace: already the bus's)
+
+
 func _physics_process(delta: float) -> void:
 	_age += delta
 	_model.scale = Vector3.ONE * _scale_at(_age)
@@ -55,6 +75,10 @@ func _physics_process(delta: float) -> void:
 	velocity *= maxf(0.0, 1.0 - drag * delta)
 	var from := global_position
 	var to := from + velocity * delta
+	var next := _local + velocity * delta
+	if frame != null:
+		from = frame.to_global(_local)  # (both ends with the bus where it is now: only the paper's own motion is swept)
+		to = frame.to_global(next)
 	var q := PhysicsRayQueryParameters3D.create(from, to, MASK)
 	q.collide_with_areas = true
 	var hit := get_world_3d().direct_space_state.intersect_ray(q)
@@ -63,6 +87,15 @@ func _physics_process(delta: float) -> void:
 		return
 	global_position = to
 	rotate(_spin.normalized(), _spin.length() * delta * 0.2)
+	if frame != null:
+		_local = next
+		if absf(next.x) > Bus.WIDTH * 0.5 + 0.05 or absf(next.z) > Bus.LENGTH * 0.5 or next.y > BusView.CEILING + 0.1:
+			velocity = frame.global_basis * velocity + frame.velocity()  # out of the open door: the street's frame, at the bus's speed
+			frame = null
+		elif _age > LIFETIME:
+			_miss_aboard(Vector2(next.x, next.z))
+			queue_free()
+		return
 	if to.y <= 0.04 or _age > LIFETIME:
 		_miss(Vector2(to.x, to.z))
 		queue_free()
@@ -77,6 +110,12 @@ func _resolve(hit: Dictionary) -> void:
 		d = world.drones[c.get_meta("drone_id")]
 	if d != null:
 		_deliver(d)
+		queue_free()
+		return
+	if frame != null and c.has_meta("bus"):  # fired from inside, it hit the floor or a wall of the bus: it lands in the bus
+		var at := frame.to_local(hit.position)
+		var out: Vector3 = frame.global_basis.inverse() * hit.normal
+		_miss_aboard(Bus.on_the_floor(Vector2(at.x, at.z) + Vector2(out.x, out.z) * 0.4))
 		queue_free()
 		return
 	var p: Vector3 = hit.position

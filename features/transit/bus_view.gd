@@ -4,10 +4,10 @@
 ## its stop at the start; the quest controller moves it to the traffic jam. Its walls and floor are solid, and the door
 ## is solid while it is shut.
 class_name BusView
-extends Node3D
+extends VehicleView
 
-const LENGTH := 11.0
-const WIDTH := 2.5
+const LENGTH := Bus.LENGTH
+const WIDTH := Bus.WIDTH
 const HEIGHT := 3.0
 const FLOOR := 0.35        # the top of the floor
 const CEILING := 2.6       # the underside of the roof
@@ -23,8 +23,6 @@ const ROWS := [-4.2, -3.0, -1.8, -0.6, 0.6, 1.8]  # where the seat rows are, alo
 
 var door_open := false
 
-var _model: Bus = null
-var _loop: SimLoop = null
 var _glass_material: StandardMaterial3D = null
 var _solid: StaticBody3D
 var _door_block: CollisionShape3D
@@ -37,6 +35,8 @@ func setup(at: Vector2, yaw: float) -> BusView:
 	place(at, yaw)
 	_solid = StaticBody3D.new()
 	_solid.name = "Solid"
+	_solid.set_meta("bus", self)  # (so a bill fired inside knows it has hit the bus)
+	add_to_group("bus")
 	_solid.collision_layer = 1
 	_solid.collision_mask = 0
 	add_child(_solid)
@@ -193,42 +193,12 @@ func doorway_point() -> Vector3:
 
 
 ## Where the hero's feet are when they sit (on the floor in front of the seat, the head lower while seated), in the bus's
-## own frame and in the world.
+## own frame.
 const SEAT_LOCAL := Vector3(DOOR_SIDE * 0.85, FLOOR, ROWS[-1] + 0.12)  # on the seat, in front of its back
 
 
-func seat_point() -> Vector3:
-	return to_global(SEAT_LOCAL)
-
-
-func place(at: Vector2, yaw: float) -> void:
-	position = Vector3(at.x, 0.0, at.y)
-	rotation.y = yaw
-
-
-## Follow the model's bus from now on. The model moves in ticks, so the bus is drawn `loop.alpha()` of the way between
-## where it was at the last tick and where it is now: that is what keeps it from moving in jumps. It updates early in
-## each physics frame, before the seated hero (who rides in it) is moved to their seat.
-func follow(model: Bus, loop: SimLoop = null) -> BusView:
-	_model = model
-	_loop = loop
-	process_physics_priority = -5
-	place(model.pos, _yaw_of(model.heading))
-	return self
-
-
-## The rotation.y that points the bus's front (+Z) along the model's heading (the angle of the way it is going).
-static func _yaw_of(heading: float) -> float:
-	return atan2(cos(heading), sin(heading))
-
-
-func _physics_process(_delta: float) -> void:
-	if _model == null:
-		return
-	var a := _loop.alpha() if _loop != null else 1.0
-	var at := _model.prev_pos.lerp(_model.pos, a)
-	position = Vector3(at.x, 0.0, at.y)
-	rotation.y = _yaw_of(lerp_angle(_model.prev_heading, _model.heading, a))
+func seat_local() -> Vector3:
+	return SEAT_LOCAL
 
 
 ## A car stuck in the jam: a body, a cabin and four wheels.

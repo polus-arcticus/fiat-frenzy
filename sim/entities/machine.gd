@@ -42,6 +42,8 @@ var price_peak := 0.0
 var sold_total := 0
 var crafted_total := 0
 var revenue_total := 0.0
+var line: Array[Drone] = []   # the customers queuing for it, the one being served first (see Queueing)
+var service_left := -1.0      # how long the one at the front still has to be served; below zero: nobody is being
 
 
 ## `stocked`: starts with half a shelf of leftovers in the output inventory, and two crafts' worth of inputs.

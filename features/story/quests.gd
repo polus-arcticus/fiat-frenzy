@@ -51,15 +51,15 @@ func fed_count() -> int:
 	return fed.size()
 
 
-## Every stand is running (the bike shop always is) and there are bankers, each of whom has been fed. (Having
+## Every stand in the bankers' town is running (the bike shop always is) and there are bankers, each of whom has been fed. (Having
 ## eaten once is enough: they get hungry again, and the town need not keep all of them full at the same moment.)
 func letter_ready() -> bool:
-	for m in _w.machines:
-		if not m.working:
-			return false
 	var bs := bankers()
 	if bs.is_empty():
 		return false
+	for m in _w.zones.machines_in(bs[0].zone):  # (the stands of the bankers' own town: the far market at the bank is another zone)
+		if not m.working:
+			return false
 	for b in bs:
 		if not fed.has(b.id):
 			return false
@@ -92,9 +92,24 @@ func accept(id: String) -> bool:
 	return true
 
 
-## Is the hero where the letter goes: on the quest, past the bus ride, still carrying it?
+## Can the doorman at the gate wave the hero through? On the letter quest, at the bank (the bus has been all the way), still
+## carrying the letter and not yet through.
+func can_clear_gate() -> bool:
+	return active() == QuestBook.LETTER and done("rode_on") and not done("cleared_gate") and _w.player.carry.count("letter") > 0
+
+
+## The doorman has looked at the letter and opens the gate. (The shuttle is for the way in.)
+func clear_gate() -> bool:
+	if not can_clear_gate():
+		return false
+	flags["cleared_gate"] = true
+	_w.events.append("The doorman at the gate lifts the barrier.")
+	return true
+
+
+## Is the hero where the letter goes: on the quest, through the gate, still carrying it?
 func can_deliver() -> bool:
-	return active() == QuestBook.LETTER and _w.player.carry.count("letter") > 0 and not done("delivered")
+	return active() == QuestBook.LETTER and done("cleared_gate") and _w.player.carry.count("letter") > 0 and not done("delivered")
 
 
 ## Hand the letter over: it leaves the bag, the objective is met and the quest is done.
@@ -161,6 +176,10 @@ func _place(name: String) -> Variant:
 			return _w.sage_drone.pos if _w.sage_drone != null else null
 		"ecb":
 			return _w.ecb_doorman.pos if _w.ecb_doorman != null else null
+		"shuttle":
+			return _w.shuttle.pos if _w.shuttle != null else null
+		"reception":
+			return _w.ecb_receptionist.pos if _w.ecb_receptionist != null else null
 		"bus":
 			return _w.bus.pos if _w.bus != null else null
 	return null

@@ -18,7 +18,7 @@ func test_nobody_shares_coordinates() -> void:
 		stands.append(d.job.stand)
 	note("    six customers' stand points are at least %.2f m apart" % Fixtures.spread(stands))
 	check(Fixtures.spread(stands) >= 0.5, "six customers heading for one bakery each get their own place in front of it")
-	check(stands.all(func(p): return p.distance_to(bakery.pos) < Logistics.TRADE_REACH), "all of them within trading reach")
+	check(stands[0].distance_to(bakery.pos) < Logistics.TRADE_REACH, "the first is within trading reach: the rest line up behind (see test_queues)")
 	check(baker.pos.distance_to(bakery.pos) < 0.01, "(the vendor starts on the stand)")
 	Fixtures.run(w, 5)
 	check(baker.pos.distance_to(bakery.pos) >= 1.0, "a vendor minds the stand from behind it, not from inside it (%.1f m)" % baker.pos.distance_to(bakery.pos))

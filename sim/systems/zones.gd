@@ -12,7 +12,10 @@ extends RefCounted
 
 const COARSE_STEP := 10.0  # a dormant zone's businesses run in jumps of this many seconds
 
+const HOME := "district"  # the zone of the starting town, and where the hero is when they are in no region
+
 var active: Array[String] = []
+var regions := {}  # zone -> Rect2: a patch of the map that is a zone of its own (see zone_for). Told by whoever lays the map out.
 var version := 0  # bumps whenever something is added to the world or moves zone: the indexes (and navigation grids) are rebuilt
 var _owed := {}  # zone -> seconds of dormant time not yet run
 var _index := {}  # zone -> {drones, machines, food_banks, fires, runners}: what a search in that zone looks at
@@ -113,6 +116,16 @@ func _entry(zone: String) -> Dictionary:
 
 func is_active(zone: String) -> bool:
 	return active.is_empty() or zone in active
+
+
+## Which zone someone standing at `p` belongs to, who is in `current` now. Inside a region it is that region's zone; leave it
+## and they are home again; with no region about, wherever they were. (The hero's zone follows where they walk or ride, so
+## the people and the money of the place they are in are the ones that answer them.)
+func zone_for(p: Vector2, current: String) -> String:
+	for z in regions:
+		if (regions[z] as Rect2).has_point(p):
+			return z
+	return HOME if regions.has(current) else current
 
 
 ## Run only the zone the hero is in.

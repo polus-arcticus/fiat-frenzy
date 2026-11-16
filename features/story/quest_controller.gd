@@ -11,6 +11,7 @@ var dialogue: DialogueScreen
 var game: Node  # has `sim` (a SimLoop)
 var scenario: Scenario
 var bus: BusView
+var shuttle: ShuttleView  # the golf cart at the bank's gate (null if the map has no gate)
 var fade: FadeScreen
 ## Skip the waiting in the fades and captions (tests and tools).
 var fast := false
@@ -20,10 +21,11 @@ const BOARD_REACH := 6.0
 
 var _jam_built := false
 var _jam_cleared := false
-var _delivering := false  # the dialogue being read is the doorman's, not the banker's
+var _delivering := false  # the dialogue being read is the receptionist's (the letter goes over), not the banker's...
+var _gating := false      # ...or the doorman's at the gate (he opens it)
 
 
-func setup(w: World, p: PlayerController, h: Hud, d: DialogueScreen, g: Node, sc: Scenario, b: BusView, f: FadeScreen) -> QuestController:
+func setup(w: World, p: PlayerController, h: Hud, d: DialogueScreen, g: Node, sc: Scenario, b: BusView, f: FadeScreen, s: ShuttleView = null) -> QuestController:
 	world = w
 	player = p
 	hud = h
@@ -31,15 +33,19 @@ func setup(w: World, p: PlayerController, h: Hud, d: DialogueScreen, g: Node, sc
 	game = g
 	scenario = sc
 	bus = b
+	shuttle = s
 	fade = f
 	name = "QuestController"
 	return self
 
 
-## Q at any banker (they all have the letter in mind), or at the doorman to hand it over.
+## Q at any banker (they all have the letter in mind), at the doorman at the gate, or at the receptionist to hand it over.
 func talk(who: Drone) -> void:
 	if who == world.ecb_doorman:
-		_talk_doorman()
+		_talk_gate()
+		return
+	if who == world.ecb_receptionist:
+		_talk_reception()
 		return
 	if not world.quests.is_banker(who) or dialogue.visible or not player.controls_enabled:
 		return
@@ -54,22 +60,43 @@ func talk(who: Drone) -> void:
 		world.chatter.say_line(who, QuestBook.quest(QuestBook.LETTER).reminder)
 
 
-func _talk_doorman() -> void:
+## The doorman at the gate: with the letter, he reads it and lifts the barrier and sends the hero to the shuttle; after that he
+## reminds them where it is; before, he asks what business they have.
+func _talk_gate() -> void:
+	var d := world.ecb_doorman
+	if dialogue.visible or not player.controls_enabled:
+		return
+	if world.quests.can_clear_gate():
+		_gating = true
+		_start_reading(d, QuestBook.quest(QuestBook.LETTER).gate)
+	elif world.quests.done("cleared_gate"):
+		world.chatter.say_line(d, QuestBook.quest(QuestBook.LETTER).gate_reminder)
+	else:
+		world.chatter.say_line(d, "European Central Bank, visitors' entrance. Do you have business with the Bank?")
+
+
+## The receptionist at the bank's door takes the letter.
+func _talk_reception() -> void:
 	if not world.quests.can_deliver() or dialogue.visible or not player.controls_enabled:
 		return
 	_delivering = true
+	_start_reading(world.ecb_receptionist, QuestBook.quest(QuestBook.LETTER).delivery)
+
+
+func _start_reading(d: Drone, lines: Array) -> void:
 	dialogue.handler = self
 	game.sim.hold("quest")
 	hud.show_prompt("")
-	var d := world.ecb_doorman
 	player.look_toward(Vector3(d.pos.x, 1.55, d.pos.y))
-	dialogue.read(d.label, QuestBook.quest(QuestBook.LETTER).delivery)
+	dialogue.read(d.label, lines)
 
 
-## The request has been read through: the quest is accepted.
+## The request has been read through: the quest is accepted, or the gate opens, or the letter goes over.
 func dialogue_finished() -> void:
 	if _delivering:
 		world.quests.deliver()
+	elif _gating:
+		world.quests.clear_gate()
 	else:
 		world.quests.accept(QuestBook.LETTER)
 	dialogue.close()
@@ -77,30 +104,71 @@ func dialogue_finished() -> void:
 
 func dialogue_closed() -> void:
 	_delivering = false
+	_gating = false
 	game.sim.hold("quest", false)
 
 
-## Can the hero board the bus now? Not while out cold or on the bike, and only on the letter quest. First at its stop,
-## before the first ride; later where it stands in the cleared street, once Mr. Nobody has said farewell.
+## Can the hero get on something now?
 func can_board() -> bool:
-	if world.quests.active() != QuestBook.LETTER or riding_the_bus or world.bus == null:
-		return false
+	return boardable() != ""
+
+
+## What the hero could get on now, "bus" or "shuttle", or "". Not while out cold or on the bike, and only on the letter quest.
+## The bus: first at its stop, before the first ride; later where it stands in the cleared street, once Mr. Nobody has said
+## farewell. The shuttle: inside the bank's gate, once the doorman has opened it.
+func boardable() -> String:
+	if world.quests.active() != QuestBook.LETTER or riding_the_bus:
+		return ""
 	if not world.hero.is_on_foot() or world.player.unconscious() or not player.controls_enabled:
-		return false
-	if not world.quests.done("rode_bus"):
-		return world.bus.state == Bus.State.AT_STOP and player.ground_pos().distance_to(world.bus_stop) <= BOARD_REACH
-	if world.quests.done("jam_cleared") and not world.quests.done("rode_on") and world.bus.state == Bus.State.ARRIVED:
-		return player.global_position.distance_to(bus.kerb_point()) <= BOARD_REACH
-	return false
+		return ""
+	if world.bus != null:
+		if not world.quests.done("rode_bus"):
+			if world.bus.state == Bus.State.AT_STOP and player.ground_pos().distance_to(world.bus_stop) <= BOARD_REACH:
+				return "bus"
+		elif world.quests.done("jam_cleared") and not world.quests.done("rode_on") and world.bus.state == Bus.State.ARRIVED:
+			if player.global_position.distance_to(bus.kerb_point()) <= BOARD_REACH:
+				return "bus"
+	if shuttle != null and world.shuttle != null and world.quests.done("cleared_gate") and not world.quests.done("rode_shuttle"):
+		if world.shuttle.state == Bus.State.AT_STOP and player.global_position.distance_to(shuttle.kerb_point()) <= BOARD_REACH:
+			return "shuttle"
+	return ""
+
+
+## What the interaction prompt says about getting on.
+func board_prompt() -> String:
+	match boardable():
+		"bus":
+			return "E   board the bus"
+		"shuttle":
+			return "E   hop on the shuttle"
+	return ""
 
 
 func board() -> void:
-	if not can_board():
+	match boardable():
+		"bus":
+			if not world.quests.done("rode_bus"):
+				ride()
+			else:
+				ride_on()
+		"shuttle":
+			ride_shuttle()
+
+
+## The shuttle: from inside the gate, round the market hall and along the plaza to the bank's door. It is a golf cart and it
+## drives itself; the route is laid out by hand (see SecurityGate).
+func ride_shuttle() -> void:
+	if scenario.ecb_gate.is_empty() or shuttle == null:
 		return
-	if not world.quests.done("rode_bus"):
-		ride()
-	else:
-		ride_on()
+	var gate: Dictionary = scenario.ecb_gate
+	var via: Array = []
+	for p in gate.route:
+		via.append(p)
+	await _ride({
+		"dest": gate.entrance, "via": via, "flag": "rode_shuttle", "direct": true, "walk": 1.8, "walk_off": 1.6,
+		"board": "The shuttle sets off on its own. \"Please keep your hands inside the vehicle. The Bank is that way.\"",
+		"arrive": "The main entrance. A very large glass door, and a very small receptionist behind it.",
+	}, shuttle, world.shuttle)
 
 
 ## The first ride: to the traffic jam outside Mr. Nobody's house.
@@ -126,37 +194,41 @@ func ride_on() -> void:
 	})
 
 
-## One bus ride. The door opens, the hero walks in and sits down, the bus drives itself along the streets (the town
-## carries on all the while: nothing is paused), and where it stops the door opens again and the hero steps out onto
-## the kerb on its right-hand side.
-func _ride(leg: Dictionary) -> void:
-	if world.bus == null:
+## One ride, by default on the bus. The door opens, the hero walks in and sits down, the vehicle drives itself along its way
+## (the town carries on all the while: nothing is paused), and where it stops the door opens again and the hero steps out onto
+## the kerb on its right-hand side. `vehicle` and `model` say which vehicle (the bus, or the shuttle); `leg.direct` is a route
+## laid out by hand (the shuttle's), not the streets.
+func _ride(leg: Dictionary, vehicle: VehicleView = null, model: Bus = null) -> void:
+	if vehicle == null:
+		vehicle = bus
+		model = world.bus
+	if model == null:
 		return
 	riding_the_bus = true
 	player.controls_enabled = false
 	hud.show_prompt("")
-	bus.open_door()
+	vehicle.open_door()
 	await _wait(0.9)
-	await _walk([player.global_position, bus.kerb_point(), bus.doorway_point(), bus.seat_point()], 3.4)
+	await _walk([player.global_position, vehicle.kerb_point(), vehicle.doorway_point(), vehicle.seat_point()], leg.get("walk", 3.4))
 	player.scripted = false
-	player.teleport(bus.seat_point(), bus.rotation.y + PI)  # facing the front of the bus
+	player.teleport(vehicle.seat_point(), vehicle.rotation.y + PI)  # facing the front
 	player.level_gaze()
-	player.sit(bus, BusView.SEAT_LOCAL)
+	player.sit(vehicle, vehicle.seat_local())
 	world.hero.enter(Hero.Mode.SEATED)
-	bus.close_door()
+	vehicle.close_door()
 	hud.show_caption(leg.board, 0.0 if fast else 3.0)
 	await _wait(0.8)
-	world.transit.board(leg.dest, leg.flag, leg.via)
-	while world.bus.state == Bus.State.DRIVING:
+	world.transit.board(leg.dest, leg.flag, leg.via, model, leg.get("direct", false))
+	while model.state == Bus.State.DRIVING:
 		if fast:  # tests and tools: no frames to wait for, so run the world here
-			_follow_model()
+			_follow_model(vehicle, model)
 			game.advance(1.0)
 		await get_tree().process_frame
-	_follow_model()
+	_follow_model(vehicle, model)
 	await _wait(0.6)
-	bus.open_door()
+	vehicle.open_door()
 	if world.player.care != "":
-		# They passed out on the way. Nobody gets up: the ambulance will come to the bus, and the medical tent's
+		# They passed out on the way. Nobody gets up: the ambulance will come to the vehicle, and the medical tent's
 		# controller (not this) gives them their body and controls back when they wake.
 		riding_the_bus = false
 		return
@@ -164,21 +236,24 @@ func _ride(leg: Dictionary) -> void:
 	await _wait(0.9)
 	world.hero.stand()
 	player.stand()
+	var gathered := world.cash.scoop_aboard()  # whatever is lying on the floor of the bus goes with them
+	if gathered > 0.0:
+		hud.notify("picked up $%d from the floor of the bus" % roundi(gathered))
 	player.scripted = true
-	var out := bus.kerb_point()
-	await _walk([player.global_position, bus.doorway_point(), out], 2.4)
+	var out := vehicle.kerb_point()
+	await _walk([player.global_position, vehicle.doorway_point(), out], leg.get("walk_off", 2.4))
 	player.scripted = false
 	player.teleport(Vector3(out.x, 0.1, out.z), 0.0)
-	var outward := out - bus.doorway_point()
+	var outward := out - vehicle.doorway_point()
 	player.look_toward(Vector3(out.x + outward.x * 6.0, 1.5, out.z + outward.z * 6.0))  # facing away from the door
 	player.level_gaze()
 	world.player.pos = Vector2(out.x, out.z)
-	world.transit.disembark()
+	world.transit.disembark(model)
 	if world.player.care == "":
 		player.controls_enabled = true
 	riding_the_bus = false
 	await _wait(1.2)
-	bus.close_door()
+	vehicle.close_door()
 
 
 ## The jam clears: every stuck car drives off down its lane, the front ones first.
@@ -215,8 +290,11 @@ func _process(_delta: float) -> void:
 
 
 ## Where the bus is in the model, for the view and the seated hero (tests and tools step the world without frames).
-func _follow_model() -> void:
-	bus.place(world.bus.pos, BusView._yaw_of(world.bus.heading))
+func _follow_model(vehicle: VehicleView = null, model: Bus = null) -> void:
+	if vehicle == null:
+		vehicle = bus
+		model = world.bus
+	vehicle.place(model.pos, VehicleView._yaw_of(model.heading))
 	player.update_seat()
 
 
@@ -249,6 +327,20 @@ func _walk_step(t: float, points: Array, total: float) -> void:
 			player.look_toward(Vector3(ahead.x, 1.3, ahead.z), 0.08)
 			return
 		at -= leg
+
+
+## What a save needs of this controller (the quests themselves are in the model): whether the traffic jam has been laid out
+## and whether it has driven off.
+func save_state() -> Dictionary:
+	return {"jam_built": _jam_built, "jam_cleared": _jam_cleared}
+
+
+## Puts the scene back as a save left it: the stuck cars are there if the jam was built and has not cleared.
+func load_state(state: Dictionary) -> void:
+	_jam_cleared = state.get("jam_cleared", false)
+	if state.get("jam_built", false) and not _jam_cleared:
+		_build_jam()
+	_jam_built = state.get("jam_built", false)
 
 
 func _build_jam() -> void:

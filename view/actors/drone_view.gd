@@ -9,6 +9,7 @@ const MODELS := {
 	"banker": preload("res://assets/models/banker.glb"),
 	"sage": preload("res://assets/models/banker.glb"),
 	"clerk": preload("res://assets/models/banker.glb"),
+	"guard": preload("res://assets/models/builder.glb"),  # (a hi-vis vest, like the one at the bank's gate)
 	"runner": preload("res://assets/models/builder.glb"),
 	"keeper": preload("res://assets/models/builder.glb"),
 }

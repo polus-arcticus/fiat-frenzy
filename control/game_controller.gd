@@ -29,6 +29,7 @@ var inspector: InspectorController
 var portal_controller: PortalController
 var quest_controller: QuestController
 var bus: BusView
+var shuttle: ShuttleView   # the golf cart at the European Central Bank's gate (null if the map has no gate)
 var fade: FadeScreen
 ## Set before the scene is added, or pass --skip-intro: starts the game at once, with the gun in hand.
 var skip_intro := false
@@ -42,6 +43,11 @@ var sim_paused: bool:
 var bills_view: BillsView
 
 var presenter: HudPresenter
+var pause: PauseScreen
+var _since_autosave := 0.0
+var _last_day := -1
+
+const AUTOSAVE_EVERY := 240.0  # real seconds between autosaves
 
 
 
@@ -49,7 +55,8 @@ func _ready() -> void:
 	process_physics_priority = -10  # the sim steps first each physics frame, then the views that follow it, then the player
 	Controls.register()
 	var args := OS.get_cmdline_user_args()
-	skip_intro = skip_intro or "--skip-intro" in args
+	var load_slot := Launch.take_slot()
+	skip_intro = skip_intro or "--skip-intro" in args or load_slot != "" or Launch.skip_intro
 	var district := _load_district()
 	_build_town(district)
 	_build_player()
@@ -57,6 +64,10 @@ func _ready() -> void:
 	_build_story()
 	presenter = HudPresenter.new(world, hud, player, gun, inventory, tutorial, marker)
 	hud.notify("Click to capture the mouse.")
+	if load_slot != "":
+		if not load_game(load_slot):
+			hud.notify("That save could not be read: starting fresh.")
+	_last_day = world.clock.day()
 
 
 ## The map, the sky and the model, and the views that draw what the model starts with.
@@ -120,24 +131,45 @@ func _build_screens(district: Dictionary) -> void:
 	add_child(map_screen)
 	screens.register(map_screen)
 	map_screen.opened.connect(func(): hud.show_prompt(""))
+	# On the bus the hero's controls are off for the ride: the stack gives them back whenever a screen closes, so take them
+	# off again (it is connected after the stack's own handler, so it runs after it).
+	map_screen.closed.connect(func():
+		if player.is_seated():
+			player.controls_enabled = false)
+	inventory.closed.connect(func():  # (and so the bag, which can be opened from a seat)
+		if player.is_seated():
+			player.controls_enabled = false)
 	fade = FadeScreen.new()
 	add_child(fade)
+	pause = PauseScreen.new()
+	add_child(pause)
+	screens.register(pause)
+	pause.save_requested.connect(func(): pause.say("Saved." if save_game("manual") else "Could not save."))
+	pause.title_requested.connect(_to_title)
+	pause.opened.connect(func(): sim.hold("pause"))
+	pause.closed.connect(func(): sim.hold("pause", false))
+	screens.mouse_freed.connect(func(): if not intro.running: pause.open())
 
 
 ## What happens to the hero: the conversations, the bus, passing out, and the opening crash.
 func _build_story() -> void:
 	sage_controller = SageController.new().setup(world, player, hud, dialogue, self)
 	add_child(sage_controller)
-	bus = BusView.new().setup(scenario.bus_stop.pos, scenario.bus_stop.yaw).follow(world.bus, sim)
+	bus = BusView.new().setup(scenario.bus_stop.pos, scenario.bus_stop.yaw)
+	bus.follow(world.bus, sim)
 	add_child(bus)
-	quest_controller = QuestController.new().setup(world, player, hud, dialogue, self, scenario, bus, fade)
+	if world.shuttle != null:
+		shuttle = ShuttleView.new().setup(world.shuttle.pos, VehicleView._yaw_of(world.shuttle.heading))
+		shuttle.follow(world.shuttle, sim)
+		add_child(shuttle)
+	quest_controller = QuestController.new().setup(world, player, hud, dialogue, self, scenario, bus, fade, shuttle)
 	add_child(quest_controller)
 	interaction.talk_requested.connect(func(who: Drone):
 		if who == world.sage_drone:
 			sage_controller.talk()
 		else:
 			quest_controller.talk(who))
-	interaction.can_board = quest_controller.can_board
+	interaction.board_prompt = quest_controller.board_prompt
 	interaction.board_requested.connect(quest_controller.board)
 	collapse = CollapseController.new().setup(world, player, hud, screens, gun)
 	add_child(collapse)
@@ -188,6 +220,7 @@ func _sync_player() -> void:
 
 
 func _process(delta: float) -> void:
+	_autosave(delta)
 	_sync_player()
 	sky.update(world.clock.fraction())
 	presenter.update(delta, sim.speed)
@@ -216,8 +249,76 @@ func _unhandled_input(e: InputEvent) -> void:
 		elif e.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			gun.cycle_mode(1)
 	elif e.is_action_pressed("map"):
-		if player.controls_enabled and not inventory.visible and not dialogue.visible and not map_screen.visible:
+		var may_look := player.controls_enabled or player.is_seated()  # (the map can be watched from a seat on the bus)
+		if may_look and world.player.care == "" and not inventory.visible and not dialogue.visible and not map_screen.visible:
 			map_screen.open()
 			get_viewport().set_input_as_handled()
+	elif e is InputEventKey and e.pressed and not e.echo and e.keycode == KEY_F5:
+		save_game("quicksave")
 	elif e.is_action_pressed("speed"):
 		sim.cycle_speed()
+
+
+# ---------------------------------------------------------------- saving and loading
+
+## Whether the world is at rest enough to be written down: not mid-intro, not on the bus ride, not passed out.
+func can_save() -> bool:
+	return not intro.running and not quest_controller.riding_the_bus and world.player.care == "" and not world.hero.mode == Hero.Mode.SEATED
+
+
+## What the model cannot say: where the hero looks, and the scene bits the controllers keep.
+func _hero_state() -> Dictionary:
+	return {"yaw": player.rotation.y, "pitch": player.camera.rotation.x, "third_person": player.wanted_third_person,
+		"gun_mode": gun.mode, "quest": quest_controller.save_state()}
+
+
+## Writes the game to `slot`. False if it could not be (or is not at a point where it can be).
+func save_game(slot: String) -> bool:
+	if not can_save():
+		hud.notify("Not now.")
+		return false
+	var ok := SaveStore.write(slot, world, _hero_state())
+	if ok and slot != SaveStore.AUTOSAVE:
+		hud.notify("Game saved.")
+	return ok
+
+
+## Lays a save over the freshly built town. The scenario made everything that is always there; the save says what has
+## changed (see Snapshot), and the views that were made from the fresh world are brought up to date.
+func load_game(slot: String) -> bool:
+	var doc := SaveStore.read(slot)
+	if doc.is_empty():
+		return false
+	var fresh_drones := Snapshot.new(world).apply(doc.world)
+	for i in range(fresh_drones, world.drones.size()):
+		add_drone_view(world.drones[i])
+	var h: Dictionary = doc.hero
+	world.hero.mode = Hero.Mode.ON_FOOT  # back on their feet: the bike and board wait where they were left
+	world.skating.speed = 0.0
+	player.teleport(Vector3(world.player.pos.x, 0.1, world.player.pos.y), float(h.get("yaw", 0.0)))
+	player.camera.rotation.x = float(h.get("pitch", 0.0))
+	player.set_third_person(h.get("third_person", false))
+	gun.mode = h.get("gun_mode", "gift")
+	gun.set_enabled(world.gun_owned)
+	quest_controller.load_state(h.get("quest", {}))
+	tutorial.update(world.player.pos)
+	tutorial.take_news()  # (what was done before the save is not news)
+	sky.update(world.clock.fraction())
+	return true
+
+
+## An autosave now and then, and at each dawn, whenever the moment allows it.
+func _autosave(delta: float) -> void:
+	_since_autosave += delta
+	var day := world.clock.day()
+	var dawn := day != _last_day
+	_last_day = day
+	if (_since_autosave >= AUTOSAVE_EVERY or dawn) and can_save() and player.controls_enabled:
+		_since_autosave = 0.0
+		save_game(SaveStore.AUTOSAVE)
+
+
+func _to_title() -> void:
+	sim.hold("pause", false)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	get_tree().change_scene_to_file("res://title.tscn")

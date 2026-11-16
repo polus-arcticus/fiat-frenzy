@@ -48,9 +48,11 @@ var bills: Array[Bill] = []  # printed money, in flight or lying about
 var roads: RoadGraph = null  # optional: with one, drones walk the streets
 var bike: Bike = null        # the player's bicycle, once they have bought one
 var sage_drone: Drone = null    # Mr. Nobody, if this world has him
-var ecb_doorman: Drone = null   # the doorman at the European Central Bank, if this world reaches it
+var ecb_doorman: Drone = null   # the doorman at the European Central Bank's gate, if this world reaches it
+var ecb_receptionist: Drone = null  # and the receptionist at its door
 var bus_stop := Vector2(INF, INF)  # where the bus waits, if this world has one
 var bus: Bus = null                # the bus itself (see add_bus)
+var shuttle: Bus = null            # the golf cart that takes visitors from the European Central Bank's gate to its door (see add_shuttle)
 var gun_owned := false       # the hero has the money gun (set by whoever hands it over)
 var player: Drone = null     # the player's body: bars and a bag. Not in `drones`, so no NPC logic drives it
 var events: Array[String] = []
@@ -161,16 +163,28 @@ func add_sage(at: Vector2) -> Drone:
 	return d
 
 
-## The doorman at the European Central Bank: like Mr. Nobody he has no needs and stays at his post. The letter
-## quest ends with him.
+## The doorman at the European Central Bank's gate, in a hi-vis vest: like Mr. Nobody he has no needs and stays at his post.
+## He checks visitors in and guides them to the shuttle.
 func add_doorman(at: Vector2) -> Drone:
 	var d := add_drifter(at, 0.0)
 	d.kind = "clerk"
-	d.look = "clerk"
+	d.look = "guard"
 	d.label = "ECB doorman"
 	d.make_needless()
 	d.aloof = true
 	ecb_doorman = d
+	return d
+
+
+## The receptionist at the bank's door, in a suit: the letter quest ends with them.
+func add_receptionist(at: Vector2) -> Drone:
+	var d := add_drifter(at, 0.0)
+	d.kind = "clerk"
+	d.look = "clerk"
+	d.label = "ECB receptionist"
+	d.make_needless()
+	d.aloof = true
+	ecb_receptionist = d
 	return d
 
 
@@ -211,6 +225,18 @@ func add_bus(at: Vector2, facing: float) -> Bus:
 	bus.zone = build_zone
 	bus_stop = at
 	return bus
+
+
+## The shuttle, a golf cart waiting at `at` (at the gate), pointing `facing`. Slower than the bus, quicker off the mark, and it
+## turns tighter.
+func add_shuttle(at: Vector2, facing: float) -> Bus:
+	shuttle = Bus.new(at, facing)
+	shuttle.zone = build_zone
+	shuttle.top_speed = 7.0
+	shuttle.accel = 1.6
+	shuttle.brake = 2.2
+	shuttle.turn_radius = 5.0
+	return shuttle
 
 
 func add_relief_truck(at: Vector2) -> ReliefTruck:
@@ -288,5 +314,6 @@ func tick(dt := 1.0) -> void:
 			needs.decay(d, dt)
 	if player != null:
 		needs.decay(player, dt)
+		player.zone = zones.zone_for(player.pos, player.zone)
 	for system in _end_of_tick:
 		system.step(dt)

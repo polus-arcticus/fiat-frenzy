@@ -39,7 +39,7 @@ func run() -> void:
 	check(w.player.carry.count("bread") == 1 and is_equal_approx(w.player.bars.hunger, 0.8), "the bag works on its own: right-click eats")
 	game.interaction._unhandled_input(tab)
 	check(not screen.visible and game.player.controls_enabled and game.screens.depth() == 0, "Tab toggles it closed again")
-	game.interaction._unhandled_input(q_key)
+	game.interaction._unhandled_input(tab)
 	game.screens._unhandled_input(esc)
 	check(not screen.visible and game.player.controls_enabled and game.screens.depth() == 0, "Esc closes an open screen")
 	var freed := [0]
@@ -47,6 +47,8 @@ func run() -> void:
 	check(freed[0] == 0, "and did not free the mouse")
 	game.screens._unhandled_input(esc)
 	check(freed[0] == 1 and not screen.visible, "with nothing open, Esc frees the mouse instead")
+	check(game.pause.visible, "and opens the pause menu")
+	game.pause.close()
 	w.player.carry.take("bread", 99)
 	w.player.bars.hunger = hungry_before
 

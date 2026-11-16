@@ -37,10 +37,16 @@ func _process(_delta: float) -> void:
 
 func _build(b: Bill) -> Node3D:
 	var pile := Node3D.new()
-	pile.position = Vector3(b.pos.x, 0.04, b.pos.y)
-	add_child(pile)
+	var bus: Node3D = get_tree().get_first_node_in_group("bus") if b.aboard else null
+	if bus != null:  # money on the bus's floor is drawn in the bus, so it rides with it and does not jitter against it
+		pile.position = Vector3(b.local.x, BusView.FLOOR + 0.03, b.local.y)
+		bus.add_child(pile)
+	else:
+		pile.position = Vector3(b.pos.x, 0.04, b.pos.y)
+		add_child(pile)
+	var at: Vector2 = b.local if b.aboard else b.pos
 	var rng := RandomNumberGenerator.new()
-	rng.seed = hash(Vector2i(roundi(b.pos.x * 10.0), roundi(b.pos.y * 10.0)))
+	rng.seed = hash(Vector2i(roundi(at.x * 10.0), roundi(at.y * 10.0)))
 	var count := clampi(ceili(b.value / 2.0), 1, 10)
 	for i in count:
 		var sheet := Look.model(BILL)

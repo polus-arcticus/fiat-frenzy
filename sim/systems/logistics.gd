@@ -8,12 +8,12 @@ extends RefCounted
 const TRADE_REACH := 2.0
 const DISTANCE_COST := 0.02  # a shopper weighs a price against this much per unit of walking
 const ARRIVE := 0.3          # close enough to its own stand-off point
-const SLOTS := 7             # customers fan out over this many places in front of a stand
 const SLOT_RADIUS := 1.5     # how far from a stand they stand (inside TRADE_REACH, and clear of its counter)
 
 var _w: World
 var supply: Supply
 var hauling: Hauling
+var queues := Queueing.new()
 
 
 func _init(world: World) -> void:
@@ -37,6 +37,20 @@ func act(d: Drone, dt: float) -> void:
 	if not _still_valid(d.job):
 		d.job = {}
 		return
+	if Queueing.applies(d.job):
+		var m: Machine = d.job.target
+		if queues.place(d, m) != 0 and _gives_up_place(d):  # (the one at the front is being served: they stay)
+			queues.leave(d, m)
+			d.job = {}  # next tick they plan again, and what they need most is first
+			return
+		if not queues.wait(d, m, dt, _w.walking, _w.needs.pace(d, d.job)):
+			return
+		queues.leave(d, m)
+		var served := d.job
+		_complete(d, served)
+		if is_same(d.job, served):
+			d.job = {}
+		return
 	var stand: Vector2 = d.job.stand
 	if d.pos.distance_to(stand) > ARRIVE:
 		_w.walking.step(d, stand, dt * _w.needs.pace(d, d.job))
@@ -46,6 +60,23 @@ func act(d: Drone, dt: float) -> void:
 	_complete(d, done)
 	if is_same(d.job, done):  # a pickup sets up its own drop; anything else is simply finished
 		d.job = {}
+
+
+## Is someone waiting in a line (or on the way to one) now so much in need of something else that they should leave it? They
+## do when another survival bar has fallen below Queueing.LEAVE_BELOW and is clearly lower than the one they are queuing for
+## (a drink, while they wait for food), and there is somewhere that can answer it. Back in need of the first, they join its
+## line at the back, like anyone arriving.
+func _gives_up_place(d: Drone) -> bool:
+	var own: String = Needs.NEED_OF.get(d.job["for"], "")
+	var own_bar: float = d.bars[own] if own != "" else 1.0
+	for cls in Needs.NEED_OF:
+		var bar: String = Needs.NEED_OF[cls]
+		if cls == d.job["for"] or d.bars[bar] >= Queueing.LEAVE_BELOW or d.bars[bar] > own_bar - Queueing.LEAVE_MARGIN:
+			continue
+		var answer = supply.warmth_job(d) if cls == "warmth" else supply.best_supply(d, cls)
+		if not answer.is_empty() if answer is Dictionary else answer != null:
+			return true
+	return false
 
 
 ## Where a drone waits when it has nothing to do: a vendor behind their stand, a keeper behind the food
@@ -105,10 +136,9 @@ func stand_point(d: Drone, job: Dictionary) -> Vector2:
 		return target.pos if rank == 0 else target.pos + Vector2.from_angle(TAU * float(rank) / 5.0) * 0.55
 	if target is BarrelFire or (target is Machine and target.shelter != null):
 		return target.shelter.berth_pos(target.pos, target.shelter.berths.size() + rank)
-	var slot := rank % SLOTS
-	var ring := rank / SLOTS
-	var angle := (float(slot) - (SLOTS - 1) * 0.5) * 0.36  # fanned out about +-62 degrees round the front: all in front of the counter
-	return target.pos + target.front.rotated(angle) * (SLOT_RADIUS + 0.45 * ring)
+	if Queueing.applies(job):
+		return Queueing.spot(target, rank)  # the back of the line (see Queueing)
+	return target.pos + target.front * SLOT_RADIUS
 
 
 func _still_valid(job: Dictionary) -> bool:
