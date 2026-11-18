@@ -117,4 +117,4 @@ func run() -> void:
 	w.bus.speed = 0.0
 	w.bus.aboard = false
 	w.hero.stand()
-	w.cash.scoop_aboard()
+	w.commerce.scoop_aboard()

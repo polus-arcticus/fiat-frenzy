@@ -54,7 +54,9 @@ func test_player_buys_and_consumes() -> void:
 	var cold := tent_w.add_player(Vector2.ZERO)
 	cold.bars.warmth = 0.2
 	var rb := tent_w.commerce.buy(tent, "bed")
-	check(rb.ok and is_equal_approx(cold.bars.warmth, 0.8) and cold.carry.count("bed") == 0, "a bed can't be carried: buying one is a night in the tent and warms them straight away")
+	check(not rb.ok and cold.carry.count("bed") == 0, "a tent sells nothing: its beds are its people's homes (see Lodging)")
+	tent_w.commerce.warm_at(tent)
+	check(is_equal_approx(cold.bars.warmth, 0.2 + Commerce.TENT_WARMS), "but the hero can sit a while by its barrels, free, and warm up")
 
 
 func test_player_buy_refusals() -> void:

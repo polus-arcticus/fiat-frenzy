@@ -104,7 +104,7 @@ func test_a_queue_survives_a_save() -> void:
 		copy.add_drifter(Vector2.ZERO, 0.0)
 	Snapshot.new(copy).apply(data)
 	var m2 := copy.machine_of(baker2)
-	check(m2.line.size() == m.line.size() and (m.line.is_empty() or m2.line[0].id == m.line[0].id), "the same people are in the line, in the same order (%d)" % m2.line.size())
+	check(m2.line.size() == m.line.size() and (m.line.is_empty() or m2.line[0].uid == m.line[0].uid), "the same people are in the line, in the same order (%d)" % m2.line.size())
 
 
 func test_someone_in_a_long_line_leaves_when_another_need_gets_desperate() -> void:

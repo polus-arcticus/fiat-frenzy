@@ -80,7 +80,7 @@ func _run() -> void:
 		if w.bus.state == Bus.State.ARRIVED:
 			await _shot("5_stopped_at_the_bank")
 	await _frames(15)
-	var d: Drone = w.ecb_doorman
+	var d: Drone = w.cast.doorman
 	await _shot("6_out_on_the_street")
 	game.player.look_toward(Vector3(d.pos.x, 1.4, d.pos.y))
 	await _frames(10)

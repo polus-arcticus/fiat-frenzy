@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
-# Runs every test suite at once, each in its own process, and prints one summary line per suite.
-# The sim suite takes about a second, the scene suite about ten, the intro suite about five, so the
-# whole run is as long as the slowest.
+# Runs every test suite at once, each in its own process (the sim suite split into SHARDS processes), and prints one summary
+# line per process. The scene and intro suites run with --fixed-fps 60: each frame is 1/60 s of game time however fast the
+# machine draws it, so they never wait on the clock. About 12 s in all (the scene suite is the longest).
 #   tools/test.sh            all three
-#   tools/test.sh sim        just the model tests   (extra arguments go to tests/run.gd, e.g. --only=rescue)
+#   tools/test.sh sim        just the model tests   (extra arguments go to tests/run.gd, e.g. --only=rescue; with them, one
+#                            process)
 #   tools/test.sh scene|intro
 set -u
 cd "$(dirname "$0")/.."
 GODOT="${GODOT:-$HOME/app-port/Godot_v4.7.2-stable_linux.x86_64}"
+SHARDS="${SHARDS:-4}"
 suite="${1:-all}"
 [ $# -gt 0 ] && shift
 out="$(mktemp -d)"
@@ -15,16 +17,28 @@ status=0
 
 run() {  # name script [args...]
   local name="$1" script="$2"; shift 2
-  timeout 600 "$GODOT" --headless --path . --script "$script" ${1:+-- "$@"} >"$out/$name.txt" 2>&1
+  # (a script that does not compile leaves Godot waiting instead of quitting: the timeout is what ends that, so it is short)
+  timeout 120 "$GODOT" --headless --fixed-fps 60 --path . --script "$script" ${1:+-- "$@"} >"$out/$name.txt" 2>&1
   echo $? >"$out/$name.code"
 }
 
+sim() {  # the sim suite: in shards at once, or (with arguments, say --only) in one process
+  if [ $# -gt 0 ]; then
+    run sim tests/run.gd "$@"
+  else
+    for i in $(seq 0 $((SHARDS - 1))); do
+      run "sim$i" tests/run.gd "--shard=$i/$SHARDS" &
+    done
+    wait
+  fi
+}
+
 case "$suite" in
-  sim)   run sim tests/run.gd "$@" ;;
+  sim)   sim "$@" ;;
   scene) run scene tests/smoke_scene.gd ;;
   intro) run intro tests/smoke_intro.gd ;;
   all)
-    run sim tests/run.gd "$@" &
+    sim "$@" &
     run scene tests/smoke_scene.gd &
     run intro tests/smoke_intro.gd &
     wait ;;

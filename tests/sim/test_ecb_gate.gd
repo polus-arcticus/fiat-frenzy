@@ -4,8 +4,7 @@ extends TestCase
 
 
 func _scenario() -> Scenario:
-	var f := FileAccess.open("res://data/bahnhofsviertel.json", FileAccess.READ)
-	return Scenario.new(JSON.parse_string(f.get_as_text()))
+	return Fixtures.scenario()
 
 
 ## How far `p` is from the nearest building (0 if it is inside one), looking only at buildings near it.
@@ -74,7 +73,7 @@ func test_the_shuttle_makes_the_trip_at_a_golf_cart_pace() -> void:
 	var g: Dictionary = sc.ecb_gate
 	var w := World.new()
 	w.add_player(Vector2(5, 5), 0.0)
-	w.add_shuttle(g.pad, g.pad_heading)
+	w.transit.add_shuttle(g.pad, g.pad_heading)
 	var via: Array = []
 	for p in g.route:
 		via.append(p)

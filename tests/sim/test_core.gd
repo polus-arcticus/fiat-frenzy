@@ -9,7 +9,7 @@ func test_inventory_and_flags() -> void:
 	a.caps["bread"] = 3
 	check(a.add("bread", 5) == 3 and a.count("bread") == 3, "a slot with a capacity takes only what fits")
 	check(a.move_to(b, "bread", 2) == 2 and b.count("bread") == 2 and a.count("bread") == 1, "items move between inventories")
-	var m := Machine.new("bakery", 0, Vector2.ZERO, false)
+	var m := Machine.new("bakery", "", Vector2.ZERO, false)
 	check(m.output.offer.is_empty(), "a broken bakery offers nothing")
 	m.working = true
 	m.refresh()
@@ -23,9 +23,10 @@ func test_inventory_and_flags() -> void:
 
 func test_components() -> void:
 	note("components: the price rule, equity and shelter stand on their own")
-	check(is_equal_approx(Pricing.after_craft(2.0, 2.0, 0.1, 0, 5), 2.1), "price rule: empty output, price up a tick")
-	check(is_equal_approx(Pricing.after_craft(2.1, 2.0, 0.1, 3, 5), 2.1), "price rule: stock on hand, holds")
-	check(is_equal_approx(Pricing.after_craft(2.1, 2.0, 0.1, 5, 5), 2.0), "price rule: full, down a tick")
+	check(is_equal_approx(Pricing.after_craft(2.0, 2.0, 0.1, 0, 50), 2.1), "price rule: empty output, price up a tick")
+	check(is_equal_approx(Pricing.after_craft(2.1, 2.0, 0.1, 4, 50), 2.1), "price rule: a little stock on hand (under a tenth of the shelf), holds")
+	check(is_equal_approx(Pricing.after_craft(2.1, 2.0, 0.1, 5, 50), 2.0), "price rule: a tenth of the shelf left over or more, down a tick")
+	check(is_equal_approx(Pricing.after_craft(2.1, 2.0, 0.1, 1, 4), 2.0), "price rule: on a small shelf, one left over is enough")
 	check(is_equal_approx(Pricing.after_craft(2.0, 2.0, 0.1, 5, 5), 2.0), "price rule: never below the floor")
 	check(is_equal_approx(Pricing.after_craft(1.0, 24.0, 0.1, 3, 5), 24.0), "price rule: a price under the floor is lifted to it")
 	var e := Equity.new()
@@ -39,7 +40,7 @@ func test_components() -> void:
 	check(part.room(40.0, 160.0) > part.room(40.0, 0.0) * 2.0, "equity: under the cap, a business that has had more experience takes more dollars to reach it (more room)")
 	check(is_equal_approx(Equity.new().cost_to_reach(0.5, 40.0, 0.0), 40.0), "equity: half of a fresh $40 business would cost $40")
 	var sh := Shelter.new(1, 0.002)
-	var d := Drone.new(0, Vector2.ZERO)
+	var d := Drone.new(Vector2.ZERO)
 	check(sh.has_room(), "shelter: has a spot")
 	sh.admit(d)
 	check(not sh.has_room() and d.sheltered_in == sh, "shelter: admitting a drone fills it and tags the drone")
@@ -66,12 +67,12 @@ func test_stacks() -> void:
 func test_everything_is_born_in_the_zone_being_built() -> void:
 	var w := World.new()
 	var a := w.add_vendor("bakery", Vector2(0, 0), 5.0)
-	check(a.zone == "district" and w.machines[a.station].zone == "district", "the default zone is the district")
+	check(a.zone == "district" and w.machine_of(a).zone == "district", "the default zone is the district")
 	w.build_zone = "old_town"
 	var b := w.add_vendor("bakery", Vector2(900, 0), 5.0)
 	var c := w.add_drifter(Vector2(905, 3))
 	check(b.zone == "old_town" and c.zone == "old_town", "people join the zone being built")
-	check(w.machines[b.station].zone == "old_town", "and a vendor's stand is in its owner's zone")
+	check(w.machine_of(b).zone == "old_town", "and a vendor's stand is in its owner's zone")
 	check(a.zone == "district", "earlier ones stay put")
 
 
@@ -102,10 +103,14 @@ func test_only_active_zones_tick() -> void:
 	w.zones.active = ["district"]
 	var before: float = w.drones[3].bars.hunger
 	var near_before: float = w.drones[1].bars.hunger
-	for i in 30:
+	var where: Vector2 = w.drones[3].pos
+	for i in 5:
 		w.tick(1.0)
-	check(w.drones[3].bars.hunger == before, "a sleeping zone's people do not get hungry")
+	check(w.drones[3].bars.hunger == before, "a dormant zone does not tick every step")
 	check(w.drones[1].bars.hunger < near_before, "the active zone's people do")
+	for i in 25:
+		w.tick(1.0)
+	check(w.drones[3].bars.hunger < before and w.drones[3].pos == where, "but in coarse jumps its people get hungry, without moving")
 	w.zones.active = []
 	w.tick(1.0)
 	check(w.drones[3].bars.hunger < before, "with no fence, everyone runs")
@@ -118,7 +123,7 @@ func test_the_catalog_is_consistent() -> void:
 		for raw in m.inputs:
 			check(Catalog.item(raw) != null and Catalog.base_price(raw) > 0.0, "%s's input %s is a known item with a price" % [id, raw])
 		check(not Catalog.footprint_of(id).is_empty(), "%s has a footprint" % id)
-	var shop := Machine.new("bike_shop", 0, Vector2.ZERO)
+	var shop := Machine.new("bike_shop", "", Vector2.ZERO)
 	check(shop.price == Catalog.bike_price(), "the bike shop sells at the bicycle's one price")
 
 
@@ -138,7 +143,7 @@ func test_a_sleeping_zone_keeps_producing_in_jumps() -> void:
 	for i in 31:
 		w.tick(1.0)
 	check(far_shop.stock() > 0, "after a while its shelves have filled, though nobody was there")
-	check(baker.bars.hunger == hunger_before and baker.pos == Vector2(900, 0), "and its people have not moved")
+	check(baker.bars.hunger < hunger_before and baker.pos == Vector2(900, 0), "and its people got hungry (it is summarised, see TileSummary) but have not moved")
 
 
 func test_rings_and_send_carry_people_between_zones_without_losing_money() -> void:
@@ -155,7 +160,7 @@ func test_rings_and_send_carry_people_between_zones_without_losing_money() -> vo
 	check(w.zones.send(walker, "far", Vector2(510, 0)) and walker.zone == "far" and walker.wallet == 12.0, "a drifter can be sent, with their money")
 	var vendor := w.add_vendor("bakery", Vector2(20, 0), 3.0)
 	check(not w.zones.send(vendor, "far", Vector2(1, 1)) and vendor.zone == "district", "but a vendor is tied to their stand")
-	w.zones.follow_player()
+	w.zones.follow(w.player.zone)
 	check(w.zones.active == ["far"], "the fence can follow the hero")
 	check(is_equal_approx(w.ledger.total(w.drones, w.bills), before + 12.0 + 3.0), "money is conserved across the crossing")
 	var books := w.zones.books()

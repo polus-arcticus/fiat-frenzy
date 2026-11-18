@@ -5,8 +5,7 @@ extends TestCase
 
 
 func _scenario() -> Scenario:
-	var f := FileAccess.open("res://data/bahnhofsviertel.json", FileAccess.READ)
-	return Scenario.new(JSON.parse_string(f.get_as_text()))
+	return Fixtures.scenario()
 
 
 func _clearance(sc: Scenario, p: Vector2) -> float:
@@ -32,7 +31,7 @@ func test_the_market_is_a_zone_of_its_own_at_the_bus_stop() -> void:
 	check(w.hospitals.filter(func(h): return h.zone == Scenario.ECB_ZONE).size() == 1 and w.ambulances.size() == 2, "and a medical tent with an ambulance, for anyone who collapses there")
 	var visitors := w.zones.drones_in(Scenario.ECB_ZONE).filter(func(d): return d.kind == "drifter")
 	check(visitors.size() == 3 and visitors.all(func(d): return d.pos.distance_to(sc.ecb_stop.bus) < 40.0), "and three people the stands are for")
-	check(w.drones.filter(func(d): return d.zone == Zones.HOME).size() == 14, "the first market's cast is the one it always was (14 people)")
+	check(w.drones.filter(func(d): return d.zone == Zones.HOME).size() == 15, "the first market's cast is the one it always was, and the welfare office's clerk (15 people)")
 
 
 func test_the_stands_stand_clear_of_the_buildings() -> void:
@@ -106,8 +105,9 @@ func test_money_put_into_the_banks_stands_starts_the_economy_there() -> void:
 		w.tick(1.0)
 	check(stand.sold_total > 0 or stand.crafted_total > 0, "it makes lemonade (%d made, %d sold) from what the food bank gives it" % [stand.crafted_total, stand.sold_total])
 	check(visitors.any(func(v): return v.bars.thirst > 0.3), "and a thirsty visitor has had a drink (%s)" % [visitors.map(func(v): return snappedf(v.bars.thirst, 0.01))])
-	var first_market_untouched := w.zones.machines_in(Zones.HOME).filter(func(m): return m.working and m.kind != "bike_shop" and m.kind != "skate_shop").is_empty()
-	check(first_market_untouched, "and the first market is still wrecked: the zones do not mix")
+	# (The first market's owners may have mended their stands meanwhile, on the welfare office's gifts: but nothing of the hero's.)
+	var first_market_untouched := w.zones.drones_in(Zones.HOME).filter(func(d): return d.kind == "vendor" and d.label != "" and not d.needless).all(func(d): return d.growth.xp == 0.0)
+	check(first_market_untouched, "and none of what the hero put in at the bank reached the first market: the zones do not mix")
 
 
 func test_money_the_hero_prints_at_the_bank_is_for_the_banks_people() -> void:
@@ -125,3 +125,20 @@ func test_money_the_hero_prints_at_the_bank_is_for_the_banks_people() -> void:
 	check(visitor.wallet > before or not b.loose, "and a visitor there picks it up (wallet $%.2f -> $%.2f)" % [before, visitor.wallet])
 	var far := w.drones[4]
 	check(far.zone == Zones.HOME and far.wallet < 13.0, "while the first market's people did not take it")
+
+
+func test_the_banks_people_wait_fresh_until_the_hero_arrives() -> void:
+	var sc := _scenario()
+	var w := sc.build()
+	w.add_player(sc.start)
+	var visitors := w.zones.drones_in(Scenario.ECB_ZONE).filter(func(d): return d.kind == "drifter")
+	var before := visitors.map(func(d): return d.bars.duplicate())
+	for i in 600:
+		w.tick(1.0)
+	check(range(visitors.size()).all(func(i): return visitors[i].bars == before[i]) and not w.is_active(Scenario.ECB_ZONE), "before the hero comes, the bank's people have not aged a second")
+	w.player.pos = sc.ecb_stop.bus
+	w.tick(1.0)
+	check(w.is_active(Scenario.ECB_ZONE), "and the zone runs from the moment the hero is in it")
+	w.player.pos = sc.start
+	w.tick(1.0)
+	check(w.is_active(Scenario.ECB_ZONE), "and stays running when they leave")

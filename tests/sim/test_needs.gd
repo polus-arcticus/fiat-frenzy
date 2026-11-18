@@ -59,7 +59,7 @@ func test_most_pressing_need_goes_first() -> void:
 
 
 func test_night_is_colder_and_tent_docks_drones() -> void:
-	note("night: far colder than day, so drones buy a bed and dock in the tent until they're warm")
+	note("night: far colder than day, so drones go to their own bed in the tent until they're warm")
 	var w := World.new()
 	var day_d := w.add_drifter(Vector2(500, 0))
 	var night_d := w.add_drifter(Vector2(600, 0))
@@ -75,12 +75,13 @@ func test_night_is_colder_and_tent_docks_drones() -> void:
 	var w2 := World.new()
 	var tent := w2.machine_of(w2.add_vendor("tent", Vector2(0, 0)))
 	var sleeper := w2.add_drifter(Vector2(12, 0), 20.0)
+	w2.lodging.house_everyone(tent)
 	sleeper.bars = Fixtures.bars(1.0, 1.0, 0.6)
 	w2.clock.time = Clock.NIGHT_FROM * Clock.DAY_SECONDS - 3.0
 	check(w2.needs.demands(sleeper).is_empty(), "just before dusk it wants nothing")
 	var t := Fixtures.until(w2, func(): return sleeper.sheltered_in != null, 100)
-	check(t >= 0 and sleeper in tent.shelter.berths and sleeper.pos.distance_to(tent.pos) < 1.2, "after dusk it walked to the tent and took a seat beside it")
-	check(tent.stock() == 1 and is_equal_approx(sleeper.wallet, 20.0 - tent.price), "it paid for the bed and used up one of the two")
+	check(t >= 0 and sleeper in tent.shelter.berths and sleeper.pos.distance_to(tent.pos) < 2.0, "after dusk it walked to the tent and lay down in its own bed")
+	check(is_equal_approx(sleeper.wallet, 20.0), "it is their home: it cost nothing")
 	var warmth_in: float = sleeper.bars.warmth
 	t = Fixtures.until(w2, func(): return sleeper.sheltered_in == null, 400)
 	note("    left the tent at t=%.0f (night ends at %.0f), warmth %.2f -> %.2f" % [w2.clock.time, Clock.DAY_SECONDS, warmth_in, sleeper.bars.warmth])
@@ -108,12 +109,18 @@ func test_barrel_fire_is_free_warmth() -> void:
 	var w2 := World.new()
 	w2.add_fire(Vector2(0, 0))
 	var tent := w2.machine_of(w2.add_vendor("tent", Vector2(20, 0)))
+	var housed := []
 	for i in 10:
 		var d := w2.add_drifter(Vector2(randf_range(-8, 8), randf_range(-8, 8)), 20.0)
 		d.bars = Fixtures.bars(1.0, 1.0, 0.3)
+		if i < 4:
+			d.bed = tent.uid
+			housed.append(d)
+	w2.lodging.set_beds(tent, 4)
 	w2.clock.time = Clock.NIGHT_FROM * Clock.DAY_SECONDS + 1.0
 	Fixtures.run(w2, 30)
-	check(w2.fires[0].shelter.berths.size() == 8 and tent.shelter.berths.size() == 2, "with a tent too, the overflow buy its two beds: everyone is under cover")
+	check(w2.fires[0].shelter.berths.size() == 7 and w2.fires[0].shelter.berths.all(func(d): return d.bed == ""), "with a tent too, the seven without a bed in it (six drifters and its keeper) go to the fire (%d there, %d of them with a bed)" % [w2.fires[0].shelter.berths.size(), w2.fires[0].shelter.berths.filter(func(d): return d.bed != "").size()])
+	check(housed.all(func(d): return d.sheltered_in == tent.shelter or (not d.job.is_empty() and d.job.target == tent)), "and those with one go to it: everyone is under cover")
 
 
 func test_warmth_falls_off_with_the_square_of_distance() -> void:

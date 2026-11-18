@@ -117,7 +117,7 @@ func test_the_hero_wakes_properly_well_and_mugged() -> void:
 			break
 	check(hero.care == "" and asleep > 0 and asleep < 40, "and is back on their feet after a short sleep (%d s)" % asleep)
 	check(hero.neediest() >= 0.9, "with the survival bars right up (%.2f)" % hero.neediest())
-	check(w.ledger.player_cash == 0.0 and w.rescue.last_mugged > 30.0, "but their pockets are empty: someone took $%.0f" % w.rescue.last_mugged)
+	check(w.ledger.player_cash == 0.0 and w.hero.last_mugged > 30.0, "but their pockets are empty: someone took $%.0f" % w.hero.last_mugged)
 	check(thief.wallet > 30.0 and absf(w.ledger.total(w.drones, w.bills) - w.ledger.printed) < 0.01 and w.ledger.printed == printed, "the money went into a drifter's pocket, and the books still balance")
 	check(w.events.any(func(e): return "mugged" in e), "the town is told")
 

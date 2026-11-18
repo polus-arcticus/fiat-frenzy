@@ -27,23 +27,23 @@ func _initialize() -> void:
 			continue
 		for d in w.drones:
 			if d.job.is_empty() or d.care != "":
-				started.erase(d.id)
-				still[d.id] = 0
-				last[d.id] = d.pos
+				started.erase(d.uid)
+				still[d.uid] = 0
+				last[d.uid] = d.pos
 				continue
-			if last.has(d.id) and d.pos.distance_to(last[d.id]) < 0.15:
-				still[d.id] = int(still.get(d.id, 0)) + 1
+			if last.has(d.uid) and d.pos.distance_to(last[d.uid]) < 0.15:
+				still[d.uid] = int(still.get(d.uid, 0)) + 1
 			else:
-				still[d.id] = 0
-			last[d.id] = d.pos
+				still[d.uid] = 0
+			last[d.uid] = d.pos
 			var key = [d.job.get("target"), d.job.get("for"), d.job.get("stage", "")]
-			if not started.has(d.id) or started[d.id][0] != key:
-				started[d.id] = [key, t / 10]
-			var age: int = t / 10 - int(started[d.id][1])
-			if (int(still[d.id]) == 25 or age == 150) and not reported.has(d.id):  # 25 s without moving, or one job taking 150 s
-				reported[d.id] = true
+			if not started.has(d.uid) or started[d.uid][0] != key:
+				started[d.uid] = [key, t / 10]
+			var age: int = t / 10 - int(started[d.uid][1])
+			if (int(still[d.uid]) == 25 or age == 150) and not reported.has(d.uid):  # 25 s without moving, or one job taking 150 s
+				reported[d.uid] = true
 				var tgt = d.job.get("target")
 				var where: Variant = tgt.pos if tgt != null and "pos" in tgt else null
-				print("STUCK t=%ds drone %d (%s) job %s at %s, target at %s, route %d" % [t / 10, d.id, d.kind, d.job.get("for"), d.pos, where, d.route.size()])
+				print("STUCK t=%ds drone %s (%s) job %s at %s, target at %s, route %d" % [t / 10, d.uid, d.kind, d.job.get("for"), d.pos, where, d.route.size()])
 	print("done; stuck reports: ", reported.size())
 	quit()

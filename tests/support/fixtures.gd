@@ -1,6 +1,21 @@
-## Shared builders for the sim tests: little towns, a clinic, and ways to run the clock.
+## Shared builders for the sim tests: little towns, a clinic, the Frankfurt map, and ways to run the clock.
 class_name Fixtures
 extends RefCounted
+
+static var _district := {}
+
+
+## The Frankfurt map, parsed once per test process (2,890 buildings: parsing it again in every test that needs it was most of
+## their time). Treat it as read-only.
+static func district() -> Dictionary:
+	if _district.is_empty():
+		_district = JSON.parse_string(FileAccess.get_file_as_string("res://data/bahnhofsviertel.json"))
+	return _district
+
+
+## The story's scenario on the Frankfurt map.
+static func scenario() -> Scenario:
+	return Scenario.new(district())
 
 
 static func run(w: World, seconds: int, keep_fed := false) -> void:
@@ -25,6 +40,21 @@ static func bars(h: float, t: float, wm: float) -> Dictionary:
 
 
 # ---------------------------------------------------------------- the foundation
+
+
+## A little market town in `zone`, around `at`: the standard cluster (see Cluster) without the van and the welfare office,
+## every stand working, with `drifters` customers of `purse` dollars each (with $15, the town of tools/bench_zones.gd: it goes
+## broke within the hour, as an unfunded town does; with a few hundred it is a town the hero has funded). `food_bank` false
+## leaves the food bank out, so the stands run short of flour and the like.
+static func market_town(w: World, zone: String, at: Vector2, drifters := 6, food_bank := true, purse := 15.0) -> void:
+	Cluster.build(w, zone, at, drifters, food_bank, purse, false)
+
+
+static func sold(w: World, zone: String) -> int:
+	var n := 0
+	for m in w.zones.machines_in(zone):
+		n += m.sold_total
+	return n
 
 
 static func shop_world() -> Array:
@@ -78,29 +108,6 @@ static func hungry_crowd(w: World, n: int) -> void:
 	for i in n:
 		var d := w.add_drifter(Vector2(randf_range(-10, 10), randf_range(5, 15)), 20.0)
 		d.bars = Fixtures.bars(0.2, 1.0, 1.0)
-
-
-## Bakery, hot dog stand, lemonade stand, tent, a barrel fire, the truck and ten drifters.
-static func town(with_truck := true) -> World:
-	var w := World.new()
-	w.add_vendor("bakery", Vector2(0, 0), 30.0)
-	w.add_vendor("hot_dog_stand", Vector2(8, 0), 30.0)
-	w.add_vendor("lemonade_stand", Vector2(16, 0), 30.0)
-	w.add_vendor("tent", Vector2(-8, 0), 30.0)
-	w.add_fire(Vector2(-4, 6))
-	if with_truck:
-		w.add_relief_truck(Vector2(4, -8))
-	for i in 10:
-		w.add_drifter(Vector2(randf_range(-12, 12), randf_range(-12, 12)), 30.0)
-	return w
-
-
-## Three days of the basic gun: a little money sprayed at a random drifter once a minute.
-static func basic_gun_days(w: World, days: int) -> void:
-	for i in int(Clock.DAY_SECONDS * days):
-		if i % 60 == 0:
-			w.gun.gift(w.drones[4 + randi() % 10], 5.0)
-		w.tick(1.0)
 
 
 static func made(w: World) -> int:

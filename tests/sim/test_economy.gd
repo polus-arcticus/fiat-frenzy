@@ -4,8 +4,8 @@ extends TestCase
 
 func test_price_rule_per_craft() -> void:
 	note("price rule, one craft at a time, with real inputs")
-	var m := Machine.new("bakery", 0, Vector2.ZERO, true, false)
-	m.output.caps["bread"] = 3
+	var m := Machine.new("bakery", "", Vector2.ZERO, true, false)
+	m.output.caps["bread"] = 20  # (a buffer of 2: a tenth of it)
 	m.input.caps["flour"] = 100
 	m.input.add("flour", 100)
 	var p0 := m.price
@@ -13,11 +13,12 @@ func test_price_rule_per_craft() -> void:
 	m.craft()
 	check(is_equal_approx(m.price, p0 + m.tick) and m.stock() == 1, "empty output: price up one tick, unit made")
 	m.craft()
-	check(is_equal_approx(m.price, p0 + m.tick) and m.stock() == 2, "stock in the output: price holds")
+	check(is_equal_approx(m.price, p0 + m.tick) and m.stock() == 2, "a little stock in the output (under a tenth): price holds")
 	m.craft()
-	check(m.stock() == 3 and is_equal_approx(m.price, p0 + m.tick), "filling the last slot: price holds")
+	check(m.stock() == 3 and is_equal_approx(m.price, p0), "a tenth left over (2 of 20 before it): price down one tick")
+	m.output.add("bread", 17)
 	m.craft()
-	check(is_equal_approx(m.price, p0) and m.stock() == 3, "output full: price down one tick, no unit made")
+	check(is_equal_approx(m.price, p0) and m.stock() == 20, "output full: no unit made, and the price stays at its floor")
 	m.craft()
 	check(is_equal_approx(m.price, p0), "never below the input cost")
 	var before := m.input.count("flour")
@@ -88,7 +89,7 @@ func test_truck_shares_a_short_load() -> void:
 
 func test_lemonade_needs_water_and_sugar() -> void:
 	note("lemonade: a bottle of water and a spoon of sugar")
-	var m := Machine.new("lemonade_stand", 0, Vector2.ZERO, true, false)
+	var m := Machine.new("lemonade_stand", "", Vector2.ZERO, true, false)
 	check(m.recipe == {"bottled_water": 1, "sugar": 1} and is_equal_approx(m.floor_price(), 1.0), "the recipe, and a floor of 50c of each")
 	m.input.take("sugar", 99)
 	var made := m.crafted_total
@@ -102,12 +103,22 @@ func test_lemonade_needs_water_and_sugar() -> void:
 	check(m.input.count("bottled_water") == water_before - 1 and m.input.count("sugar") == sugar_before - 1, "using one of each")
 
 
+## The standard cluster's stands and people, with no food bank (so nothing but the truck brings flour and the like), and money
+## enough for three days.
+func _stands_only(with_truck: bool) -> World:
+	var w := World.new()
+	Cluster.build(w, "t", Vector2.ZERO, Cluster.DRIFTERS, false, 200.0, false)
+	if with_truck:
+		w.add_relief_truck(Vector2(-14.0, 6.0))
+	return w
+
+
 func test_the_truck_keeps_shops_running() -> void:
 	note("the truck is what keeps the shops stocked: without it they run dry")
-	var with_truck := Fixtures.town(true)
-	var without := Fixtures.town(false)
-	Fixtures.basic_gun_days(with_truck, 3)
-	Fixtures.basic_gun_days(without, 3)
+	var with_truck := _stands_only(true)
+	var without := _stands_only(false)
+	Fixtures.run(with_truck, int(Clock.DAY_SECONDS) * 3)
+	Fixtures.run(without, int(Clock.DAY_SECONDS) * 3)
 	note("    things made over three days: with the truck %d, without %d" % [Fixtures.made(with_truck), Fixtures.made(without)])
 	check(Fixtures.made(with_truck) > 2 * Fixtures.made(without), "with deliveries the town makes more than twice as much")
 	check(with_truck.machines[0].crafted_total > without.machines[0].crafted_total + 20, "the bakery most of all: it can't bake without flour")
@@ -116,9 +127,12 @@ func test_the_truck_keeps_shops_running() -> void:
 
 func test_a_small_town_runs() -> void:
 	note("a small town: every business trades")
-	var w := Fixtures.town()
+	var w := World.new()
+	Cluster.build(w, "t", Vector2.ZERO, Cluster.DRIFTERS, true, 200.0)
+	w.add_player(Vector2(0, -20), 0.0)
+	w.begin_play()
 	w.gun.invest(w.drones[0], 30.0)
-	Fixtures.basic_gun_days(w, 3)
+	Fixtures.run(w, int(Clock.DAY_SECONDS) * 3)
 	var drifters := w.drones.filter(func(d): return d.kind == "drifter")
 	var hunger := 0.0
 	var starved := 0

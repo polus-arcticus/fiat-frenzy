@@ -64,7 +64,7 @@ func run() -> void:
 
 
 	# The last leg: the doorman at the bank's gate, the shuttle, and the receptionist at the door. A long way east of Mr. Nobody's house.
-	var doorman: Drone = w.ecb_doorman
+	var doorman: Drone = w.cast.doorman
 	check(doorman != null and doorman.pos.x > game.scenario.sage_house.door.x + 500.0, "the European Central Bank has a doorman, well east of Battonnstraße")
 	check(doorman.look == "guard" and game.scenario.ecb_gate.guard.distance_to(doorman.pos) < 0.01, "he stands in front of the guard's booth at the gate, in a hi-vis vest")
 	w.sage.tell(Stories.FIRST)
@@ -77,7 +77,7 @@ func run() -> void:
 	game.player.look_toward(Vector3(doorman.pos.x, 1.4, doorman.pos.y))
 	for i in 3:
 		await game.get_tree().physics_frame
-	check(game.interaction.aimed_doorman() == doorman and game.interaction._verbs.any(func(v): return v.action == "chat" and v.prompt.call() == "Q   show the doorman the letter"), "aiming at him at the gate shows the Q prompt (the real path, not a signal)")
+	check(game.story_verbs.aimed_doorman() == doorman and game.interaction._verbs.any(func(v): return v.action == "chat" and v.prompt.call() == "Q   show the doorman the letter"), "aiming at him at the gate shows the Q prompt (the real path, not a signal)")
 	check(game.interaction._do("chat"), "and Q does something")
 	check(game.dialogue.visible and game.dialogue.speaker == "ECB doorman" and not game.player.controls_enabled, "Q at him opens his check of the letter")
 	guard = 0
@@ -101,15 +101,15 @@ func run() -> void:
 	var plan: Dictionary = game.scenario.ecb_gate
 	check(w.quests.done("rode_shuttle") and w.shuttle.state == Bus.State.ARRIVED and w.shuttle.pos.distance_to(plan.entrance) < 0.5 and not w.shuttle.aboard, "the shuttle takes them round to the main entrance and stops")
 	check(game.player.controls_enabled and not game.player.is_seated() and game.player.ground_pos().distance_to(plan.entrance) < 3.5 and not game.sim_paused, "and they step out onto the plaza by the door, free again")
-	var desk: Drone = w.ecb_receptionist
-	check(desk != null and desk.pos.distance_to(plan.reception) < 0.01 and game.get_node("Drone%d" % desk.id) != null, "the receptionist waits just out from the door")
+	var desk: Drone = w.cast.receptionist
+	check(desk != null and desk.pos.distance_to(plan.reception) < 0.01 and game.get_node(("Drone_" + desk.uid).validate_node_name()) != null, "the receptionist waits just out from the door")
 	game.player.teleport(Vector3(desk.pos.x + (desk.face_to - desk.pos).normalized().x * 2.0, 0.1, desk.pos.y + (desk.face_to - desk.pos).normalized().y * 2.0), 0.0)
 	w.player.pos = game.player.ground_pos()
 	check(w.quests.can_deliver(), "with the letter in the bag and through the gate, the receptionist can take it")
 	game.player.look_toward(Vector3(desk.pos.x, 1.4, desk.pos.y))
 	for i in 3:
 		await game.get_tree().physics_frame
-	check(game.interaction.aimed_receptionist() == desk and game.interaction._do("chat"), "aiming at the receptionist shows the prompt and Q works")
+	check(game.story_verbs.aimed_receptionist() == desk and game.interaction._do("chat"), "aiming at the receptionist shows the prompt and Q works")
 	check(game.dialogue.visible and game.dialogue.speaker == "ECB receptionist" and not game.player.controls_enabled, "Q at them opens their reply")
 	guard = 0
 	while game.dialogue.visible and guard < 10:

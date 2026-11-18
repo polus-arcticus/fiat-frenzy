@@ -1,5 +1,6 @@
-## The sim test runner (the headless model: no scene, no rendering, under a second).
-##   godot --headless --path . --script tests/run.gd -- [--only=<text>] [--verbose] [--update-manifest]
+## The sim test runner (the headless model: no scene, no rendering).
+##   godot --headless --path . --script tests/run.gd -- [--only=<text>] [--verbose] [--update-manifest] [--shard=<i>/<n>]
+## --shard runs every n-th test starting at the i-th (tools/test.sh runs the suite as several shards at once).
 ##
 ## Runs every test_* method of every tests/sim/test_*.gd, each on its own with the RNG reseeded, so any one
 ## can be run alone (--only matches "file.method", e.g. --only=rescue or --only=gun.invest). A passing
@@ -19,6 +20,8 @@ func _init() -> void:
 	var only := ""
 	var verbose := false
 	var update := false
+	var shard := 0
+	var shards := 1
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--only="):
 			only = a.substr(7)
@@ -26,7 +29,13 @@ func _init() -> void:
 			verbose = true
 		elif a == "--update-manifest":
 			update = true
+		elif a.begins_with("--shard="):
+			var p := a.substr(8).split("/")
+			shard = int(p[0])
+			shards = maxi(1, int(p[1]))
 	var expected := _load_manifest()
+	var every := {}  # every test there is (in any shard), to tell a test that is gone from one in another shard
+	var index := -1
 	var counts := {}
 	var failures := 0
 	var ran := 0
@@ -47,7 +56,11 @@ func _init() -> void:
 				tests.append(m.name)
 		for t in tests:
 			var id := "%s.%s" % [f.trim_prefix("test_").trim_suffix(".gd"), String(t).trim_prefix("test_")]
+			every[id] = true
+			index += 1
 			if only != "" and not id.contains(only):
+				continue
+			if index % shards != shard:
 				continue
 			seed(SEED)
 			var tc: TestCase = script.new()
@@ -67,12 +80,12 @@ func _init() -> void:
 				for line in tc.messages:
 					if verbose or "[FAIL]" in line:
 						print(line)
-	if update and only == "":
+	if update and only == "" and shards == 1:
 		_save_manifest(counts)
 		print("manifest updated: %d tests" % counts.size())
 	if only == "" and not update:
 		for id in expected:
-			if not counts.has(id):
+			if not counts.has(id) and (shards == 1 or (shard == 0 and not every.has(id))):
 				failures += 1
 				print("FAIL  %s  is in the manifest but did not run" % id)
 	print("\n%s (%d tests, %d checks)" % ["ALL PASSED" if failures == 0 else "%d FAILED" % failures, ran, total_checks])

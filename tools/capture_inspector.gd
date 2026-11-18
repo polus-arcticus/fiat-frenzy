@@ -31,7 +31,7 @@ func _run(game: Node, out_dir: String) -> void:
 		if not d.job.is_empty() and d.job.get("for") != "restock":
 			pick = d
 			break
-	print("picked ", pick.id if pick else "none", " ", pick.job.get("for") if pick else "")
+	print("picked ", pick.uid if pick else "none", " ", pick.job.get("for") if pick else "")
 	game.inspector.toggle()
 	game.inspector.select(pick)
 	game.inspector.go_to_selected()

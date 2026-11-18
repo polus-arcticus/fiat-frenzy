@@ -6,7 +6,7 @@ extends TestCase
 func _riding() -> World:
 	var w := World.new()
 	w.add_player(Vector2(0, 0), 0.0)
-	w.add_bus(Vector2(0, 0), 0.0)  # at the origin, pointing along +x
+	w.transit.add_bus(Vector2(0, 0), 0.0)  # at the origin, pointing along +x
 	return w
 
 
@@ -45,7 +45,7 @@ func test_nobody_but_the_hero_takes_it() -> void:
 	check(w.bills.has(b) and d.wallet == 0.0, "and does not pick it up")
 	var before := w.ledger.player_cash
 	w.player.pos = w.bus.to_world(Vector2(0.4, -1.0))
-	check(w.cash.collect_for_player() == 10.0 and not w.bills.has(b) and w.ledger.player_cash == before + 10.0, "but the hero, standing by it, does")
+	check(w.commerce.pick_up_cash() == 10.0 and not w.bills.has(b) and w.ledger.player_cash == before + 10.0, "but the hero, standing by it, does")
 
 
 func test_getting_off_gathers_what_is_on_the_floor() -> void:
@@ -55,7 +55,7 @@ func test_getting_off_gathers_what_is_on_the_floor() -> void:
 	w.gun.land_aboard(w.gun.fire(7.0, "cash"), Vector2(-0.4, -4.0))
 	var street := w.gun.land(w.gun.fire(3.0, "cash"), Vector2(50, 50))
 	var before := w.ledger.player_cash
-	check(w.cash.scoop_aboard() == 12.0 and w.ledger.player_cash == before + 12.0, "the bills on the bus's floor all go to the hero ($12)")
+	check(w.commerce.scoop_aboard() == 12.0 and w.ledger.player_cash == before + 12.0, "the bills on the bus's floor all go to the hero ($12)")
 	check(w.bills.has(street) and w.bills.size() == 1, "and the one in the street is left")
 	check(w.ledger.printed - printed == 15.0, "the money still adds up: $15 was printed, $12 in the hero's pocket, $3 in the street")
 

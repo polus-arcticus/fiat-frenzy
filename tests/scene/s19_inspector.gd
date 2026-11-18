@@ -6,7 +6,7 @@ func run() -> void:
 	var ic: InspectorController = game.inspector
 	var p: PlayerController = game.player
 	var w: World = game.world
-	var cash0: float = w.ledger.player_cash
+	var cash0: float = w.ledger.player_cash - w.ledger.stake_income  # (the hero's stakes go on paying while you look)
 	var enabled0 := p.controls_enabled
 	var time0: float = w.clock.time
 	ic.toggle()
@@ -25,7 +25,7 @@ func run() -> void:
 	var middle: Vector2 = game.get_viewport().get_visible_rect().size * 0.5
 	check(ic.pick(middle) == d, "a click on someone picks them")
 	ic.select(d)
-	check(ic._view._label.text.contains("#%d" % d.id) and ic._view._label.text.contains("JOB:"), "and the panel says who they are and what their job is")
+	check(ic._view._label.text.contains("#%s" % d.uid) and ic._view._label.text.contains("JOB:"), "and the panel says who they are and what their job is")
 	ic.go_to_selected()
 	check(ic._cam.global_position.distance_to(Vector3(d.pos.x, 7.0, d.pos.y + 9.0)) < 0.01, "G takes the camera to them")
 	ic._cycle(1)
@@ -35,4 +35,4 @@ func run() -> void:
 	check(w.clock.time > stood_by and w.clock.time > time0, "the sim keeps running while you look")
 	ic.toggle()
 	check(not ic.active and p.controls_enabled == enabled0 and p.camera.current and game.gun.enabled == (w.gun_owned or game.gun.enabled), "F3 again gives the hero their camera and controls back")
-	check(w.ledger.player_cash == cash0 and not ic._view.visible, "and nothing about the world changed")
+	check(is_equal_approx(w.ledger.player_cash - w.ledger.stake_income, cash0) and not ic._view.visible, "and nothing about the world changed")

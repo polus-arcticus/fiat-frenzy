@@ -39,13 +39,13 @@ func run() -> void:
 		up = up or not p.is_on_floor()
 	check(up and peak > floor_y + 0.4, "letting go is an ollie: the board leaves the ground (%.2f m up)" % (peak - floor_y))
 	# tap again in the air: a kickflip, $25 on the ground
-	var printed := w.ledger.printed
+	var printed := w.ledger.printed - w.ledger.issued  # (what the gun and the board print: the welfare office's fountain goes on meanwhile)
 	var bills_before := w.bills.size()
 	Input.action_press("jump")
 	await tree.physics_frame
 	Input.action_release("jump")
 	await tree.physics_frame
-	check(w.skating.kickflips == 1 and is_equal_approx(w.ledger.printed - printed, 25.0) and w.bills.size() > bills_before, "tapping Space in the air is a kickflip that sprays $25 on the ground")
+	check(w.skating.kickflips == 1 and is_equal_approx(w.ledger.printed - w.ledger.issued - printed, 25.0) and w.bills.size() > bills_before, "tapping Space in the air is a kickflip that sprays $25 on the ground")
 	for i in 80:
 		await tree.physics_frame
 	check(p.is_on_floor() and not w.skating.in_air, "and it comes back down")

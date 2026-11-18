@@ -38,3 +38,15 @@ func run() -> void:
 	check(game.pause.visible and game.sim.paused(), "Esc opens the pause menu, and the sim waits")
 	game.pause.close()
 	check(not game.sim.paused() and p.controls_enabled, "closing it sets the game going again")
+	var slot := "chapter-bank"
+	var had := FileAccess.file_exists(SaveStore.path(slot))
+	check(SaveStore.write(slot, w, game._hero_state()), "a chapter checkpoint is an ordinary save")
+	game.pause.open()
+	var buttons := 0
+	for b in game.pause._chapters.get_children():
+		if b is Button and SaveStore.CHAPTERS[slot] in b.text:
+			buttons += 1
+	check(buttons == 1, "and the pause menu offers to go back to it")
+	game.pause.close()
+	if not had:
+		SaveStore.delete(slot)

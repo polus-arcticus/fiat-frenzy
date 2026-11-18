@@ -5,7 +5,7 @@ extends TestCase
 func _meeting() -> Array:
 	var w := World.new()
 	w.add_player(Vector2(0, 0), 0.0)
-	var sage := w.add_sage(Vector2(10, 0))
+	var sage := w.cast.add_sage(w,Vector2(10, 0))
 	return [w, sage]
 
 
@@ -46,7 +46,7 @@ func test_he_has_no_needs_and_stays_put() -> void:
 	var mw := _meeting()
 	var w: World = mw[0]
 	var sage: Drone = mw[1]
-	check(sage.kind == "sage" and sage.label == "Stranger" and sage.needless and sage.aloof and w.sage_drone == sage, "he is a drone with no needs who is just a \"Stranger\" until he says who he is")
+	check(sage.kind == "sage" and sage.label == "Stranger" and sage.needless and sage.aloof and w.cast.sage == sage, "he is a drone with no needs who is just a \"Stranger\" until he says who he is")
 	w.sage.learn_name()
 	check(sage.label == "Mr. Nobody" and w.sage.name_known, "and then he is Mr. Nobody")
 	for i in 1500:
@@ -61,7 +61,7 @@ func test_he_notices_the_gun_when_the_hero_is_near_and_on_foot() -> void:
 	check(not w.sage.noticed(), "he doesn't notice a hero who has no gun")
 	w.gun_owned = true
 	w.player.pos = Vector2(-5, 0)
-	check(not w.sage.noticed(), "or one who is far away (%.0f m)" % w.player.pos.distance_to(w.sage_drone.pos))
+	check(not w.sage.noticed(), "or one who is far away (%.0f m)" % w.player.pos.distance_to(w.cast.sage.pos))
 	w.player.pos = Vector2(5, 0)
 	check(w.sage.noticed() and not w.sage.calls_out(), "but one with the gun, near, on foot: he does")
 	w.bike = Bike.new(Vector2(5, 0))

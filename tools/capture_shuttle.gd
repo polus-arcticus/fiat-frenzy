@@ -54,7 +54,7 @@ func _run(game: Node, dir: String) -> void:
 		await create_timer(1.0).timeout
 	await create_timer(5.0).timeout
 	await _shot("3_arrived", dir)
-	var desk: Drone = w.ecb_receptionist
+	var desk: Drone = w.cast.receptionist
 	game.player.look_toward(Vector3(desk.pos.x, 1.5, desk.pos.y))
 	await _shot("4_the_receptionist", dir)
 	quit()

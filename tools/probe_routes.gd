@@ -22,7 +22,7 @@ func _initialize() -> void:
 	spots["Bus stop"] = w.bus_stop
 	for d in w.drones:
 		if d.look == "banker":
-			spots["banker %d" % d.id] = d.pos
+			spots["banker %s" % d.uid] = d.pos
 			spots["banker %d, 3 m on" % d.id] = d.pos + Vector2(3, 3)
 	spots["Start"] = sc.start
 	spots.erase("Bike shop")  # the shops' counters are inside their buildings: not somewhere to walk to

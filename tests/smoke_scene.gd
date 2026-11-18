@@ -36,10 +36,16 @@ func _initialize() -> void:
 		quit(1)
 		return
 
+	var took := {}
 	for name in SECTIONS:
 		print("-- %s" % name)
+		var t := Time.get_ticks_msec()
 		var section: SceneSection = load("res://tests/scene/%s.gd" % name).new().setup(game, self, check)
 		await section.run()
+		took[name] = Time.get_ticks_msec() - t
+	var slowest := took.keys()
+	slowest.sort_custom(func(a, b): return took[a] > took[b])
+	print("slowest sections: %s" % ", ".join(slowest.slice(0, 6).map(func(n): return "%s %.1f s" % [n, took[n] / 1000.0])))
 
 
 	if checks < EXPECTED_CHECKS:

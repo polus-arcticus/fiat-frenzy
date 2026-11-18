@@ -5,7 +5,7 @@ extends TestCase
 func _stop() -> Array:
 	var w := World.new()
 	w.roads = Fixtures.l_road()  # along the x axis to (50, 0), then down to (50, 50)
-	var bus := w.add_bus(Vector2(2, 0), 0.0)
+	var bus := w.transit.add_bus(Vector2(2, 0), 0.0)
 	w.add_player(Vector2(2, 3))
 	return [w, bus]
 
@@ -66,7 +66,7 @@ func test_a_first_stretch_that_doubles_back_is_dropped() -> void:
 	# a street whose nearest corner to the bus is behind it: (-6, 1), then the way on east
 	w.roads = RoadGraph.new()
 	w.roads.add_polyline(PackedVector2Array([Vector2(-6, 1), Vector2(30, 1), Vector2(60, 1)]))
-	var bus := w.add_bus(Vector2(0, 0), 0.0)
+	var bus := w.transit.add_bus(Vector2(0, 0), 0.0)
 	w.add_player(Vector2(0, 3))
 	check(w.transit.board(Vector2(60, 1)), "it sets off")
 	check(bus.path.pts.size() > 1 and bus.path.pts[1].x > 0.0, "and its first stretch is forward, not back to the corner behind it")

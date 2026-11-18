@@ -12,13 +12,13 @@ func run() -> void:
 	check(city.get_node("Collision").get_child_count() == 1 and city.get_node("GroundCollision").get_child_count() == 1, "and collision for the walls, and a slab of ground of its own")
 	var w: World = game.world
 	check(w.roads != null and w.roads.point_count() > 500, "the street graph has %d points" % w.roads.point_count())
-	check(w.drones.size() == 22 and w.machines.size() == 9 and w.food_banks.size() == 2 and w.fires.size() == 1 and w.relief_trucks.size() == 1, "the starting cast: 4 vendors, 2 drifters, a food bank keeper, 2 cart runners, the bike shop owner, Mr. Nobody, the ECB doorman, the skate shop owner, the ECB receptionist, a fire, the van; and at the bank 3 vendors, a food bank keeper, a runner, 3 visitors")
-	check(w.machines.all(func(m): return (m.kind in ["bike_shop", "skate_shop"] or not m.working) and m.owner_id >= 0), "every stand starts wrecked, and only the two shops are open")
+	check(w.drones.size() == 24 and w.machines.size() == 9 and w.food_banks.size() == 2 and w.fires.size() == 1 and w.relief_trucks.size() == 1 and w.welfare_offices.size() == 1, "the starting cast: 4 vendors, 2 drifters, a food bank keeper, 2 cart runners, the bike shop owner, Mr. Nobody, the ECB doorman, the skate shop owner, the ECB receptionist, a fire, the van; and at the bank 3 vendors, a food bank keeper, a runner, 3 visitors; the technician upstairs; and the welfare office's clerk")
+	check(w.machines.all(func(m): return (m.kind in ["bike_shop", "skate_shop"] or not m.working) and m.owner != ""), "every stand starts wrecked, and only the two shops are open")
 	var views := 0
 	for c in game.get_children():
-		if c is DroneView or c is MachineView or c is FireView or c is ReliefView or c is FoodBankView or c is HospitalView or c is AmbulanceView:
+		if c is DroneView or c is MachineView or c is FireView or c is ReliefView or c is FoodBankView or c is HospitalView or c is AmbulanceView or c is WelfareOfficeView:
 			views += 1
-	check(views == 22 + 9 + 1 + 1 + 2 + 4, "a view for each thing in the model (%d)" % views)
+	check(views == 24 + 9 + 1 + 1 + 2 + 4 + 1, "a view for each thing in the model (%d)" % views)
 	var tent_view: MachineView = game.get_children().filter(func(c): return c is MachineView and c.machine.kind == "tent")[0]
 	var tent_solid: StaticBody3D = tent_view.get_node("Solid")
 	check(tent_solid.get_child_count() == 3 and tent_solid.collision_layer == 1, "the field tent has walls the player and bills run into: three wall colliders")

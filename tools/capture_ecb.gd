@@ -42,7 +42,7 @@ func _run() -> void:
 	var w: World = game.world
 	var sc: Scenario = game.scenario
 	var out: Vector2 = sc.ecb.out
-	var d: Drone = w.ecb_doorman
+	var d: Drone = w.cast.doorman
 	game.sim_paused = true
 	game.gun.set_enabled(false)
 	_stand(d.pos + out * 4.0, d.pos)

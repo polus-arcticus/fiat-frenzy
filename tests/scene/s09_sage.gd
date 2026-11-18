@@ -59,7 +59,7 @@ func run() -> void:
 	game.advance(0.3)
 	await tree.physics_frame
 	await tree.physics_frame
-	check(game.interaction.aimed_sage(), "once you have met, aiming at him up close offers a chat (Q)")
+	check(game.story_verbs.aimed_sage(), "once you have met, aiming at him up close offers a chat (Q)")
 	var chat_key := InputEventKey.new()
 	chat_key.physical_keycode = KEY_Q
 	chat_key.pressed = true

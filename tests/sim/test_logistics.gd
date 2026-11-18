@@ -26,13 +26,15 @@ func test_nobody_shares_coordinates() -> void:
 	var keeper := tw.add_vendor("tent", Vector2(0, 0))
 	var tent := tw.machine_of(keeper)
 	var sleepers: Array = []
-	for i in 4:
-		var d := tw.add_drifter(Vector2(randf_range(-4, 4), randf_range(-4, 4)), 20.0)
-		d.bars = Fixtures.bars(1.0, 1.0, 0.3)
+	for i in 6:
+		tw.add_drifter(Vector2(randf_range(-4, 4), randf_range(-4, 4)), 20.0)
+	tw.lodging.house_everyone(tent)
+	for d in tw.lodging.housed(tent):
 		tent.shelter.admit(d)
-		d.pos = tent.shelter.berth_pos(tent.pos, tent.shelter.berths.size() - 1)
+		d.pos = tent.bed_pos(tent.shelter.berths.size() - 1)
 		sleepers.append(d.pos)
-	check(Fixtures.spread(sleepers) >= 0.5, "four sleepers in a tent sit %.1f m apart, not all on its centre" % Fixtures.spread(sleepers))
+	check(sleepers.size() == 7 and Fixtures.spread(sleepers) >= 0.5, "seven sleepers in a tent of two modules lie %.1f m apart, each in their own bed" % Fixtures.spread(sleepers))
+	check(sleepers.all(func(p): return not tw.nav.blocked(tw.zones.machines_in("district")[0].zone, p)), "and none of the beds is in a wall's margin, where someone waking up could not find their way out")
 	var bw := World.new()
 	var a := bw.add_drifter(Vector2(0, 0))
 	var b := bw.add_drifter(Vector2(0, 1))
@@ -50,12 +52,14 @@ func test_food_bank_trickles_stock() -> void:
 	var w := World.new()
 	var keeper := w.add_food_bank(Vector2(0, 0))
 	var fb := w.food_bank_of(keeper)
-	check(keeper.kind == "keeper" and keeper.depot == 0 and w.food_bank_of(keeper) == fb, "it has a keeper, one to one")
+	check(keeper.kind == "keeper" and keeper.bank == fb.uid and w.food_bank_of(keeper) == fb, "it has a keeper, one to one")
 	check(["flour", "bottled_water", "sugar", "protein"].all(func(g): return fb.output.count(g) == 10 and fb.offers(g)), "it opens with ten of each good on the shelves")
 	check(keeper.pos.distance_to(fb.pos) >= 1.0, "the keeper stands behind the counter")
 	Fixtures.run(w, 300)
 	note("    after five minutes: flour %d, water %d, sugar %d, protein %d" % [fb.output.count("flour"), fb.output.count("bottled_water"), fb.output.count("sugar"), fb.output.count("protein")])
-	check(fb.output.count("flour") == 16 and fb.output.count("bottled_water") == 21 and fb.output.count("sugar") in [15, 16] and fb.output.count("protein") in [13, 14], "five minutes later it has made a few more of each, at its own slow rates")
+	var made := func(g: String) -> int: return fb.output.count(g) - 10
+	var expect := func(g: String) -> int: return int(Catalog.food_bank.goods[g].rate * 5.0)  # (its rates are a minute's)
+	check(["flour", "bottled_water", "sugar", "protein"].all(func(g): return absi(made.call(g) - expect.call(g)) <= 1), "five minutes later it has made a few more of each, at its own slow rates (%s)" % [["flour", "bottled_water", "sugar", "protein"].map(func(g): return "%s +%d" % [g, made.call(g)])])
 	Fixtures.run(w, 3000)
 	check(fb.output.count("flour") == 30 and fb.output.count("protein") == 30, "and it stops at its cap of 30")
 	check(is_equal_approx(fb.price_of("flour"), Catalog.base_price("flour")) and is_equal_approx(fb.price_of("bottled_water"), 0.5), "it sells at cost")
@@ -80,8 +84,9 @@ func test_a_runner_delivers_for_a_fee() -> void:
 	check(is_equal_approx(runner.wallet, 20.0 + 3.0) and is_equal_approx(runner.fees_earned, 3.0) and runner.delivered_total == 10, "and the runner kept the $3 difference: that is its revenue")
 	check(is_equal_approx(bakery.input_cost["flour"], 1.3) and is_equal_approx(bakery.floor_price(), 2.6), "the fee is part of what the shop's flour costs it, so its floor price is $2.60")
 	check(is_equal_approx(w.total_money(), w.ledger.printed), "no money went missing")
-	Fixtures.run(w, 40)
-	check(runner.pos.distance_to(runner.home) < 1.0, "and the runner wheels the empty cart back home")
+	w.food_banks[0].working = false  # (nothing more to fetch: the food bank's trickle would soon have another load for it)
+	var back := Fixtures.until(w, func(): return runner.pos.distance_to(runner.home) < 1.0, 40)
+	check(back >= 0, "and with nothing more to fetch, the runner wheels the empty cart back home (%d s)" % back)
 
 
 func test_runners_only_go_where_a_trip_makes_sense() -> void:
@@ -127,7 +132,7 @@ func test_runners_share_the_work() -> void:
 	first.job = w.logistics.plan(first)
 	check(not first.job.is_empty(), "the first plans the trip")
 	check(w.logistics.plan(second).is_empty(), "the second sees the first is already bringing it, and stays put")
-	Fixtures.run(w, 80)  # long enough for the delivery, short of the bakery baking through it and the food bank restocking
+	Fixtures.run(w, int(2.0 / Catalog.food_bank.goods["flour"].rate * 60.0) - 1)  # long enough for the delivery, short of the food bank making the 2 flour a second load needs
 	check(first.delivered_total + second.delivered_total == 10 and w.food_banks[0].sold_total == 10, "the bakery was brought its ten units once, not twice")
 	check(is_equal_approx(w.total_money(), w.ledger.printed), "and the money adds up")
 

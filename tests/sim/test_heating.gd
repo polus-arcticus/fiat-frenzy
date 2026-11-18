@@ -34,7 +34,7 @@ func test_indoors_is_warm_and_outdoors_is_cold_at_night() -> void:
 
 func test_the_bus_is_warm_while_you_are_in_it() -> void:
 	var w := _night_world()
-	w.add_bus(Vector2(50, 50), 0.0)  # pointing along +x
+	w.transit.add_bus(Vector2(50, 50), 0.0)  # pointing along +x
 	w.player.pos = Vector2(50, 50)
 	check(w.heating.is_warm(Vector2(54, 50)) and w.heating.is_warm(Vector2(46, 50.8)), "inside the bus's length and width")
 	check(not w.heating.is_warm(Vector2(50, 53)) and not w.heating.is_warm(Vector2(57, 50)), "and not beside it or past its ends")

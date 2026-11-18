@@ -12,7 +12,7 @@ func run() -> void:
 	check(not game.gun.rig.rolling() and game.gun.rig.mode == "invest", "and the roll finishes")
 	game.player.teleport(Vector3(game.scenario.start.x, 0.1, game.scenario.start.y), game.scenario.start_yaw)
 	game.player.look_toward(Vector3(game.scenario.start.x, 40.0, game.scenario.start.y) + Vector3(0, 0, 0))  # up at the sky: it will miss
-	var printed1 := w.ledger.printed
+	var printed1 := w.ledger.printed - w.ledger.issued  # (what the gun printed: the welfare office's fountain goes on meanwhile)
 	var bills1 := w.bills.size()
 	game.gun.step(true, 0.35)
 	var half_charge: float = game.gun.charge
@@ -23,10 +23,10 @@ func run() -> void:
 	check(game.gun.charge == 1.0 and game.gun.contract_value(1.0) == GunController.CONTRACT_MAX, "a full charge is worth $%d" % GunController.CONTRACT_MAX)
 	game.gun.step(false, 0.016)
 	var in_flight := game.get_children().filter(func(c): return c is ContractProjectile)
-	check(in_flight.size() == 1 and game.gun.charge == 0.0 and is_equal_approx(w.ledger.printed, printed1), "letting go spits a contract and nothing is printed yet")
+	check(in_flight.size() == 1 and game.gun.charge == 0.0 and is_equal_approx(w.ledger.printed - w.ledger.issued, printed1), "letting go spits a contract and nothing is printed yet")
 	for i in 400:
 		await tree.physics_frame
-	check(game.get_children().filter(func(c): return c is ContractProjectile).is_empty() and w.bills.size() == bills1 and is_equal_approx(w.ledger.printed, printed1), "a contract that misses is void: nothing left on the ground, nothing printed")
+	check(game.get_children().filter(func(c): return c is ContractProjectile).is_empty() and w.bills.size() == bills1 and is_equal_approx(w.ledger.printed - w.ledger.issued, printed1), "a contract that misses is void: nothing left on the ground, nothing printed")
 	game.gun.step(true, 0.1)
 	game.gun.step(false, 0.016)
 	check(game.get_children().filter(func(c): return c is ContractProjectile).is_empty() and game.gun.charge == 0.0, "a trigger let go too early just jams")
