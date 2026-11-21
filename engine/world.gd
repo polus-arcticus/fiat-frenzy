@@ -80,6 +80,7 @@ var gun: Gun
 var gun_tree: GunTree
 var commerce: Commerce
 var loadout: Loadout
+var placing: Placing
 var hero: Hero
 var riding: Riding
 var transit: Transit
@@ -134,6 +135,7 @@ func _attach_game() -> void:
 	gun_tree = GunTree.new(self)
 	commerce = Commerce.new(self)
 	loadout = Loadout.new(self)
+	placing = Placing.new(self)
 	hero = Hero.new(self)
 	riding = Riding.new(self)
 	transit = Transit.new(self)

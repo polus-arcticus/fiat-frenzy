@@ -134,7 +134,10 @@ cluster's **spawn factory**:
   stands (§5.3). Who comes is a weighted roll (`Lodging.NEWCOMERS`: drifters and runners for now; more kinds as they exist).
 - So the number of tents is the population. Nobody is turned out.
 
-*(To come: a tent item in the hero's bag, opened at their feet; barrel fires sold by the tent keeper and placed by the hero.)*
+- Its keeper makes **tents** and **barrel fires** from scrap and sells them (its wares, §4.1). A tent put down in the street
+  (`Lodging.found`) is a new tent city at tier 0, standing, one tent, kept by a newcomer who lives in it; a barrel fire put down
+  is a barrel fire. (The hero does the putting down: `user/hero/placing.gd`.)
+- Each resident has a story for their ID card (`npc/agents/biography.gd`, from dice seeded with their uid) and `arrived_at`.
 
 **3.6 Collapse and care** (`npc/medical/rescue.gd`). A bar at 0 and the agent is `down`. An idle ambulance carries them to the
 medical tent in their zone; care refills the bars and lets them go at 60% (the hero at 95%, five times as fast, but robbed of
@@ -144,6 +147,10 @@ their cash).
 
 **4.1 Crafting** (`Machine.step`, `craft`). A working commercial asset makes its item at `rate` crafts a minute (25% more per
 level) if every input of the recipe is in its input inventory and its shelf has room. A wrecked one makes and offers nothing.
+- **Wares** (`MachineDef.wares`): other things it makes and sells besides its item, each from its own recipe, at the item's flat
+  price, on a shelf of `ware_cap`. A craft also makes one ware, the emptiest one its inputs allow. Its input store is sized by
+  everything it crafts (`Machine.per_craft`). The tent city and the hostel: tents (4 scrap) and barrel fires (2 scrap).
+- What an item is for, when the hero uses one from the bag, is the item's own (`ItemDef.use`: equip, consume, place).
 
 **4.2 The price rule** (`Pricing.after_craft`, `engine/core/pricing.gd`). Once per craft:
 - shelf empty → up one `tick` (it sold out: too cheap);

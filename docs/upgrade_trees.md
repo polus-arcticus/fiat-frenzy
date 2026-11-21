@@ -43,7 +43,8 @@ Built tiers are in **bold**. Each tier says what it adds.
 4. Bread factory (t3): employs, and needs the supply trade's flour by the truckload.
 
 ### Lodging
-1. **Tent city** (t0): a tent for each person, kept warm; it holds an atom's worth.
+1. **Tent city** (t0): a tent for each person, kept warm; it holds an atom's worth. Its keeper makes tents ($15) and barrel
+   fires ($5) of scrap; a tent put down in the street founds another tent city at t0.
 2. **Hostel** (t1): twice the room. **Built of 200 scrap** the runners pool into it, not money.
 3. Hotel (t2): **rooms in the block's building**. It is the first business to move in upstairs. A resident with a room has an
    address: newcomers come to a block whose rooms have space (population growth).

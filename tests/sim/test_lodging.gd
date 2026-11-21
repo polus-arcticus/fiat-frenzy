@@ -75,7 +75,7 @@ func test_a_tent_city_holds_an_atoms_worth_until_it_is_built_up() -> void:
 	city.retier("hostel")
 	check(w.lodging.room_for(city) == Atom.ROLES.size(), "built up into a hostel, it has room for an atom's worth more")
 	var cost := w.lodging.add_tent(city)
-	check(is_equal_approx(cost, Lodging.TENT_COST) and city.tents == Atom.ROLES.size() + 1, "a tent costs $%.0f" % cost)
+	check(is_equal_approx(cost, Catalog.base_price("tent")) and city.tents == Atom.ROLES.size() + 1, "a tent costs $%.0f" % cost)
 	check(is_equal_approx(w.ledger.printed - printed, cost) and is_equal_approx(w.ledger.sunk, cost) and _accounted(w), "the gun prints it, and it is spent (sunk)")
 
 

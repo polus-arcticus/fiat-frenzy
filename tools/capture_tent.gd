@@ -21,10 +21,14 @@ func _run() -> void:
 	await _shot("1_tent", 90)
 	game.interaction.open(tent)
 	await _shot("2_screen", 90)
+	var cards: Array = game.inventory._cards.get_children().filter(func(c): return c is IdCard)
+	if cards.size() > 1:
+		cards[1].toggled.emit(cards[1].drone.uid)  # (as a click does: their story opens out)
+	await _shot("2b_card_open", 30)
 	for i in 5:
-		game.tent_screen.add_requested.emit(tent)
+		game.inventory.add_tent_requested.emit(tent)
 	await _shot("3_screen_tents_added", 90)
-	game.tent_screen.close()
+	game.inventory.close()
 	var before := w.drones.size()
 	game.advance(Lodging.ARRIVE_EVERY * 5 + 5.0)
 	print("now %d tents; %d newcomers: %s" % [tent.tents, w.drones.size() - before, w.drones.slice(before).map(func(d): return d.label)])

@@ -85,7 +85,8 @@ func test_runners_build_a_tent_city_up_with_scrap() -> void:
 	var city := Atom.seed(w, "atom", Vector2.ZERO)
 	w.begin_play()
 	Cluster.fund(w, "atom")
-	check(city.input.caps.get("scrap", 0) == Catalog.machine("hostel").build_scrap, "a tent city wants the scrap its hostel is built of (%d)" % city.input.caps.get("scrap", 0))
+	var wares := city.per_craft("scrap") * Catalog.machine("tent").stock_crafts
+	check(city.input.caps.get("scrap", 0) == Catalog.machine("hostel").build_scrap + wares, "a tent city wants the scrap its hostel is built of, and its tents' and barrels' (%d)" % city.input.caps.get("scrap", 0))
 	var day := Fixtures.until(w, func(): return city.kind == "hostel", int(Clock.DAY_SECONDS) * 40)
 	check(day > 0, "the runner pools it in from the street, and it is built up into a hostel (day %d)" % (day / int(Clock.DAY_SECONDS) + 1))
 	check(w.lodging.room_for(city) == Atom.ROLES.size() and _accounted(w), "with room for an atom's worth more")

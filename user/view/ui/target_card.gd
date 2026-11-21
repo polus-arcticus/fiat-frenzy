@@ -45,7 +45,10 @@ func _describe(d: Drone, w: World) -> String:
 		text += "\n%s: %s" % [fb.display_name(), ", ".join(Catalog.food_bank.goods.keys().map(func(g): return "%d %s" % [fb.output.count(g), g.replace("bottled_", "").replace("_", " ")]))]
 	var m := w.machine_of(d)
 	if m != null:
-		if m.working:
+		if m.working and m.shelter != null:
+			text += "\n%s: %d tents, %d lived in" % [m.display_name(), m.tents, w.lodging.housed(m).size()]
+			text += "\nworth $%.0f  ·  you own %d%%" % [m.value(), roundi(m.equity.share(w.ledger.local) * 100.0)]
+		elif m.working:
 			text += "\n%s: $%.2f, %d in stock" % [m.display_name(), m.price, m.stock()]
 			text += "\nworth $%.0f  ·  you own %d%%" % [m.value(), roundi(m.equity.share(w.ledger.local) * 100.0)]
 			if m.investable() > 0.0:

@@ -360,6 +360,10 @@ func _add_lift(w: World) -> void:
 	door_down.zone = LIFT_ZONE
 	w.portals.add_pair(door_up, door_down)
 	w.cast.lift = door_up
+	var c := LIFT_ROOM_CENTRE
+	var h := LIFT_ROOM_HALF
+	w.heating.add_building(PackedVector2Array([c - h, c + Vector2(h.x, -h.y), c + h, c + Vector2(-h.x, h.y)]))  # (warm upstairs)
+	w.heating.add_building(ecb.poly)  # and the bank itself
 	lift = {"up": door_up, "down": door_down, "centre": LIFT_ROOM_CENTRE, "half": LIFT_ROOM_HALF}
 	w.zones.regions[LIFT_ZONE] = Rect2(LIFT_ROOM_CENTRE - LIFT_ROOM_HALF - Vector2(12, 12), (LIFT_ROOM_HALF + Vector2(12, 12)) * 2.0)
 	w.build_zone = LIFT_ZONE

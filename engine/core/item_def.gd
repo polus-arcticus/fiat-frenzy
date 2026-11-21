@@ -2,7 +2,7 @@
 ##
 ## cls says what it is for: "food", "drink" and "warmth" answer a survival demand; "material" is a raw input
 ## (flour, scrap) that is only ever made into something else; "vehicle", "board", "clothes" and "document" are carried or
-## worn, not used up.
+## worn, not used up; "camping" is put down in the street (a tent, a barrel fire).
 class_name ItemDef
 extends RefCounted
 
@@ -15,7 +15,8 @@ var relief := false     # comes on the Red Cross van
 var scavenged := false  # lies in the street (ScrapPile), costs nothing, and runners gather it (scrap)
 var speed := 1.0        # a vehicle or board: how much of the full one's speed it gives (a scrap-built one is slower)
 var gear := false       # can be equipped: ridden or worn, in a loadout slot (bikes, boards, clothes)
-var insulation := 0.0   # clothes: how much it keeps the cold out (the warmth tuning reads it)
+var insulation := 0.0   # clothes: how much it keeps the cold out (Needs.decay reads it: see Drone.insulation)
+var placeable := false  # put down in the street from the bag: a tent (it founds a tent city) or a barrel fire (see Placing)
 
 
 func _init(item_id: String, item_cls: String, item_price := 0.0, item_restores := 0.0) -> void:
@@ -23,6 +24,18 @@ func _init(item_id: String, item_cls: String, item_price := 0.0, item_restores :
 	cls = item_cls
 	price = item_price
 	restores = item_restores
+
+
+## What using one from the bag does, the one rule for it: "equip" (gear: into the loadout), "consume" (food and drink),
+## "place" (put down in the street: a tent, a barrel fire), or "" (nothing: it is carried).
+func use() -> String:
+	if gear:
+		return "equip"
+	if placeable:
+		return "place"
+	if cls in ["food", "drink"]:
+		return "consume"
+	return ""
 
 
 ## Can a drone use one up? (Beds shelter rather than refill, but they are still "used".)

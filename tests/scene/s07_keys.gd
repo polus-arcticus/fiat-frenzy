@@ -30,7 +30,7 @@ func run() -> void:
 	screen.refresh()
 	var eat_slot: SlotView = null
 	for c in screen._bag.get_children():
-		if c.tooltip_text == "Right-click to use":
+		if c.item == "bread":
 			eat_slot = c
 			break
 	var hungry_before: float = w.player.bars.hunger

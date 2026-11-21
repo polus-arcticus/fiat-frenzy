@@ -8,9 +8,12 @@ signal right_clicked
 const INK := Color(0.16, 0.14, 0.2)
 const SIZE := Vector2(76, 86)
 
+var item := ""  # what it shows ("" an empty slot)
 
-## `item` empty = an empty slot. `tone` tints the border: "" normal, "good", "bad", "warn".
-func setup(item: String, count: int, caption := "", hint := "", tone := "") -> SlotView:
+
+## `what` empty = an empty slot. `tone` tints the border: "" normal, "good", "bad", "warn".
+func setup(what: String, count: int, caption := "", hint := "", tone := "") -> SlotView:
+	item = what
 	custom_minimum_size = SIZE
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(INK, 0.07) if item == "" else Color(1, 0.99, 0.94, 0.95)

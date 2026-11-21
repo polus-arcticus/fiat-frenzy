@@ -32,10 +32,19 @@ func _draw() -> void:
 			draw_colored_polygon(cup, Color(0.98, 0.9, 0.35))
 			draw_polyline(PackedVector2Array([cup[0], cup[1], cup[2], cup[3], cup[0]]), INK, 2.0)
 			_line(o, s, Vector2(0.58, 0.1), Vector2(0.5, 0.5), Color(0.85, 0.3, 0.3), 3.0)
-		"bed":
+		"bed", "tent":
 			var tent := PackedVector2Array([o + Vector2(0.1, 0.8) * s, o + Vector2(0.5, 0.2) * s, o + Vector2(0.9, 0.8) * s])
 			draw_colored_polygon(tent, Color(0.42, 0.55, 0.78))
 			draw_polyline(PackedVector2Array([tent[0], tent[1], tent[2], tent[0]]), INK, 2.0)
+			if item == "tent":  # (the open flap)
+				draw_colored_polygon(PackedVector2Array([o + Vector2(0.5, 0.2) * s, o + Vector2(0.62, 0.8) * s, o + Vector2(0.38, 0.8) * s]), Color(0.2, 0.22, 0.3))
+		"barrel_fire":
+			draw_rect(Rect2(o + Vector2(0.3, 0.42) * s, Vector2(0.4, 0.44) * s), RUST)
+			draw_rect(Rect2(o + Vector2(0.3, 0.42) * s, Vector2(0.4, 0.44) * s), INK, false, 2.0)
+			for y in [0.56, 0.72]:
+				_line(o, s, Vector2(0.3, y), Vector2(0.7, y), INK, 1.5)
+			var flame := PackedVector2Array([o + Vector2(0.34, 0.42) * s, o + Vector2(0.42, 0.22) * s, o + Vector2(0.5, 0.32) * s, o + Vector2(0.56, 0.12) * s, o + Vector2(0.66, 0.42) * s])
+			draw_colored_polygon(flame, Color(0.98, 0.62, 0.2))
 		"bicycle", "old_bike":
 			var frame := Color(0.86, 0.24, 0.2) if item == "bicycle" else RUST
 			for cx in [0.28, 0.72]:

@@ -2,15 +2,20 @@
 ## (or just yours, when opened with no stand).
 ## Right-click an item in the stand's stock to buy one; right-click an item in your own to use it. The
 ## stand's *input* inventory is shown too: what it is waiting for, and how short it is. This view only
-## displays and asks (it emits `buy_requested`, `consume_requested`, `equip_requested` and `unequip_requested`); the rules live
-## in Commerce and Loadout. Above the bag is the loadout: what the hero rides and wears.
+## displays and asks (it emits `buy_requested`, `use_requested` and `unequip_requested`); the rules live in Commerce, Loadout
+## and Placing, and what using an item means is the item's own (ItemDef.use). Above the bag is the loadout: what the hero rides and wears.
+##
+## A tent city opens here too, like any stand (its keeper's tents and barrel fires for sale, the scrap it wants), with a third
+## panel: who lives there, an ID card each (click one for their story), and the tent city's own two things to do, put up a tent
+## (`add_tent_requested`) and sit by the barrels (`warm_requested`). The rules for those live in Lodging and Commerce.
 class_name InventoryScreen
 extends CanvasLayer
 
 signal buy_requested(machine: Machine, item: String)
-signal consume_requested(item: String)
-signal equip_requested(item: String)    # from the bag into the loadout (see Loadout)
-signal unequip_requested(item: String)  # and back
+signal use_requested(item: String)      # right-click in the bag: what that does is the item's to say (ItemDef.use)
+signal unequip_requested(item: String)  # right-click in the loadout: back into the bag
+signal add_tent_requested(city: Machine)
+signal warm_requested(city: Machine)
 signal opened
 signal closed
 
@@ -34,6 +39,14 @@ var _status: Label
 var _sale: GridContainer
 var _wants: VBoxContainer
 var _message: Label
+var _residents: PanelContainer
+var _residents_count: Label
+var _residents_news: Label
+var _cards: VBoxContainer
+var _add: Button
+var _warm: Button
+var _open_cards := {}    # uid -> true: the ID cards opened out to their story
+var _cards_shown := ""   # what the cards were last drawn from (they are redrawn only when it changes, so the list keeps its scroll)
 
 
 func _ready() -> void:
@@ -55,6 +68,8 @@ func _ready() -> void:
 	row.add_child(_build_left())
 	_right = _build_right()
 	row.add_child(_right)
+	_residents = _build_residents()
+	row.add_child(_residents)
 	_message = _label(_root, "", 20)
 	_message.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	_message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -76,7 +91,7 @@ func _build_left() -> PanelContainer:
 	_loadout = _grid(v, Loadout.SLOTS)
 	_label(v, "Bag", 18)
 	_bag = _grid(v, BAG_COLUMNS)
-	var hint := _label(v, "Right-click to eat, drink or equip; right-click the loadout to take off.", 14)
+	var hint := _label(v, "Right-click to eat, drink, equip or put down; right-click the loadout to take off.", 14)
 	hint.modulate.a = 0.7
 	return panel
 
@@ -97,6 +112,43 @@ func _build_right() -> PanelContainer:
 	_wants.add_theme_constant_override("separation", 6)
 	v.add_child(_wants)
 	return panel
+
+
+## A tent city's third panel: who lives there, and the two things to do there.
+func _build_residents() -> PanelContainer:
+	var panel := _panel()
+	var v: VBoxContainer = panel.get_child(0)
+	_label(v, "Who lives here", 24)
+	_residents_count = _label(v, "", 15)
+	_residents_news = _label(v, "", 14)
+	_residents_news.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_residents_news.custom_minimum_size.x = 340
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(360, 300)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	v.add_child(scroll)
+	_cards = VBoxContainer.new()
+	_cards.add_theme_constant_override("separation", 5)
+	_cards.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(_cards)
+	var buttons := HBoxContainer.new()
+	buttons.add_theme_constant_override("separation", 10)
+	v.add_child(buttons)
+	_add = _button(buttons, func(): add_tent_requested.emit(machine))
+	_warm = _button(buttons, func(): warm_requested.emit(machine))
+	var hint := _label(v, "Click a card for their story.", 14)
+	hint.modulate.a = 0.7
+	return panel
+
+
+func _button(parent: Node, pressed: Callable) -> Button:
+	var b := Button.new()
+	b.add_theme_font_size_override("font_size", 15)
+	b.focus_mode = Control.FOCUS_NONE
+	b.pressed.connect(pressed)
+	parent.add_child(b)
+	return b
 
 
 func _panel() -> PanelContainer:
@@ -160,6 +212,8 @@ func open(w: World, m: Machine = null) -> void:
 	world = w
 	machine = m
 	_right.visible = m != null
+	_residents.visible = m != null and m.shelter != null
+	_cards_shown = ""
 	visible = true
 	refresh("")
 	opened.emit()
@@ -179,6 +233,7 @@ func refresh(message := "") -> void:
 		_message.text = message
 	_refresh_player()
 	_refresh_machine()
+	_refresh_residents()
 
 
 func _clear(node: Node) -> void:
@@ -207,11 +262,10 @@ func _refresh_player() -> void:
 	for i in Commerce.CARRY_SLOTS:
 		if i < stacks.size():
 			var item: String = stacks[i].item
-			var usable := Catalog.is_consumable(item)
-			var gear: bool = Catalog.item(item).gear
-			var hint := "Right-click to use" if usable else ("Right-click to equip" if gear else "can't be used")
-			var slot := SlotView.new().setup(item, stacks[i].count, "", hint, "good" if usable or gear else "")
-			slot.right_clicked.connect(func(): (equip_requested if gear else consume_requested).emit(item))
+			var use: String = Catalog.item(item).use()
+			var hint: String = {"equip": "Right-click to equip", "consume": "Right-click to eat or drink", "place": "Right-click to put it down in the street"}.get(use, "can't be used")
+			var slot := SlotView.new().setup(item, stacks[i].count, "", hint, "good" if use != "" else "")
+			slot.right_clicked.connect(func(): use_requested.emit(item))
 			_bag.add_child(slot)
 		else:
 			_bag.add_child(SlotView.new().setup("", 0))
@@ -223,16 +277,26 @@ func _refresh_machine() -> void:
 	var m := machine
 	var owner_d := world.drone(m.owner)
 	_title.text = m.display_name()
-	if m.working:
-		var more := "you own the 49%% maximum" if m.investable() <= 0.0 else "up to $%.0f more can be invested" % m.investable()
-		_status.text = "Run by %s. $%.2f each. Level %d, worth $%.0f. You own %d%% (%s)." % [owner_d.label, m.price, m.level, m.value(), roundi(m.equity.share(world.ledger.local) * 100.0), more]
-	else:
+	var more := "you own the 49%% maximum" if m.investable() <= 0.0 else "up to $%.0f more can be invested" % m.investable()
+	var stake := "Level %d, worth $%.0f. You own %d%% (%s)." % [m.level, m.value(), roundi(m.equity.share(world.ledger.local) * 100.0), more]
+	if not m.working:
 		_status.text = "Wrecked. %s needs $%d to repair it, and nothing is for sale." % [owner_d.label, int(m.repair_cost + Needs.RESERVE)]
+	elif m.shelter != null:
+		_status.text = "Kept by %s, who makes tents and barrel fires from scrap. %s" % [owner_d.label, stake]
+	else:
+		_status.text = "Run by %s. $%.2f each. %s" % [owner_d.label, m.price, stake]
 	_clear(_sale)
-	var stacks := Stacks.layout(m.output)
-	var slots := maxi(Stacks.slots_for(m.capacity()), COLUMNS if stacks.size() > COLUMNS else Stacks.slots_for(m.capacity()))
+	var stacks := Stacks.layout(m.output).filter(func(s): return m.wares.has(s.item) or (s.item == m.item and m.shelter == null))
+	var shelf := m.wares.size() * Catalog.machine(m.kind).ware_cap if m.shelter != null else m.capacity()  # (a tent city: its wares only)
+	var slots := maxi(maxi(Stacks.slots_for(shelf), m.wares.size()), COLUMNS if stacks.size() > COLUMNS else stacks.size())  # (a slot a ware, even sold out)
+	var sold_out := m.wares.keys().filter(func(w): return m.output.count(w) <= 0)  # (a ware is shown even when there are none)
 	for i in slots:
-		if i < stacks.size() and m.working:
+		var k := i - stacks.size()
+		if m.working and i >= stacks.size() and k < sold_out.size():
+			var ware: String = sold_out[k]
+			var price := "$%.2f" % m.price_of(ware)
+			_sale.add_child(SlotView.new().setup(ware, 0, price, "Sold out: %ss are made from scrap the runners bring" % ware.replace("_", " "), "bad"))
+		elif i < stacks.size() and m.working:
 			var item: String = stacks[i].item
 			var affordable := world.ledger.player_cash >= m.price_of(item)
 			var slot := SlotView.new().setup(item, stacks[i].count, "$%.2f" % m.price_of(item), "Right-click to buy one for $%.2f" % m.price_of(item), "good" if affordable else "bad")
@@ -257,6 +321,51 @@ func _refresh_machine() -> void:
 		var note := _label(row, text, 14)
 		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		note.custom_minimum_size.x = 250
+
+
+## A tent city's people: how many tents and who is in them, an ID card each, and its two buttons.
+func _refresh_residents() -> void:
+	if machine == null or machine.shelter == null:
+		return
+	var city := machine
+	var lodging := world.lodging
+	var people := lodging.housed(city)
+	var free := lodging.free_tents(city)
+	var room := lodging.room_for(city)
+	_residents_count.text = "Tents %d  ·  lived in %d  ·  empty %d  ·  %s" % [city.tents, people.size(), free, ("room for %d more" % room) if room > 0 else "full for its tier"]
+	if not city.working:
+		_residents_news.text = "Wrecked: nobody is kept warm and nobody new will come."
+	elif free > 0:
+		var left := Lodging.ARRIVE_EVERY - float(lodging.waiting.get(city.uid, 0.0))
+		_residents_news.text = "An empty tent: someone will come to live in it in about %d s." % ceili(left)
+	else:
+		_residents_news.text = "Every tent is lived in. Put up another and someone new will come and join the town."
+	var statuses := people.map(func(d): return "care" if d.care != "" else ("home" if d.sheltered_in == city.shelter else "out"))
+	var shown := "%s|%s|%s|%d" % [people.map(func(d): return d.uid), statuses, _open_cards.keys(), free]
+	if shown != _cards_shown:
+		_cards_shown = shown
+		_clear(_cards)
+		for i in people.size():
+			var d: Drone = people[i]
+			var card := IdCard.new().setup(d, world, i + 1, statuses[i], _open_cards.has(d.uid))
+			card.toggled.connect(_toggle_card)
+			_cards.add_child(card)
+		for i in free:
+			var empty := _label(_cards, "tent no. %d: empty" % (people.size() + i + 1), 13)
+			empty.modulate.a = 0.5
+	_add.text = "Put up a tent  $%.0f" % lodging.next_tent_cost(city)
+	_add.disabled = not world.gun_owned or room <= 0
+	_add.tooltip_text = "You need the money gun to pay for it." if not world.gun_owned else ("The money gun pays for it." if room > 0 else "No room at this tier.")
+	_warm.text = "Sit by the barrels"
+	_warm.disabled = not city.working
+
+
+func _toggle_card(uid: String) -> void:
+	if _open_cards.has(uid):
+		_open_cards.erase(uid)
+	else:
+		_open_cards[uid] = true
+	refresh()
 
 
 func _source_note(raw: String, short: int, have: int) -> String:

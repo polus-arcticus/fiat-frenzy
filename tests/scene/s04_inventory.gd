@@ -50,7 +50,7 @@ func run() -> void:
 	check(screen._message.text.begins_with("Bought 1 bread"), "and the screen says so: \"%s\"" % screen._message.text)
 	var bag_slot: SlotView = null
 	for c in screen._bag.get_children():
-		if c.tooltip_text == "Right-click to use":
+		if c.item == "bread":
 			bag_slot = c
 			break
 	check(bag_slot != null, "the loaf shows in the player's bag")

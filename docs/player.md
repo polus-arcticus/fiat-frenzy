@@ -46,10 +46,24 @@ User space: the hero's controls, screens and vehicles. The engine's rules are in
 
 - **Trading** (E at a stand, `user/view/ui/inventory_screen.gd`). The bag is on the left; the stand's stock and what it wants are on
   the right. Right-click to buy, or to eat and drink. It is paid from the hero's cash.
-- **The tent city** (E at it, `user/view/ui/tent_screen.gd`):
-  - its tents, how many stand empty, its barrel fires and who lives in each;
-  - put up a tent (the gun pays): someone new comes to live in it;
-  - sit by the barrels to warm up.
+- **The tent city** opens on the same trading screen as any stand:
+  - **For sale:** its keeper's tents ($15) and barrel fires ($5), made from scrap; right-click to buy one into the bag. Sold out,
+    they show greyed.
+  - **Wants:** scrap, for the wares and for building it up into a hostel.
+  - **A third panel, "Who lives here":**
+    - an ID card for each resident (`user/view/ui/id_card.gd`): name, ID number, tent number, level, role, hometown, since when,
+      and whether they're home, out or in care;
+    - click a card to open out their story (`npc/agents/biography.gd`, the same every time for the same person);
+    - **Put up a tent** (the gun pays: someone new comes to live in it), and **Sit by the barrels** to warm up.
+- **Right-click in the bag** does what the item is for (`ItemDef.use`, one rule): gear is equipped, food and drink are had, a tent
+  or a barrel fire is put down. Anything else is only carried.
+- **Putting things down** (`user/hero/placing.gd`, `placement_controller.gd`), as in Planet Crafter: the bag closes and a ghost
+  stands where the crosshair meets the ground, within 6 m, green where it fits and red (with the reason) where it doesn't: it
+  needs open ground, clear of stands, fires and tent rows. Left click puts it down; right click or Esc puts it back. The gun is
+  held meanwhile.
+  - A **barrel fire** is lit there: anyone near it warms up.
+  - A **tent** founds a tent city of its own at tier 0 (`Lodging.found`), its open end toward you, kept by a newcomer who lives
+    in it. Put up more tents there (E at it) and others come, as at any tent city.
 - **The map** (M): the whole district, places known, the goal, and the hero. It works from a seat.
 - **The pause menu** (Esc): save, chapters, the developer jumps.
 - Screens never switch the controls or the mouse themselves: they register with `ScreenStack`, which does.

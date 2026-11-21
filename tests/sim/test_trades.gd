@@ -37,11 +37,14 @@ func test_every_trade_is_a_ladder_of_known_tiers() -> void:
 			check(Catalog.item(d.item) != null and not Catalog.footprint_of(id).is_empty(), "%s makes a known item and has a footprint" % id)
 	for trade in Catalog.TRADES:
 		var bottom: String = Catalog.TRADES[trade][0]
-		if bottom == "" or not Catalog.has_machine(bottom) or Catalog.machine(bottom).inputs.is_empty():
-			continue  # (no tier 0 yet, a premises, or makes nothing from anything: the tent city)
+		if bottom == "" or not Catalog.has_machine(bottom):
+			continue  # (no tier 0 yet, or a premises)
 		var d := Catalog.machine(bottom)
-		var food: bool = Catalog.class_of(d.item) in ["food", "drink"]
-		check(food or d.inputs.has("scrap"), "%s: a tier-0 trade that makes no food or drink makes it from scrap (%s)" % [bottom, d.inputs])
+		if not d.inputs.is_empty():
+			var food: bool = Catalog.class_of(d.item) in ["food", "drink"]
+			check(food or d.inputs.has("scrap"), "%s: a tier-0 trade that makes no food or drink makes it from scrap (%s)" % [bottom, d.inputs])
+		for ware in d.wares:  # (and what else it sells: the tent city's tents and barrel fires)
+			check(Catalog.class_of(ware) in ["food", "drink"] or d.wares[ware].has("scrap"), "%s: its %s is made from scrap (%s)" % [bottom, ware, d.wares[ware]])
 	check(Catalog.next_tier("hot_dog_stand") == "burger_bar" and Catalog.next_tier("burger_bar") == "", "a hot dog stand builds up into a burger bar, and that is as far as it goes for now")
 	check(Catalog.next_tier("bike_shop") == "" and Catalog.machine("bike_shop").tier == 1, "the bike shop is tier 1, with nothing above it")
 	var w := World.new()

@@ -22,6 +22,7 @@ var working := false
 var input := Inventory.new()
 var output := Inventory.new()
 var recipe := {}
+var wares := {}  # what else it makes and sells, ware -> recipe (MachineDef.wares: the tent city's tents and barrel fires)
 var input_cost := {}  # raw -> what a unit cost last time
 var rate_per_min := 6.0
 var craft_progress := 0.0
@@ -55,11 +56,14 @@ func _init(machine_kind := "bakery", owner_uid := "", at := Vector2.ZERO, is_wor
 	working = is_working
 	_take_def(machine_kind)
 	output.caps[item] = Catalog.machine(kind).cap
-	if stocked:
+	if stocked and shelter == null:  # (a tent city's beds are homes: nothing on its shelf but its wares)
 		output.add(item, maxi(capacity() / 2, 1))
 	for raw in recipe:
 		input_cost[raw] = Catalog.base_price(raw)
 		input.add(raw, recipe[raw] * 2)
+	for ware in wares:
+		output.caps[ware] = Catalog.machine(kind).ware_cap
+		output.add(ware, 1)  # (one of each made already, wrecked or not: the keeper had them before the hero came)
 	price = Catalog.base_price(item) if Catalog.machine(kind).flat_price else floor_price()  # a flat-price shop keeps the item's price
 	price_peak = price
 	set_level(level)
@@ -77,9 +81,11 @@ func retier(new_kind: String) -> void:
 		output.caps[item] = Catalog.machine(kind).cap
 		output.add(item, 1)
 		price = Catalog.base_price(item) if Catalog.machine(kind).flat_price else maxf(price, floor_price())  # (a camp's bike at the bike's price)
+	for ware in wares:
+		output.caps[ware] = Catalog.machine(kind).ware_cap
 	for inv in [output, input]:  # (anything the new tier does not make or use; after a merge, what the lower tier left)
 		for k in inv.counts.keys():
-			if k != item and not recipe.has(k):
+			if k != item and not wares.has(k) and per_craft(k) == 0:
 				inv.counts.erase(k)
 				inv.caps.erase(k)
 	for raw in recipe:
@@ -97,6 +103,7 @@ func _take_def(machine_kind: String) -> void:
 	tier = d.tier
 	item = d.item
 	recipe = d.inputs.duplicate()
+	wares = d.wares.duplicate(true)
 	rate_per_min = d.rate
 	tick = d.tick
 	repair_cost = d.repair
@@ -128,7 +135,17 @@ func capacity() -> int:
 
 
 func offers(wanted: String) -> bool:
-	return working and shelter == null and wanted == item and stock() >= 1  # (a tent sells nothing: its tents are homes)
+	if wares.has(wanted):
+		return working and output.count(wanted) >= 1
+	return working and shelter == null and wanted == item and stock() >= 1  # (a tent city's beds are homes, not for sale)
+
+
+## Units of `raw` one round of crafting takes: one of its item and one of each ware (what its input store is sized by).
+func per_craft(raw: String) -> int:
+	var n: int = recipe.get(raw, 0)
+	for ware in wares:
+		n += int(wares[ware].get(raw, 0))
+	return n
 
 
 ## The middle of the `index`th tent in the row, where its person sleeps: the tents side by side down `wing`. (Well clear of the
@@ -150,8 +167,8 @@ func solid() -> Footprint:
 	return _solid
 
 
-func price_of(_wanted: String) -> float:
-	return price
+func price_of(wanted: String) -> float:
+	return Catalog.base_price(wanted) if wares.has(wanted) else price  # (wares at their flat price)
 
 
 ## What the business is worth: its rebuild cost plus all the money the player has given it.
@@ -174,11 +191,16 @@ func set_level(new_level: int) -> void:
 	if shelter != null:
 		shelter.capacity = tents  # (a tent city's tents are built, not grown: see Lodging)
 		_solid = null
-	for raw in recipe:
-		input.caps[raw] = recipe[raw] * (d.stock_crafts + level - 1)
+	var raws := recipe.keys()
+	for ware in wares:
+		for raw in wares[ware]:
+			if not raw in raws:
+				raws.append(raw)
+	for raw in raws:
+		input.caps[raw] = per_craft(raw) * (d.stock_crafts + level - 1)
 	var up := Catalog.next_tier(kind)
 	if up != "" and Catalog.machine(up).build_scrap > 0:  # its next tier is built of pooled scrap: room for it, on top
-		var crafts: int = recipe.get("scrap", 0) * (d.stock_crafts + level - 1)
+		var crafts: int = per_craft("scrap") * (d.stock_crafts + level - 1)
 		input.caps["scrap"] = crafts + Catalog.machine(up).build_scrap
 	refresh()
 
@@ -186,6 +208,9 @@ func set_level(new_level: int) -> void:
 ## Keeps the logistics flags honest: what this machine wants delivered and what it offers.
 func refresh() -> void:
 	output.offer = {item: stock()} if working and shelter == null else {}
+	if working:
+		for ware in wares:
+			output.offer[ware] = output.count(ware)
 	input.want = {}
 	for raw in input.caps:  # (its recipe's inputs, and what its next tier is built of, if that is a good: see build_stock)
 		input.want[raw] = input.room(raw)
@@ -207,6 +232,9 @@ func step(dt: float) -> void:
 
 
 func craft() -> void:
+	_craft_ware()
+	if shelter != null:
+		return  # (a tent city's own item is its beds: nothing to make)
 	for raw in recipe:
 		if input.count(raw) < recipe[raw]:
 			return
@@ -217,4 +245,26 @@ func craft() -> void:
 	for raw in recipe:
 		input.take(raw, recipe[raw])
 	output.add(item, 1)
+	crafted_total += 1
+
+
+## One of its wares, if it has any: the one emptiest against its shelf that its inputs can make.
+func _craft_ware() -> void:
+	var best := ""
+	var best_fill := 1.0
+	for ware in wares:
+		var fill := float(output.count(ware)) / float(output.caps.get(ware, 1))
+		if fill >= best_fill:
+			continue
+		var can := true
+		for raw in wares[ware]:
+			can = can and input.count(raw) >= int(wares[ware][raw])
+		if can:
+			best = ware
+			best_fill = fill
+	if best == "":
+		return
+	for raw in wares[best]:
+		input.take(raw, int(wares[best][raw]))
+	output.add(best, 1)
 	crafted_total += 1

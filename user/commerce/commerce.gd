@@ -86,7 +86,7 @@ func consume(item: String) -> Dictionary:
 	var p: Drone = _w.player
 	if p.carry.count(item) < 1:
 		return _no("You don't have any.")
-	if not Catalog.is_consumable(item) or Catalog.class_of(item) == "warmth":
+	if Catalog.item(item).use() != "consume":
 		return _no("You can't eat or drink that.")
 	var amount: float = _w.needs.eat(p, item)
 	p.carry.take(item, 1)

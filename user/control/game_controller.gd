@@ -16,7 +16,6 @@ var hud: Hud
 var marker: MarkerView
 var tutorial: Tutorial
 var inventory: InventoryScreen
-var tent_screen: TentScreen  # E at a tent: its beds (see Lodging)
 var interaction: InteractionController
 var story_verbs: StoryVerbs
 var screens: ScreenStack
@@ -27,6 +26,7 @@ var gun_tree_screen: GunTreeScreen  # U: the money gun's upgrades
 var dialogue: DialogueScreen
 var sage_controller: SageController
 var bike_controller: BikeController
+var placement: PlacementController  # putting a tent or a barrel fire down (see Placing)
 var skate_controller: SkateController
 var inspector: InspectorController
 var portal_controller: PortalController
@@ -126,15 +126,16 @@ func _build_player() -> void:
 	tutorial = Tutorial.new(world, scenario.cast, not skip_intro)
 	inventory = InventoryScreen.new()  # added last, so it sees input first
 	add_child(inventory)
-	tent_screen = TentScreen.new()
-	add_child(tent_screen)
-	interaction = InteractionController.new().setup(world, player, hud, inventory, tent_screen)
+	interaction = InteractionController.new().setup(world, player, hud, inventory)
 	story_verbs = StoryVerbs.new().setup(world, interaction)  # (the story's talks: Q at its people)
 	add_child(interaction)
 	bike_controller = BikeController.new().setup(world, player, gun, hud)
 	add_child(bike_controller)
 	skate_controller = SkateController.new().setup(world, player, gun, hud)
 	add_child(skate_controller)
+	placement = PlacementController.new().setup(world, player, gun, hud)
+	add_child(placement)
+	interaction.place_requested.connect(placement.begin)
 	player.view_changed.connect(_on_view_changed)
 	portal_controller = PortalController.new().setup(world, player, hud)
 	add_child(portal_controller)
@@ -146,7 +147,6 @@ func _build_screens(district: Dictionary) -> void:
 	screens.player = player
 	add_child(screens)
 	screens.register(inventory)
-	screens.register(tent_screen)
 	dialogue = DialogueScreen.new()  # after the inventory, so it sees input first
 	add_child(dialogue)
 	screens.register(dialogue)

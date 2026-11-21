@@ -86,4 +86,6 @@ func test_the_town_and_the_atom_have_fires() -> void:
 	for i in range(1, along.size()):
 		gap = maxf(gap, along[i] - along[i - 1])
 	var night: float = Cold.NIGHT_BLOCKS * Cold.BLOCK
+	var lift: Vector2 = sc.lift.centre
+	check(town.heating.is_warm(lift) and town.heating.is_warm((sc.ecb.door as Vector2) - (sc.ecb.out as Vector2) * 3.0), "the bank is warm inside: upstairs by the lift, and in the hall")
 	check(along.size() >= 7 and gap < night, "%d fires down Kaiserstraße, at most %.0f m apart: under the %.0f m a bar lasts at night" % [along.size(), gap, night])

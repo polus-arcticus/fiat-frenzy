@@ -40,7 +40,7 @@ func can_build(m: Machine) -> String:
 		return ""
 	var scrap := Catalog.machine(up).build_scrap
 	if scrap > 0:  # built of the scrap the runners have pooled into it
-		return up if m.input.count("scrap") - m.recipe.get("scrap", 0) * Catalog.machine(m.kind).stock_crafts >= scrap else ""
+		return up if m.input.count("scrap") - m.per_craft("scrap") * Catalog.machine(m.kind).stock_crafts >= scrap else ""
 	var owner := _w.drone(m.owner)
 	if owner == null or owner.needless or owner.care != "":
 		return ""

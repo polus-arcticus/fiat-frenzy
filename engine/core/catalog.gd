@@ -33,6 +33,8 @@ static func _build_items() -> Dictionary[String, ItemDef]:
 		ItemDef.new("old_coat", "clothes", 8.0),   # a thrift stall's: stitched from scrap (sacking, tarp, a sleeping bag)
 		ItemDef.new("coat", "clothes", 25.0),      # a clothing shop's: a proper coat
 		ItemDef.new("letter", "document"),  # carried for a quest, not used up
+		ItemDef.new("tent", "camping", 15.0),        # the tent keeper's, of scrap: put down in the street, it founds a tent city
+		ItemDef.new("barrel_fire", "camping", 5.0),  # and a barrel to burn scrap in: put down, it is a barrel fire
 	]
 	for d in defs:
 		out[d.id] = d
@@ -43,6 +45,8 @@ static func _build_items() -> Dictionary[String, ItemDef]:
 	out["old_bike"].speed = 0.5
 	for g in ["bicycle", "old_bike", "skateboard", "old_skateboard", "old_coat", "coat"]:
 		out[g].gear = true
+	for g in ["tent", "barrel_fire"]:
+		out[g].placeable = true
 	out["old_coat"].insulation = 0.3
 	out["coat"].insulation = 0.6
 	return out
@@ -67,10 +71,12 @@ static func _build_machines() -> Dictionary[String, MachineDef]:
 	lemonade.repair = 25.0
 	lemonade.stock_crafts = 16  # a runner's cartload of each (water and sugar come on two trips: at six of each it sold out all day)
 	# The cluster's home and spawn factory, like Planet Crafter's drone bay: tents for one person each, warm and free (see
-	# Lodging). It sells nothing and makes nothing. `cap` is the most tents it holds at this tier: the atom's worth (see Atom), so
+	# Lodging). Its beds are not for sale (its `item` is only what it is for); its keeper makes and sells tents and barrel fires,
+	# of scrap (its wares, at `rate` a minute). `cap` is the most tents it holds at this tier: the atom's worth (see Atom), so
 	# growing past it means building it up. The footprint is one tent's.
 	var tent := MachineDef.new("tent", "Tent city", "bed")
-	tent.rate = 0.0
+	tent.rate = 0.5
+	tent.wares = {"tent": {"scrap": 4}, "barrel_fire": {"scrap": 2}}
 	tent.cap = Atom.ROLES.size()
 	tent.tick = 0.0
 	tent.repair = 30.0
@@ -121,7 +127,8 @@ static func _build_machines() -> Dictionary[String, MachineDef]:
 	coffee.build = 200.0
 	coffee.stock_crafts = lemonade.stock_crafts
 	var hostel := MachineDef.new("hostel", "Hostel", "bed")  # (twice the room)
-	hostel.rate = 0.0
+	hostel.rate = tent.rate
+	hostel.wares = tent.wares
 	hostel.cap = Atom.ROLES.size() * 2
 	hostel.tick = 0.0
 	hostel.warm = 0.03

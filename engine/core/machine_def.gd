@@ -31,6 +31,10 @@ var build_scrap := 0  # or the scrap pooled into it by runners that builds it up
 ## How many crafts' worth of each input it holds (one more per level). Six, so a van visit or a runner's trip goes further; more
 ## where a craft takes two goods that come on two trips (lemonade: one load of each makes a cart's worth).
 var stock_crafts := 6
+## Other things it makes and sells besides its `item`: ware -> its recipe (the tent city's tents and barrel fires, of scrap). Each
+## sells at its flat price (ItemDef.price), on a shelf of `ware_cap`; a craft makes one, the emptiest (see Machine.craft).
+var wares := {}
+var ware_cap := 3
 var footprint := {"boxes": [[0.0, 0.0, 1.1, 0.45]]}
 
 

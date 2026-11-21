@@ -46,6 +46,7 @@ var deliveries := 0            # and in how many trips
 var fees_earned := 0.0         # what its deliveries have paid in fees (the heroes' shares included)
 var equity := Equity.new()     # a runner's: the heroes' shares of its cart business (of its fees: see Hauling)
 var sheltered_in: Shelter = null
+var arrived_at := -1.0  # when they came to live in the tent city (World.clock.time), or below zero: they were here from the start
 var bed := ""          # the uid of the tent city this one has their tent in (their home in the cluster: see Lodging), or ""
 var starved_ticks := 0
 var speech := ""        # what they last said, and for how much longer it stays up (see Chatter)

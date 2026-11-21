@@ -48,9 +48,12 @@ func _ready() -> void:
 	_hint.text = "WASD move · Shift run · Space jump · hold LMB spray (invest: charge, release) · V view · B board · Tab inventory · Q talk · E use a stand · M map · scroll gun mode · U gun ·T time speed · F3 inspect · Esc back"
 
 	_prompt = _outlined(root, "", 20, 8)
-	_prompt.set_anchors_preset(Control.PRESET_CENTER)
-	_prompt.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_prompt.position = Vector2(-120, 36)
+	_prompt.set_anchors_preset(Control.PRESET_CENTER)  # (just under the crosshair, centred on it however long the line is)
+	_prompt.offset_left = -450.0
+	_prompt.offset_right = 450.0
+	_prompt.offset_top = 36.0
+	_prompt.offset_bottom = 70.0
+	_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 	_caption = _outlined(root, "", 32, 10)
 	_caption.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)

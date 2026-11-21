@@ -51,7 +51,7 @@ func run() -> void:
 	tab.pressed = true
 	game.interaction._unhandled_input(tab)
 	check(game.inventory.visible and game.inventory.machine == null, "Tab opens the bag from a seat on the bus")
-	game.interaction._on_consume("bread")
+	game.interaction._on_use("bread")
 	check(w.player.bars.hunger > 0.2 and w.player.carry.count("bread") == 0, "and eating from it works while the bus rolls")
 	game.inventory.close()
 	check(not p.controls_enabled and p.is_seated(), "closing it leaves the ride as it was: still seated, no controls")
