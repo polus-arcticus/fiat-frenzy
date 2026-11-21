@@ -11,7 +11,7 @@
 ##   csv    also write one row a day to this file (for charts)
 ##   noup   nobody builds up (the tier 0 cluster on its own, for comparison)
 ##   nofund the hero never funds it: a block as it is found, left alone (the welfare office's gifts are all it gets)
-##   beds   the hero adds this many beds to the tent on day one, and newcomers come for them (see Lodging)
+##   tents  the hero puts up this many tents in the tent city on day one, and newcomers come to live in them (see Lodging)
 ## Each row: what each trade is now, sales that day, collapses since the last row, each owner's money, the residents' money,
 ## and the books: money issued by the welfare office, and money sunk into building up.
 extends SceneTree
@@ -40,8 +40,8 @@ func _initialize() -> void:
 	if not "nofund" in OS.get_cmdline_user_args():
 		Cluster.fund(w, ZONE)
 	var tent: Machine = w.zones.machines_in(ZONE).filter(func(m): return m.shelter != null)[0]
-	for i in _arg("beds", "0").to_int():
-		w.lodging.add_bed(tent)  # (the hero adds beds on day one: newcomers come for them)
+	for i in _arg("tents", "0").to_int():
+		w.lodging.add_tent(tent)  # (the hero puts up tents on day one: newcomers come to live in them)
 	if "noup" in OS.get_cmdline_user_args():
 		w._end_of_tick.erase(w.trades)  # (nobody builds up: the tier 0 cluster on its own, for comparison)
 	if not full:

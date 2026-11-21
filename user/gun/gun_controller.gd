@@ -1,8 +1,9 @@
 ## CONTROLLER. The money gun in the player's hands. Hold fire to print bills: each is a real Bill in the
 ## model, and a paper projectile in the world. A bill that hits someone is delivered by its mode, and one
 ## that misses lands in the street for anyone to pick up (the player by walking over it, NPCs by fetching
-## it). Two modes, changed with the scroll wheel:
-##   GIFT    hold to spray $1 bills: money for nothing, earns rep
+## it). The bill's size, the rate of fire and the modes it has are the hero's gun tree's (GunTree). Two modes for now,
+## changed with the scroll wheel:
+##   GIFT    hold to spray bills: money for nothing, earns rep
 ##   INVEST  hold to charge, release to spit an investment contract (the longer the charge, the bigger):
 ##           it buys a share of the business it hits, and is void anywhere else. It is never left on the ground.
 ##
@@ -16,7 +17,6 @@ const LAYER_WORLD := 1
 const LAYER_NPC := 4
 const LAYER_MACHINE := 8
 const RANGE := 30.0
-const MODES := ["gift", "invest"]
 const MUZZLE_SPEED := 17.0
 ## Invest mode: a full charge takes this long, and a contract is worth from CONTRACT_MIN (at MIN_CHARGE) up to
 ## CONTRACT_MAX (a full charge), in whole $5. A trigger released before MIN_CHARGE just jams.
@@ -28,8 +28,6 @@ const CONTRACT_MAX := 250.0
 var mode := "gift"
 var world: World
 var camera: Camera3D
-var bill_value := 1.0
-var shots_per_second := 6.0
 ## How far the contract is charged, 0..1 (invest mode only).
 var charge := 0.0
 ## Off until the player has the gun in their hands (the intro drops it at their feet).
@@ -77,7 +75,8 @@ func set_suppressed(on: bool) -> void:
 func cycle_mode(step: int) -> void:
 	if not enabled:
 		return
-	mode = MODES[posmod(MODES.find(mode) + step, MODES.size())]
+	var modes := world.gun_tree.modes()  # (the finance modes the hero has: see GunTree)
+	mode = modes[posmod(modes.find(mode) + step, modes.size())]
 	charge = 0.0
 	rig.charge = 0.0
 	rig.set_mode(mode)
@@ -124,7 +123,7 @@ func step(held: bool, delta: float) -> void:
 		charge = 0.0
 		rig.charge = 0.0
 		if held and _cool <= 0.0:
-			_cool = 1.0 / shots_per_second
+			_cool = 1.0 / world.gun_tree.shots_per_second()
 			shoot()
 
 
@@ -147,7 +146,7 @@ func shoot() -> Bill:
 	var target: Vector3 = a.point
 	var dir := (target - from).normalized()
 	dir = dir.rotated(camera.global_basis.y, randf_range(-0.03, 0.03)).rotated(camera.global_basis.x, randf_range(-0.02, 0.04))
-	var bill := world.gun.fire(bill_value, mode)
+	var bill := world.gun.fire(world.gun_tree.bill_value(), mode)
 	var p := BillProjectile.new().launch(bill, world, from + dir * 0.5, dir * MUZZLE_SPEED * randf_range(0.92, 1.05), _on_hit)
 	_fx().add_child(p)
 	return bill

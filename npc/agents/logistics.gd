@@ -88,7 +88,7 @@ func _idle_post(d: Drone):
 	var fb = _w.food_bank_of(d)
 	if fb != null:
 		return fb.post()
-	if d.kind == "runner" and d.home.is_finite():
+	if d.kind in ["runner", "medic"] and d.home.is_finite():
 		return d.home
 	return null
 
@@ -137,7 +137,7 @@ func stand_point(d: Drone, job: Dictionary) -> Vector2:
 	if target is BarrelFire:
 		return target.shelter.berth_pos(target.pos, target.shelter.berths.size() + rank)
 	if target is Machine and target.shelter != null:
-		return target.bed_pos(target.shelter.berths.size() + rank)
+		return _w.lodging.bed_of(target, d)  # (their own tent)
 	if Queueing.applies(job):
 		return Queueing.spot(target, rank)  # the back of the line (see Queueing)
 	return target.pos + target.front * SLOT_RADIUS
@@ -195,7 +195,7 @@ func complete(d: Drone, job: Dictionary) -> void:
 	if job["for"] == "warmth" and t is Machine and t.shelter != null:  # into their own bed (free: see Lodging)
 		if t.working and t.shelter.has_room():
 			t.shelter.admit(d)
-			d.pos = t.bed_pos(t.shelter.berths.size() - 1)
+			d.pos = _w.lodging.bed_of(t, d)
 		return
 	var item: String = job.item
 	var price: float = t.price_of(item)

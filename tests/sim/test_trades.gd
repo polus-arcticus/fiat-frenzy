@@ -29,12 +29,19 @@ func test_every_trade_is_a_ladder_of_known_tiers() -> void:
 		var ladder: Array = Catalog.TRADES[trade]
 		for tier in ladder.size():
 			var id: String = ladder[tier]
-			if id == "" or id in ["food_bank", "welfare_office"]:
+			if id == "" or id in ["food_bank", "welfare_office", "first_aid", "medical_tent"]:
 				continue
 			var d := Catalog.machine(id)
 			check(d.trade == trade and d.tier == tier, "%s is the %s trade's tier %d" % [id, trade, tier])
-			check((d.build > 0.0) == (tier > 0 and ladder[tier - 1] != ""), "%s: building it up costs $%.0f (only from a tier below that is built)" % [id, d.build])
+			check((d.build > 0.0 or d.build_scrap > 0) == (tier > 0 and ladder[tier - 1] != "") and not (d.build > 0.0 and d.build_scrap > 0), "%s: building it up costs $%.0f or %d scrap (only from a tier below that is built)" % [id, d.build, d.build_scrap])
 			check(Catalog.item(d.item) != null and not Catalog.footprint_of(id).is_empty(), "%s makes a known item and has a footprint" % id)
+	for trade in Catalog.TRADES:
+		var bottom: String = Catalog.TRADES[trade][0]
+		if bottom == "" or not Catalog.has_machine(bottom) or Catalog.machine(bottom).inputs.is_empty():
+			continue  # (no tier 0 yet, a premises, or makes nothing from anything: the tent city)
+		var d := Catalog.machine(bottom)
+		var food: bool = Catalog.class_of(d.item) in ["food", "drink"]
+		check(food or d.inputs.has("scrap"), "%s: a tier-0 trade that makes no food or drink makes it from scrap (%s)" % [bottom, d.inputs])
 	check(Catalog.next_tier("hot_dog_stand") == "burger_bar" and Catalog.next_tier("burger_bar") == "", "a hot dog stand builds up into a burger bar, and that is as far as it goes for now")
 	check(Catalog.next_tier("bike_shop") == "" and Catalog.machine("bike_shop").tier == 1, "the bike shop is tier 1, with nothing above it")
 	var w := World.new()
@@ -133,12 +140,12 @@ func test_the_standard_cluster_as_it_is_found_and_funded() -> void:
 	var w := World.new()
 	Cluster.found(w, "block", Vector2.ZERO)
 	var vendors := w.zones.drones_in("block").filter(func(d): return d.kind == "vendor")
-	check(vendors.size() == Cluster.STANDS.size() and vendors.all(func(d): return d.wallet == 0.0 and not w.machine_of(d).working), "as it is found: every stand wrecked, every owner broke")
+	check(vendors.size() == Cluster.STANDS.size() and vendors.all(func(d): return d.wallet == 0.0 and w.machine_of(d).working == (w.machine_of(d).shelter != null)), "as it is found: every stand wrecked but the tent city, every owner broke")
 	check(w.food_banks.size() == 1 and w.welfare_offices.size() == 1 and w.relief_trucks.size() == 1 and w.zones.runners_in("block").size() == Cluster.RUNNERS, "with its food bank, runners, the van's stop and the welfare office")
 	check(_accounted(w), "the books balance")
 	w.begin_play()
 	Cluster.fund(w, "block")
-	check(vendors.all(func(d): return w.needs.demands(d).has("repair")), "funded once, every owner can repair their stand")
+	check(vendors.all(func(d): return w.machine_of(d).working or w.needs.demands(d).has("repair")), "funded once, every owner with a wrecked stand can repair it")
 	check(_accounted(w), "and the hero's money is counted as printed")
 
 

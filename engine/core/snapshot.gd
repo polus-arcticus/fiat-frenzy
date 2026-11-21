@@ -1,6 +1,6 @@
 ## The whole model as plain data, and back. A save is the state of a *started* world laid over a freshly built one: the
 ## scenario makes everything that is always there (the stands, the streets, the walls), and the snapshot says what has
-## changed since, and what has turned up (the bankers, loose bills, the bike) or gone (a bill picked up).
+## changed since, and what has turned up (the bankers, loose bills) or gone (a bill picked up).
 ##
 ## Everything is named by its uid (see World.mint), never by its place in a list, so a thing keeps its name across saves
 ## and two saves can be combined (see Merge). The lists are saved as lists of uids, in their order.
@@ -17,18 +17,18 @@
 class_name Snapshot
 extends RefCounted
 
-const VERSION := 2
+const VERSION := 3  # (3: the hero's bike is in their loadout, Drone.gear, not parked in the world)
 ## The systems whose state is saved: World.SAVED, the one list.
 const SYSTEMS := World.SAVED
 ## Variables that are derived, or computed, and so are never written or read.
 const DERIVED := {"Zones": ["_index", "_dirty", "version", "regions"], "Rescue": ["on_admitted"], "Skating": ["mounted"], "Portals": ["all"],
 	"Ledger": ["player_cash", "stake_income"], "Equity": ["stake"]}
 ## The world's lists of things, and the class each holds (a thing the save has and the fresh world lacks is made from it).
-const LISTS := {"drones": "Drone", "machines": "Machine", "food_banks": "FoodBank", "fires": "BarrelFire",
+const LISTS := {"drones": "Drone", "machines": "Machine", "food_banks": "FoodBank", "scrap_piles": "ScrapPile", "fires": "BarrelFire",
 	"relief_trucks": "ReliefTruck", "hospitals": "Hospital", "ambulances": "Ambulance", "bills": "Bill", "heroes": "Drone",
 	"welfare_offices": "WelfareOffice"}
 ## The things the world holds one of, by its field, and their class.
-const SINGLES := {"player": "Drone", "bike": "Bike", "bus": "Bus", "shuttle": "Bus"}
+const SINGLES := {"player": "Drone", "bus": "Bus", "shuttle": "Bus"}
 ## The world's own fields that are saved.
 const WORLD_FIELDS := ["build_zone", "gun_owned", "author", "seeding", "_seeded", "_made", "rng_state"]
 const _OMIT := "<omit>"

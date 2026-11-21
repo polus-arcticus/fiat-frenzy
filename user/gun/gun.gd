@@ -1,8 +1,8 @@
 ## The money gun, as the player uses it. Two modes for now (lines of credit come later):
 ##   gift    money for nothing, sprayed as bills; whoever it reaches keeps it, and thinks better of the player
-##   invest  a charged shot that spits an investment contract: a share of a vendor's business. The money goes
-##           to the vendor and the player gets that share of the machine's takings on every sale, forever.
-##           At most 49% of any business.
+##   invest  a charged shot that spits an investment contract: a share of a vendor's business, or of a runner's cart. The
+##           money goes to them and the player gets that share of the machine's takings on every sale (of the runner's
+##           delivery fees), forever. At most 49% of any business.
 ## All the money the player hands over, either way, is experience for whoever gets it (see Growth).
 ##
 ## Firing a bill prints it: it exists in the world straight away. If it hits someone it is delivered (hit);
@@ -96,12 +96,12 @@ func fire_contract(value: float) -> Contract:
 ##   "void"    nothing to buy into (no business, or already at the cap): all of it is void
 ## `stake` is the player's share afterwards, or -1 if they have no business.
 func hit_contract(c: Contract, d: Drone) -> Dictionary:
-	var m = _w.machine_of(d)
-	if m == null:
+	var b := business_of(d)
+	if b.is_empty():
 		return {"result": "void", "amount": 0.0, "stake": -1.0, "voided": c.value}
-	var accepted := _invest_core(d, m, c.value)
+	var accepted := _invest_core(d, b, c.value)
 	_w.ledger.printed += accepted
-	return {"result": "invest" if accepted > 0.0 else "void", "amount": accepted, "stake": m.equity.share(_hero()), "voided": c.value - accepted}
+	return {"result": "invest" if accepted > 0.0 else "void", "amount": accepted, "stake": b.equity.share(_hero()), "voided": c.value - accepted}
 
 
 ## The contract missed: it is void. Nothing was printed, so there is nothing to account for.
@@ -128,12 +128,23 @@ func credit_hero(amount: float) -> void:
 ## spent. Returns {accepted, stake}: the dollars that went in, and the player's stake afterwards; stake is -1
 ## if there is no business to buy into.
 func invest_ex(d: Drone, amount: float) -> Dictionary:
-	var m = _w.machine_of(d)
-	if m == null:
+	var b := business_of(d)
+	if b.is_empty():
 		return {"accepted": 0.0, "stake": -1.0}
-	var accepted := _invest_core(d, m, amount)
+	var accepted := _invest_core(d, b, amount)
 	_w.ledger.printed += accepted
-	return {"accepted": accepted, "stake": m.equity.share(_hero())}
+	return {"accepted": accepted, "stake": b.equity.share(_hero())}
+
+
+## What a contract can buy into of `d`'s: their machine (a share of its takings), or a runner's cart (a share of its delivery
+## fees: see Hauling). {equity, book, xp}: its stakes, what it is worth before any money, and the experience it has had; or {}.
+func business_of(d: Drone) -> Dictionary:
+	var m = _w.machine_of(d)
+	if m != null:
+		return {"equity": m.equity, "book": m.repair_cost, "xp": m.growth.xp}
+	if d.kind == "runner":
+		return {"equity": d.equity, "book": Drone.CART_VALUE, "xp": d.growth.xp}
+	return {}
 
 
 ## The player's stake afterwards, or -1 if the target has no business to buy into.
@@ -149,8 +160,8 @@ func _deliver_gift(d: Drone, amount: float) -> void:
 
 ## Buys the stake (priced before this money counts as experience, so the valuation is "pre-money"), hands
 ## the vendor what was accepted, and counts it as experience for them. Returns the dollars accepted.
-func _invest_core(d: Drone, m: Machine, amount: float) -> float:
-	var accepted: float = m.equity.buy(amount, m.repair_cost, m.growth.xp, _hero())
+func _invest_core(d: Drone, b: Dictionary, amount: float) -> float:
+	var accepted: float = (b.equity as Equity).buy(amount, b.book, b.xp, _hero())
 	if accepted > 0.0:
 		d.wallet += accepted
 		_w.levels.award(d, accepted)

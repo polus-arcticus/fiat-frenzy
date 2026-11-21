@@ -38,9 +38,10 @@ func _init(world: World, cast: Dictionary, with_pickup := false) -> void:
 	var fund_baker := _goal("bakery", "Fund the baker", "Hot dogs need buns. The baker's stand is wrecked too: gift him about $50 so he can bake.",
 		func(): return baker.pos, func(): return _w.machine_of(baker).working,
 		"The bakery is running: bread to eat, and buns for the hot dogs.", [walk])
-	_goal("tent", "Fund the tent keeper", "Night falls at 8:30pm and it gets bitter. Fund the tent keeper (and use the free barrel fire) or your drifters freeze.",
-		func(): return tent.pos, func(): return _w.machine_of(tent).working,
-		"The tent is open: beds out of the cold at night.", [walk])
+	var tents_at_start: int = _w.machine_of(tent).tents
+	_goal("tent", "Put up a tent", "Everyone here sleeps in the tent city, a tent each. Press E at it and put up another (the gun pays): someone new will come to live in it.",
+		func(): return tent.pos, func(): return _w.machine_of(tent).tents > tents_at_start,
+		"A new tent is up: someone will come to live in it.", [walk])
 	var lemonade: Drone = cast.get("lemonade")
 	if lemonade != null:
 		_goal("lemonade", "Fund the lemonade seller", "Something to drink: the lemonade stand is wrecked too.",

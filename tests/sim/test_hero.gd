@@ -5,8 +5,8 @@ extends TestCase
 func _hero_with_everything() -> World:
 	var w := World.new()
 	w.add_player(Vector2(10, 10), 100.0)
-	w.player.carry.add("skateboard", 1)
-	w.bike = Bike.new(Vector2(10, 10))
+	w.player.gear.add("skateboard", 1)
+	w.player.gear.add("bicycle", 1)
 	return w
 
 

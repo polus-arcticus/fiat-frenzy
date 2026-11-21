@@ -34,8 +34,16 @@ func decay(d: Drone, dt: float) -> void:
 		return  # out cold: nothing drains until the hospital has them up
 	d.bars.hunger = maxf(0.0, d.bars.hunger - dt / HUNGER_SECONDS)
 	d.bars.thirst = maxf(0.0, d.bars.thirst - dt / THIRST_SECONDS)
-	var cooling := dt / (NIGHT_COOLING if _w.clock.is_night() else DAY_COOLING)
-	d.bars.warmth = clampf(d.bars.warmth + warmth_gain(d) * dt - cooling, 0.0, 1.0)
+	if _w.lodging.is_housed(d):
+		d.bars.warmth = 1.0  # a tent of their own in a standing tent city keeps them warm (see Lodging)
+	else:
+		var usual := NIGHT_COOLING if _w.clock.is_night() else DAY_COOLING
+		var span := usual
+		if d.cold_spans != Vector2.ZERO:
+			span = d.cold_spans.y if _w.clock.is_night() else d.cold_spans.x
+		var feel := usual / span  # (one who feels the cold harder warms as much faster by a fire: the hero, see Cold)
+		var cooling := dt / (span / (1.0 - d.insulation()))  # clothes make a bar last longer in the open
+		d.bars.warmth = clampf(d.bars.warmth + warmth_gain(d) * feel * dt - cooling, 0.0, 1.0)
 	if d.bars.hunger <= 0.0 or d.bars.thirst <= 0.0 or d.bars.warmth <= 0.0:
 		d.starved_ticks += 1
 	_own_shelf(d)
@@ -147,8 +155,8 @@ func short_input(m: Machine) -> String:
 	var worst := ""
 	var low := float(RESTOCK_BELOW)
 	for raw in m.recipe:
-		if raw in Catalog.free_inputs() or raw in Catalog.relief_goods():
-			continue  # found, or delivered for free: nothing for the vendor to go and fetch
+		if raw in Catalog.scavenged_goods() or raw in Catalog.relief_goods():
+			continue  # gathered or delivered by runners and the van: nothing for the vendor to go and fetch
 		var crafts: float = float(m.input.count(raw)) / float(m.recipe[raw])
 		if crafts < low:
 			low = crafts

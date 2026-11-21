@@ -1,15 +1,13 @@
-## VIEW. The tent's screen (E at a tent): the cluster's home, as a drone bay. How many beds it has and how many are free, its
-## barrels and how many beds each warms, who sleeps there, and what the hero can do: add a bed (the money gun pays), take one
-## away (and who would leave for it), or sit a while by the barrels. It only displays and asks (add_requested,
-## remove_requested, warm_requested); the rules live in Lodging.
+## VIEW. The tent city's screen (E at it): the cluster's spawn factory. How many tents it has and how many stand empty, its
+## barrels, who lives in each tent, and what the hero can do: put up a tent (the money gun pays, and someone new comes to live in
+## it), or sit a while by the barrels. It only displays and asks (add_requested, warm_requested); the rules live in Lodging.
 class_name TentScreen
 extends CanvasLayer
 
 signal opened
 signal closed
-signal add_requested(tent: Machine)
-signal remove_requested(tent: Machine)
-signal warm_requested(tent: Machine)
+signal add_requested(city: Machine)
+signal warm_requested(city: Machine)
 
 const INK := InventoryScreen.INK
 const PAPER := InventoryScreen.PAPER
@@ -17,15 +15,14 @@ const ASLEEP := Color(0.35, 0.45, 0.75)
 const COLUMNS := 4
 
 var world: World
-var tent: Machine
+var tent: Machine  # (the tent city)
 
 var _title: Label
-var _beds: Label
+var _tents: Label
 var _barrels: Label
 var _news: Label
 var _who: GridContainer
 var _add: Button
-var _remove: Button
 var _warm: Button
 var _message: Label
 
@@ -57,11 +54,11 @@ func _ready() -> void:
 	v.add_theme_constant_override("separation", 8)
 	panel.add_child(v)
 	_title = _label(v, "", 26)
-	_beds = _label(v, "", 18)
+	_tents = _label(v, "", 18)
 	_barrels = _label(v, "", 16)
 	_news = _label(v, "", 15)
 	_news.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_label(v, "Who sleeps here", 18)
+	_label(v, "Who lives here", 18)
 	_who = GridContainer.new()
 	_who.columns = COLUMNS
 	_who.add_theme_constant_override("h_separation", 6)
@@ -71,7 +68,6 @@ func _ready() -> void:
 	row.add_theme_constant_override("separation", 10)
 	v.add_child(row)
 	_add = _button(row, func(): add_requested.emit(tent))
-	_remove = _button(row, func(): remove_requested.emit(tent))
 	_warm = _button(row, func(): warm_requested.emit(tent))
 	_message = _label(v, "", 16)
 	_message.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -120,17 +116,18 @@ func refresh(message := "") -> void:
 		_message.text = message
 	var lodging := world.lodging
 	var people := lodging.housed(tent)
-	var free := lodging.free_beds(tent)
+	var free := lodging.free_tents(tent)
 	_title.text = tent.display_name() + ("" if tent.working else "  ·  wrecked")
-	_beds.text = "Beds  %d   ·   taken %d   ·   free %d" % [tent.beds, people.size(), free]
-	_barrels.text = "Barrels  %d   ·   each warms %d beds" % [tent.modules(), tent.beds_per_barrel()]
+	_tents.text = "Tents  %d   ·   lived in %d   ·   empty %d" % [tent.tents, people.size(), free]
+	var room := lodging.room_for(tent)
+	_barrels.text = "Room for %d more at this tier" % room if room > 0 else "Full for its tier: build it up to grow"
 	if not tent.working:
-		_news.text = "Wrecked: its barrels are cold and nobody new will come. Its keeper needs $%d to put it back up." % int(tent.repair_cost + Needs.RESERVE)
+		_news.text = "Wrecked: nobody is kept warm and nobody new will come. Its keeper needs $%d to put it back up." % int(tent.repair_cost + Drone.RESERVE)
 	elif free > 0:
 		var left := Lodging.ARRIVE_EVERY - float(lodging.waiting.get(tent.uid, 0.0))
-		_news.text = "A free bed: someone will come for it in about %d s." % ceili(left)
+		_news.text = "An empty tent: someone will come to live in it in about %d s." % ceili(left)
 	else:
-		_news.text = "Every bed is taken. Add one and a newcomer will come and join the town."
+		_news.text = "Every tent is lived in. Put up another and someone new will come and join the town."
 	for c in _who.get_children():
 		_who.remove_child(c)
 		c.queue_free()
@@ -139,17 +136,12 @@ func refresh(message := "") -> void:
 		chip.custom_minimum_size.x = 110
 		if d.sheltered_in == tent.shelter:
 			chip.add_theme_color_override("font_color", ASLEEP)
-			chip.tooltip_text = "asleep in their bed"
+			chip.tooltip_text = "asleep in their tent"
 	for i in free:
-		var chip := _label(_who, "(free bed)", 14)
+		var chip := _label(_who, "(empty tent)", 14)
 		chip.modulate.a = 0.5
-	var cost := lodging.next_bed_cost(tent)
-	var new_barrel := cost > Lodging.BED_COST
-	_add.text = "Add a bed  $%.0f%s" % [cost, "  (and a barrel)" if new_barrel else ""]
-	_add.disabled = not world.gun_owned
-	_add.tooltip_text = "The money gun pays for it." if world.gun_owned else "You need the money gun to pay for it."
-	var leaver := lodging.who_would_leave(tent)
-	_remove.text = "Take a bed away" + ("" if free > 0 or leaver == null else "  (%s leaves)" % (leaver.label if leaver.label != "" else "a drifter"))
-	_remove.disabled = tent.beds <= 0 or (free <= 0 and leaver == null)
+	_add.text = "Put up a tent  $%.0f" % lodging.next_tent_cost(tent)
+	_add.disabled = not world.gun_owned or room <= 0
+	_add.tooltip_text = "You need the money gun to pay for it." if not world.gun_owned else ("The money gun pays for it." if room > 0 else "No room at this tier.")
 	_warm.text = "Sit by the barrels"
 	_warm.disabled = not tent.working

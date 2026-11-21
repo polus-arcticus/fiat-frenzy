@@ -6,7 +6,7 @@ func _rider(with_board := true) -> World:
 	var w := World.new()
 	w.add_player(Vector2(10, 10), 100.0)
 	if with_board:
-		w.player.carry.add("skateboard", 1)
+		w.player.gear.add("skateboard", 1)
 	return w
 
 
@@ -19,14 +19,14 @@ func test_you_need_a_board_to_get_on_it() -> void:
 	var none := _rider(false)
 	check(not none.skating.mount().ok and not none.skating.mounted, "no board, no skating")
 	var w := _rider()
-	check(w.skating.mount().ok and w.skating.mounted, "with a board in the bag you can get on")
+	check(w.skating.mount().ok and w.skating.mounted, "with a board in your loadout you can get on")
 	check(not w.skating.mount().ok, "but not twice")
 	w.skating.dismount()
 	check(not w.skating.mounted and w.skating.speed == 0.0, "getting off stops it")
 	w.player.care = "down"
 	check(not w.skating.mount().ok, "and not while out cold")
 	w.player.care = ""
-	w.bike = Bike.new(Vector2(10, 10))
+	w.player.gear.add("bicycle", 1)
 	w.hero.mode = Hero.Mode.RIDING
 	check(not w.skating.mount().ok, "nor on the bike")
 	w.hero.stand()

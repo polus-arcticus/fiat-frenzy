@@ -11,7 +11,10 @@ const NEEDS := ["hunger", "thirst", "warmth"]
 const RESERVE := 10.0  # dollars an agent keeps back for groceries before it spends on stock, repairs or building up
 ## How two saves of the same drone combine (see Merge): what each save added to these is added up; anything not listed is
 ## taken from the host's save.
-const MERGE := {"wallet": "sum", "rep": "max", "delivered_total": "sum", "fees_earned": "sum"}
+const MERGE := {"wallet": "sum", "rep": "max", "delivered_total": "sum", "deliveries": "sum", "fees_earned": "sum"}
+## What a runner's cart business is worth before anyone gives it a cent (its "book", like a machine's repair cost: see Equity).
+const CART_VALUE := 20.0
+const MAX_INSULATION := 0.9  # however many coats: the cold still gets in (a tenth as fast)
 
 var uid := ""      # who this is, for good: unique across saves, so two saves can be combined (see World.mint)
 var label := ""        # a name for the HUD
@@ -19,6 +22,10 @@ var kind := "drifter"  # drifter, vendor, keeper or runner
 var look := ""         # which model to wear, if not the one for its kind (e.g. "banker")
 var wallet := 0.0
 var carry := Inventory.new()
+var gear := Inventory.new()  # what they have on and ride: the hero's loadout (see Loadout); nobody else's yet
+## Seconds a full warmth bar lasts in the open without clothes, for this one: x by day, y at night. Zero: the street's usual
+## (Needs.DAY_COOLING, NIGHT_COOLING). The hero's is much shorter (Cold).
+var cold_spans := Vector2.ZERO
 var bars := {"hunger": 1.0, "thirst": 1.0, "warmth": 1.0}
 var rep := 0.0         # how much this one thinks of the player
 var growth := Growth.new()  # the money the player has given them, and the level that adds up to
@@ -35,10 +42,11 @@ var bank := ""         # the uid of the food bank this drone keeps, or ""
 var cart := Inventory.new()  # a runner's shopping cart
 var home := Vector2(INF, INF)  # where a runner waits between jobs
 var delivered_total := 0       # units a runner has delivered
-var fees_earned := 0.0         # what its deliveries have paid it over cost
+var deliveries := 0            # and in how many trips
+var fees_earned := 0.0         # what its deliveries have paid in fees (the heroes' shares included)
+var equity := Equity.new()     # a runner's: the heroes' shares of its cart business (of its fees: see Hauling)
 var sheltered_in: Shelter = null
-var bed := ""          # the uid of the tent this one has a bed in (their home in the cluster: see Lodging), or ""
-var gone := false      # has packed up and left town (no longer in the world: its view goes too)
+var bed := ""          # the uid of the tent city this one has their tent in (their home in the cluster: see Lodging), or ""
 var starved_ticks := 0
 var speech := ""        # what they last said, and for how much longer it stays up (see Chatter)
 var speech_ttl := 0.0
@@ -53,6 +61,14 @@ var care_rate := 1.0   # how fast the medical tent mends them, compared with an 
 var wake_at := -1.0    # how well they are when the tent lets them go (below zero: the tent's usual)
 var aura := false      # shows a gold glow: they need the player's help (see Attention)
 var care := ""       # "" fit; "down" collapsed; "carried" in the ambulance; "patient" in a hospital bed
+
+
+## How much the clothes they have on keep the cold out (ItemDef.insulation, added up), at most MAX_INSULATION.
+func insulation() -> float:
+	var total := 0.0
+	for item in gear.counts:
+		total += Catalog.item(item).insulation * gear.count(item)
+	return minf(total, MAX_INSULATION)
 
 
 func _init(at := Vector2.ZERO, start_wallet := 0.0) -> void:

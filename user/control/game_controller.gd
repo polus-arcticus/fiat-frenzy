@@ -23,6 +23,7 @@ var screens: ScreenStack
 var intro: IntroController
 var collapse: CollapseController
 var map_screen: MapScreen
+var gun_tree_screen: GunTreeScreen  # U: the money gun's upgrades
 var dialogue: DialogueScreen
 var sage_controller: SageController
 var bike_controller: BikeController
@@ -161,6 +162,9 @@ func _build_screens(district: Dictionary) -> void:
 	inventory.closed.connect(func():  # (and so the bag, which can be opened from a seat)
 		if player.is_seated():
 			player.controls_enabled = false)
+	gun_tree_screen = GunTreeScreen.new()
+	add_child(gun_tree_screen)
+	screens.register(gun_tree_screen)
 	fade = FadeScreen.new()
 	add_child(fade)
 	pause = PauseScreen.new()
@@ -289,6 +293,12 @@ func _unhandled_input(e: InputEvent) -> void:
 		if may_look and world.player.care == "" and not inventory.visible and not dialogue.visible and not map_screen.visible:
 			map_screen.open()
 			get_viewport().set_input_as_handled()
+	elif e.is_action_pressed("gun_tree"):
+		if gun_tree_screen.visible:
+			gun_tree_screen.close()
+		elif player.controls_enabled and world.gun_owned:
+			gun_tree_screen.open(world)
+		get_viewport().set_input_as_handled()
 	elif e is InputEventKey and e.pressed and not e.echo and e.keycode == KEY_F5:
 		save_game("quicksave")
 	elif e.is_action_pressed("speed"):

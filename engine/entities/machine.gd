@@ -10,17 +10,13 @@
 class_name Machine
 extends Premises
 
-## How many crafts' worth of each input a machine can hold (it was 4; a little more room so a van visit
-## or a runner's trip goes further).
-const INPUT_CRAFTS := 6
-
 var item: String
 ## How two saves of the same business combine (see Merge): sales add up, it is working if either save repaired it, and it is
 ## at the higher tier if either save built it up (Merge.settle then makes the rest of it agree: see retier).
 const MERGE := {"sold_total": "sum", "crafted_total": "sum", "revenue_total": "sum", "working": "any", "price_peak": "max",
-	"tier": "max", "built_total": "sum", "beds": "max"}
-## A tent's modules, side by side: each this wide, a tent section with its barrel in front (see Lodging).
-const MODULE_WIDTH := 2.0
+	"tier": "max", "built_total": "sum", "tents": "max"}
+## The tent city's tents stand side by side, each this wide (see Lodging).
+const TENT_WIDTH := 2.0
 
 var working := false
 var input := Inventory.new()
@@ -36,10 +32,11 @@ var equity := Equity.new()
 var growth := Growth.new()  # shared with its owner once it has one (World.add_vendor)
 var level := 1              # how far it has expanded; follows the growth level (set_level)
 var shelter: Shelter = null  # tents only
-## A tent's beds (see Lodging): how many people the cluster can hold. Each of its barrels warms `Catalog.machine(kind).cap` of
-## them, so it has as many modules (a section and a barrel) as that takes. Modules are added to its side `wing` (+1 or -1 along
-## its own x: down the street, away from the market).
-var beds := 0
+## The tent city (the "tent" kind, see Lodging): how many tents it has, one person to each, so how many people the cluster
+## holds (at most `Catalog.machine(kind).cap` at its tier). The row goes on to its side `wing` (+1 or -1 along its own x: down
+## the street, away from the market).
+var tents := 0
+var tents_cap := 0  # more room than its tier gives, if a scenario laid it out bigger (0: just the tier's)
 var wing := 1.0
 
 var price_peak := 0.0
@@ -79,7 +76,7 @@ func retier(new_kind: String) -> void:
 	if item != old_item:
 		output.caps[item] = Catalog.machine(kind).cap
 		output.add(item, 1)
-		price = maxf(price, floor_price())
+		price = Catalog.base_price(item) if Catalog.machine(kind).flat_price else maxf(price, floor_price())  # (a camp's bike at the bike's price)
 	for inv in [output, input]:  # (anything the new tier does not make or use; after a merge, what the lower tier left)
 		for k in inv.counts.keys():
 			if k != item and not recipe.has(k):
@@ -131,42 +128,25 @@ func capacity() -> int:
 
 
 func offers(wanted: String) -> bool:
-	return working and shelter == null and wanted == item and stock() >= 1  # (a tent sells nothing: its beds are homes)
+	return working and shelter == null and wanted == item and stock() >= 1  # (a tent sells nothing: its tents are homes)
 
 
-## How many beds each of a tent's barrels warms.
-func beds_per_barrel() -> int:
-	return Catalog.machine(kind).cap
-
-
-## A tent's modules (a section and its barrel each): enough for its beds, and at least one.
-func modules() -> int:
-	return maxi(1, ceili(beds / float(beds_per_barrel())))
-
-
-## Where a tent's `index`th bed is: each module's beds two abreast, in rows going back into the tent, the modules side by side
-## down `wing`. They keep well clear of the walls (Navigation holds a margin round every wall: someone who woke up in it could
-## not find a way out).
+## The middle of the `index`th tent in the row, where its person sleeps: the tents side by side down `wing`. (Well clear of the
+## walls: Navigation holds a margin round every wall, and someone who woke up in it could not find a way out.)
 func bed_pos(index: int) -> Vector2:
-	var per := beds_per_barrel()
-	var m := index / per
-	var slot := index % per
-	var rows := maxi(1, ceili(per / 2.0))
-	var x := m * MODULE_WIDTH + (-0.35 if slot % 2 == 0 else 0.35)
-	var z := 0.3 if rows == 1 else lerpf(-0.5, 1.15, float(slot / 2) / float(rows - 1))
-	return pos + Vector2(-front.y, front.x) * x * wing - front * z
+	return pos + Vector2(-front.y, front.x) * index * TENT_WIDTH * wing - front * 0.3
 
 
-## A tent takes up the ground of all its modules (one long tent, open along the front); anything else, its kind's shape.
+## The tent city takes up the ground of its whole row (one long tent, open along the front); anything else, its kind's shape.
 func solid() -> Footprint:
 	if shelter == null:
 		return super()
 	if _solid == null:
 		var shape: Array = Catalog.footprint_of(kind).tent
-		var k := modules()
-		var centre := pos + Vector2(-front.y, front.x) * wing * (k - 1) * MODULE_WIDTH * 0.5
+		var k := maxi(1, tents)
+		var centre := pos + Vector2(-front.y, front.x) * wing * (k - 1) * TENT_WIDTH * 0.5
 		_solid = Footprint.new(centre, front)
-		_solid.tent(float(shape[0]) + (k - 1) * MODULE_WIDTH * 0.5, shape[1], shape[2])
+		_solid.tent(float(shape[0]) + (k - 1) * TENT_WIDTH * 0.5, shape[1], shape[2])
 	return _solid
 
 
@@ -192,10 +172,14 @@ func set_level(new_level: int) -> void:
 	rate_per_min = d.rate * pow(1.25, level - 1)
 	output.caps[item] = d.cap + Stacks.SIZE * (level - 1)
 	if shelter != null:
-		shelter.capacity = beds  # (a tent's beds are built, not grown: see Lodging)
+		shelter.capacity = tents  # (a tent city's tents are built, not grown: see Lodging)
 		_solid = null
 	for raw in recipe:
-		input.caps[raw] = recipe[raw] * (INPUT_CRAFTS + level - 1)
+		input.caps[raw] = recipe[raw] * (d.stock_crafts + level - 1)
+	var up := Catalog.next_tier(kind)
+	if up != "" and Catalog.machine(up).build_scrap > 0:  # its next tier is built of pooled scrap: room for it, on top
+		var crafts: int = recipe.get("scrap", 0) * (d.stock_crafts + level - 1)
+		input.caps["scrap"] = crafts + Catalog.machine(up).build_scrap
 	refresh()
 
 
@@ -203,7 +187,7 @@ func set_level(new_level: int) -> void:
 func refresh() -> void:
 	output.offer = {item: stock()} if working and shelter == null else {}
 	input.want = {}
-	for raw in recipe:
+	for raw in input.caps:  # (its recipe's inputs, and what its next tier is built of, if that is a good: see build_stock)
 		input.want[raw] = input.room(raw)
 
 
@@ -214,9 +198,6 @@ func receive(raw: String, n: int, unit_price: float) -> void:
 
 
 func step(dt: float) -> void:
-	for raw in Catalog.free_inputs():  # scrap is found lying around
-		if recipe.has(raw):
-			input.add(raw, input.room(raw))
 	if working:
 		craft_progress += rate_per_min * dt / 60.0
 		while craft_progress >= 1.0:

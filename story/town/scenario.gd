@@ -20,7 +20,10 @@ const SAGE_STREET := "Battonnstraße"
 const SAGE_BUILDING := 249389854
 const KERB_STALL := 4.6        # a stall's middle, this far from the centre line: at the kerb edge of the pavement
 const TENT_DEPTH := 2.6        # a tent's middle, this far in from the building line
-const HOSPITAL_CENTRE := 6.3   # the medical tent's middle: its open end a step back from the kerb, its back wall on the pavement
+## The street's barrel fires besides the one by the tent city (at 3.5): [metres along from the market, side]. About 60 m apart,
+## less than the 0.75 block (82 m) a full bar lasts the hero at night (Cold); the tents run down the right side past the market.
+const STREET_FIRES := [[-175.0, 1.0], [-120.0, 1.0], [-55.0, 1.0], [60.0, -1.0], [125.0, -1.0], [185.0, -1.0]]
+const HOSPITAL_CENTRE := 6.3  # the medical tent's middle: its open end a step back from the kerb, its back wall on the pavement
 const ECB_STREET := "Sonnemannstraße"
 const ECB_BUILDING := 156432555  # the European Central Bank
 const ECB_ZONE := "ecb"          # the market at the bank is a zone of its own, so the first market's people do not trek 2 km to it
@@ -28,7 +31,7 @@ const ECB_REGION_MARGIN := 90.0  # the zone reaches this far round the stop, the
 const LIFT_ZONE := Quests.LIFT_ZONE     # the room the bank's lift goes up to: a zone of its own, built far off the map
 const LIFT_ROOM_CENTRE := Vector2(-3000.0, -3000.0)
 const LIFT_ROOM_HALF := Vector2(8.0, 7.0)  # half its width (x) and depth (y)
-const ECB_KERB_BACK := 9.0      # the stalls stand this far out from the buildings opposite the bank (the pavement and its yard), on that side
+const ECB_KERB_BACK := 9.0     # the stalls stand this far out from the buildings opposite the bank (the pavement and its yard), on that side
 
 var district: Dictionary
 var cast := {}      # "hot_dog", "bakery", "lemonade", "tent", "food_bank": the keeper; "runners": the cart runners
@@ -168,6 +171,7 @@ func build() -> World:
 	cast["bakery"] = _vendor(w, "bakery", "Baker", -1.0, -1.0, 6.0, stall, false)
 	cast["lemonade"] = _vendor(w, "lemonade_stand", "Lemonade seller", 4.5, -1.0, 10.0, stall, false)
 	cast["tent"] = _vendor(w, "tent", "Tent keeper", 7.0, 1.0, 4.0, -TENT_DEPTH, true)
+	w.machine_of(cast.tent).working = true  # (the tent city stands: it is where the town lives, and where newcomers come to)
 
 	var fire_spot := _spot(3.5, 1.0, -2.0)  # by the tent, against the buildings: off the walkway
 	var fire := w.add_fire(fire_spot.pos)
@@ -210,6 +214,24 @@ func build() -> World:
 	_add_ecb_market(w)  # (the drones before it keep their numbers)
 	_add_lift(w)        # (last, for the same reason)
 	_add_welfare_office(w)  # (after everything else, so nobody's uid changes)
+	# A homeless camp among the bike scrap, on the left-hand pavement back up the street past the start (see Camp).
+	var camp_spot := _spot(-30.0, -1.0, KERB_STALL)
+	var camp := Camp.pitch(w, camp_spot.pos, camp_spot.away)
+	facing[camp] = atan2(-(camp_spot.away as Vector2).x, -(camp_spot.away as Vector2).y)
+	cast["camp"] = w.drone(camp.owner)
+	# A thrift stall between it and the market, stitching old coats from the street's scrap (its own pile: the camp's is spoken
+	# for). (The food bank and its runners are further down, past the camp.)
+	var thrift_spot := _spot(-20.0, -1.0, KERB_STALL)
+	var thrift := Camp.pitch(w, thrift_spot.pos, thrift_spot.away, Camp.KEEPER_WALLET, "thrift_stall", "Thrift seller")
+	facing[thrift] = atan2(-(thrift_spot.away as Vector2).x, -(thrift_spot.away as Vector2).y)
+	cast["thrift"] = w.drone(thrift.owner)
+	# Barrel fires down Kaiserstraße, Moselstraße to Gallusanlage, against the buildings: the hero, new to the street, gets
+	# about two blocks from one by day and under one at night without clothes (Cold), so they are a little closer than that.
+	for spot in STREET_FIRES:
+		var s := _spot(spot[0], spot[1], -2.0)
+		var f := w.add_fire(s.pos)
+		facing[f] = atan2(-(s.toward as Vector2).x, -(s.toward as Vector2).y)
+	_add_ecb_fires(w)
 	start = _at(-24.0, 0.0)  # far enough that "walk over to the hot dog vendor" is a real first step
 	start_yaw = atan2(-(_frame.dir as Vector2).x, -(_frame.dir as Vector2).y)
 	w.transit.add_bus(bus_stop.pos, (_frame.dir as Vector2).angle())
@@ -230,10 +252,13 @@ func build() -> World:
 	wreck_pos = offset_on_street(_at(34.0, 0.0), 0.0, 0.0)
 	wreck_yaw = start_yaw + 0.5
 	gun_rest = start + (_frame.dir as Vector2) * 3.4
-	var tent := w.machine_of(cast.tent)  # the town's home: a bed in it for everyone here (see Lodging), its modules going on
-	tent.wing = signf(Vector2(-tent.front.y, tent.front.x).dot(_frame.dir))  # down the street, away from the market
-	w.zones.invalidate()
-	w.lodging.house_everyone(tent)
+	# The tent city: a tent for everyone in the town (the clerk and the shop owners too), but for the story's scripted cast (Mr.
+	# Nobody has a house; the bank's people have the bank). Its row goes on down the street, away from the market. (The bankers
+	# come later, by helicopter.)
+	var tent := w.machine_of(cast.tent)
+	tent.wing = signf(Vector2(-tent.front.y, tent.front.x).dot(_frame.dir))
+	w.lodging.house_everyone(tent, [w.cast.sage, w.cast.doorman, w.cast.receptionist, w.cast.technician])
+	tent.tents_cap = tent.tents + Cluster.ROOM_TO_GROW  # (the story's town is bigger than an atom: room for a few more all the same)
 	return w
 
 
@@ -377,6 +402,23 @@ func _add_ecb_market(w: World) -> void:
 		d.label = ECB_VISITORS[i]
 	w.build_zone = Zones.HOME
 	w.zones.asleep.append(ECB_ZONE)  # the bank's people wait, fresh, until the hero gets there
+
+
+## Two barrel fires at the bank: one among the market's stalls (in reach of the gate, where the hero waits on the doorman), and
+## one on the plaza beside the main entrance, where the shuttle lets them off (see Cold).
+func _add_ecb_fires(w: World) -> void:
+	if ecb_lane.is_empty():
+		return
+	w.build_zone = ECB_ZONE
+	var s := _spot(14.0, ecb_lane.side, ecb_lane.kerb, ecb_lane)
+	facing[w.add_fire(s.pos)] = atan2(-(s.toward as Vector2).x, -(s.toward as Vector2).y)
+	var out: Vector2 = ((ecb_gate.entrance as Vector2) - (ecb.door as Vector2)).normalized()  # (from the door, onto the plaza)
+	var aside := Vector2(-out.y, out.x)
+	if aside.x > 0.0:  # (to the west of it: the shuttle comes in from the east)
+		aside = -aside
+	var at: Vector2 = (ecb_gate.entrance as Vector2) + aside * 5.0
+	facing[w.add_fire(at)] = atan2(out.x, out.y)
+	w.build_zone = Zones.HOME
 
 
 func _bounds(poly: PackedVector2Array) -> Rect2:

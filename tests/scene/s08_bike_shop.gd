@@ -42,13 +42,10 @@ func run() -> void:
 	game.advance(0.2)
 	var bought := w.commerce.buy(w.machine_of(owner), "bicycle")
 	game.advance(0.2)
-	check(bought.ok and w.bike != null and game.bike_controller._view != null, "buying the bike parks one outside, with a view of it in the street")
+	check(bought.ok and w.player.gear.count("bicycle") == 1, "buying the bike puts it in your loadout")
 	var gun_visible_before: bool = game.gun.visible
 	game.bike_controller.toggle()
 	check(w.riding.riding() and game.player.speed_scale > 2.0 and not game.gun.visible and game.bike_controller._rig.visible, "F gets on: faster, the gun is put away and the handlebars show")
-	game.player.teleport(Vector3(outside.x + 20.0, 0.1, outside.y), 0.0)
-	game.advance(0.2)
-	check(w.bike.pos.distance_to(game.player.ground_pos()) < 0.5, "the bike goes where you go")
 	w.player.bars.hunger = 0.0
 	game.advance(0.5)
 	check(not w.riding.riding() and game.player.speed_scale == 1.0, "and if you pass out you are taken off it")

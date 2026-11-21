@@ -32,7 +32,7 @@ func test_experience_levels_up_the_business() -> void:
 	var keeper := tent_w.add_vendor("tent", Vector2.ZERO, 0.0, false, false)
 	var tent := tent_w.machine_of(keeper)
 	tent_w.gun.gift(keeper, 50.0)
-	check(tent.level == 2 and tent.shelter.capacity == tent.beds, "a tent levels up too, but its beds are built, not grown (see Lodging)")
+	check(tent.level == 2 and tent.shelter.capacity == tent.tents, "a tent city levels up too, but its tents are put up, not grown (see Lodging)")
 	var bw := World.new()
 	var kp := bw.add_food_bank(Vector2.ZERO)
 	var fbank := bw.food_bank_of(kp)

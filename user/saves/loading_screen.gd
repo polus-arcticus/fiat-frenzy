@@ -22,7 +22,7 @@ const TIPS := [
 	"Scroll the wheel to switch from gifting to investing.",
 	"A stake in a business pays you forever.",
 	"Nights are cold. A barrel fire warms whoever stands near it.",
-	"Press F on a skateboard. Press jump twice for a kickflip. It pays $25.",
+	"Press B on a skateboard. Press jump twice for a kickflip. It pays $25.",
 	"Anyone with a gold glow needs your help.",
 ]
 const SKY_TOP := Color("#2b1d4a")

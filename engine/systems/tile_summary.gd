@@ -3,8 +3,8 @@
 ## errand is planned and carried out by the same rules as in full detail (Logistics.plan and Logistics.complete), only
 ## without the walk: so prices, takings, stakes and the books move exactly as they would, a little sooner.
 ##
-## Warmth is the one thing summarised coarsely: in a zone with a barrel fire, people are taken to be by it (they do not cool);
-## in a zone without one they cool as usual. Whoever collapses goes down, as in full detail, and the zone's medical tent takes
+## Warmth is the one thing summarised coarsely: in a zone with a barrel fire, or with a tent of their own in a standing tent
+## city, people are taken to be warm (they do not cool); otherwise they cool as usual. Whoever collapses goes down, as in full detail, and the zone's medical tent takes
 ## them in without the ambulance's drive. Nobody walks, so when the hero arrives everyone is where they were left (or in a
 ## bed), and plans afresh.
 class_name TileSummary
@@ -27,6 +27,9 @@ func step(zone: String, dt: float) -> void:
 		m.step(dt)
 	for fb in _w.zones.food_banks_in(zone):
 		fb.step(dt)
+	for p in _w.scrap_piles:
+		if p.zone == zone:
+			p.step(dt)
 	_w.needs.wake_sleepers([zone])
 	var by_a_fire := not _w.zones.fires_in(zone).is_empty()
 	var here: Array = _w.zones.drones_in(zone).duplicate()
@@ -49,10 +52,15 @@ func _rescue(zone: String, dt: float) -> void:
 				h.admit(d)
 
 
+## Does `d` have a tent in a tent city that is standing (whose barrels keep them warm)?
+func _home_stands(d: Drone) -> bool:
+	return _w.lodging.is_housed(d)
+
+
 func _drain(d: Drone, dt: float, by_a_fire: bool) -> void:
 	if d.unconscious() or d.needless:
 		return
-	if by_a_fire or d.sheltered_in != null:
+	if by_a_fire or d.sheltered_in != null or _home_stands(d):
 		var warmth: float = d.bars.warmth
 		_w.needs.decay(d, dt)
 		d.bars.warmth = maxf(warmth, d.bars.warmth)  # by the fire: they keep what warmth they had

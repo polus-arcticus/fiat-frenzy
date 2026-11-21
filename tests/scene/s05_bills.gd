@@ -38,7 +38,7 @@ func run() -> void:
 	game.player.teleport(Vector3(game.scenario.start.x, 0.1, game.scenario.start.y), game.scenario.start_yaw)
 	var printed0 := w.ledger.printed
 	var fired: Bill = game.gun.shoot()
-	check(game.gun.bill_value == 1.0 and is_equal_approx(w.ledger.printed, printed0 + 1.0) and w.bills.has(fired) and not fired.loose, "firing the gun prints a real $1 bill into the world")
+	check(w.gun_tree.bill_value() == 1.0 and is_equal_approx(w.ledger.printed, printed0 + 1.0) and w.bills.has(fired) and not fired.loose, "firing the gun prints a real $1 bill into the world")
 	for i in 340:
 		await tree.physics_frame
 	check(w.bills.all(func(b): return b.loose), "every bill in the air eventually comes down (%d lying about)" % w.bills.size())

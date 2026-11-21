@@ -79,13 +79,13 @@ func test_night_is_colder_and_tent_docks_drones() -> void:
 	sleeper.bars = Fixtures.bars(1.0, 1.0, 0.6)
 	w2.clock.time = Clock.NIGHT_FROM * Clock.DAY_SECONDS - 3.0
 	check(w2.needs.demands(sleeper).is_empty(), "just before dusk it wants nothing")
-	var t := Fixtures.until(w2, func(): return sleeper.sheltered_in != null, 100)
-	check(t >= 0 and sleeper in tent.shelter.berths and sleeper.pos.distance_to(tent.pos) < 2.0, "after dusk it walked to the tent and lay down in its own bed")
+	tent.working = true
+	Fixtures.run(w2, 200)
+	check(sleeper.bars.warmth >= 1.0 and w2.needs.demands(sleeper).filter(func(c): return c == "warmth").is_empty(), "with a tent of its own in a standing tent city, the night never chills it: it needs no fire")
 	check(is_equal_approx(sleeper.wallet, 20.0), "it is their home: it cost nothing")
-	var warmth_in: float = sleeper.bars.warmth
-	t = Fixtures.until(w2, func(): return sleeper.sheltered_in == null, 400)
-	note("    left the tent at t=%.0f (night ends at %.0f), warmth %.2f -> %.2f" % [w2.clock.time, Clock.DAY_SECONDS, warmth_in, sleeper.bars.warmth])
-	check(t >= 0 and sleeper.bars.warmth >= 0.97 and tent.shelter.berths.is_empty(), "it left once the barrel fire had warmed it through")
+	tent.working = false
+	Fixtures.run(w2, 60)
+	check(sleeper.bars.warmth < 1.0, "a wrecked tent city keeps nobody warm (%.2f)" % sleeper.bars.warmth)
 
 
 func test_barrel_fire_is_free_warmth() -> void:
@@ -116,11 +116,11 @@ func test_barrel_fire_is_free_warmth() -> void:
 		if i < 4:
 			d.bed = tent.uid
 			housed.append(d)
-	w2.lodging.set_beds(tent, 4)
+	w2.lodging.set_tents(tent, 4)
 	w2.clock.time = Clock.NIGHT_FROM * Clock.DAY_SECONDS + 1.0
 	Fixtures.run(w2, 30)
 	check(w2.fires[0].shelter.berths.size() == 7 and w2.fires[0].shelter.berths.all(func(d): return d.bed == ""), "with a tent too, the seven without a bed in it (six drifters and its keeper) go to the fire (%d there, %d of them with a bed)" % [w2.fires[0].shelter.berths.size(), w2.fires[0].shelter.berths.filter(func(d): return d.bed != "").size()])
-	check(housed.all(func(d): return d.sheltered_in == tent.shelter or (not d.job.is_empty() and d.job.target == tent)), "and those with one go to it: everyone is under cover")
+	check(housed.all(func(d): return d.bars.warmth >= 1.0), "and those with a tent are warm in it: everyone is under cover")
 
 
 func test_warmth_falls_off_with_the_square_of_distance() -> void:

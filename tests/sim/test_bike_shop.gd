@@ -58,19 +58,16 @@ func test_buying_the_bike() -> void:
 	var owner: Drone = sw[1]
 	var shop: Machine = sw[2]
 	var r := w.commerce.buy(shop, "bicycle")
-	check(not r.ok and r.text.begins_with("Not enough cash") and w.bike == null and shop.stock() == 1, "$1 short: refused, and nothing happens")
+	check(not r.ok and r.text.begins_with("Not enough cash") and w.riding.bike() == "" and shop.stock() == 1, "$1 short: refused, and nothing happens")
 	w.ledger.player_cash = Catalog.bike_price()
 	w.ledger.printed += 1.0
 	var owner_before := owner.wallet
 	r = w.commerce.buy(shop, "bicycle")
-	check(r.ok and w.bike != null and not w.riding.riding(), "with $3,000 you get a bike")
+	check(r.ok and w.riding.bike() == "bicycle" and not w.riding.riding(), "with $3,000 you get a bike")
 	check(w.ledger.player_cash == 0.0 and is_equal_approx(owner.wallet, owner_before + Catalog.bike_price()), "the $3,000 went to the owner")
 	check(shop.stock() == 0 and not shop.offers("bicycle"), "and the shop is sold out of bicycles")
-	check(w.bike.pos.distance_to(w.player.pos) < 1.5 and w.player.carry.count("bicycle") == 0, "the bike waits beside you; it isn't in your bag")
+	check(w.player.gear.count("bicycle") == 1 and w.player.carry.count("bicycle") == 0, "the bike is in your loadout, not your bag")
 	check(is_equal_approx(w.total_money(), w.ledger.printed), "money is conserved")
-	w.ledger.player_cash = 5000.0
-	w.ledger.printed += 5000.0
-	check(not w.commerce.buy(shop, "bicycle").ok, "and you can't buy a second one")
 
 
 func test_riding_the_bike() -> void:
@@ -78,17 +75,12 @@ func test_riding_the_bike() -> void:
 	var w: World = sw[0]
 	check(not w.riding.mount().ok and w.riding.speed_factor() == 1.0, "no bike, nothing to ride")
 	w.commerce.buy(sw[2], "bicycle")
-	w.player.pos = w.bike.pos + Vector2(Riding.MOUNT_REACH + 2.0, 0)
-	check(not w.riding.mount().ok and not w.riding.riding(), "you can't get on a bike that is across the street")
-	w.player.pos = w.bike.pos + Vector2(1.0, 0)
+	w.player.pos = Vector2(400, 400)
 	var r := w.riding.mount()
-	check(r.ok and w.riding.riding(), "next to it, you can")
+	check(r.ok and w.riding.riding(), "with it in your loadout, you get on wherever you are")
 	check(w.riding.speed_factor() > 2.0 and w.riding.speed_factor() < 3.0, "and you go about two and a half times as fast (x%.1f)" % w.riding.speed_factor())
-	w.player.pos = Vector2(40, 40)
-	w.riding.follow_player()
-	check(w.bike.pos == Vector2(40, 40), "the bike goes where you go")
-	r = w.riding.dismount(1.5)
-	check(r.ok and not w.riding.riding() and w.bike.pos == Vector2(40, 40) and w.bike.heading == 1.5 and w.riding.speed_factor() == 1.0, "getting off parks it where you stand")
+	r = w.riding.dismount()
+	check(r.ok and not w.riding.riding() and w.riding.speed_factor() == 1.0 and w.player.gear.count("bicycle") == 1, "getting off, the bike stays with you")
 	check(not w.riding.dismount().ok, "you can't get off what you aren't on")
 	w.player.care = "down"
 	check(not w.riding.mount().ok, "and you can't get on while you're out cold")
@@ -122,7 +114,7 @@ func test_the_skate_shop_sells_a_board_at_the_price_of_a_board() -> void:
 	check(owner.needless and not w.attention.wants_help(owner), "its owner is rich and needs nothing")
 	var before := w.ledger.player_cash
 	var res := w.commerce.buy(shop, "skateboard")
-	check(res.ok and w.player.carry.count("skateboard") == 1 and is_equal_approx(w.ledger.player_cash, before - 120.0), "buying one puts it in the bag for $120")
+	check(res.ok and w.player.gear.count("skateboard") == 1 and is_equal_approx(w.ledger.player_cash, before - 120.0), "buying one puts it in your loadout for $120")
 	check(not Catalog.is_consumable("skateboard") and Catalog.class_of("skateboard") == "board", "and it is not something to eat")
 	w.tick(600.0)
 	check(shop.stock() == 2 and is_equal_approx(shop.price, 120.0), "the shop makes no more, and the price stays")

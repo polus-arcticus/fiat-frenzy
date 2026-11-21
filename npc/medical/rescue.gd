@@ -27,6 +27,8 @@ func step(dt: float) -> void:
 	for h in _w.hospitals:
 		if not _w.is_active(h.zone):
 			continue
+		if not _w.ambulances.any(func(a): return a.hospital == h):
+			_tend(h)
 		for d in h.step(dt):
 			_w.events.append("t=%d %s up again" % [_w.clock.time, _who(d, "are", "is")])
 
@@ -106,6 +108,27 @@ func _drive(a: Ambulance, dt: float) -> void:
 
 
 ## The nearest collapsed person nobody is coming for, if there will be a bed for them.
+## A first aid post has no ambulance: its medic tends whoever is down in the zone, into its bed while it has one (the nearest
+## first). Without a medic fit to do it, nobody is fetched.
+func _tend(h: Hospital) -> void:
+	var medic := _w.drone(h.owner)
+	if medic == null or medic.care != "":
+		return
+	while h.free_beds() > 0:
+		var best: Drone = null
+		var best_d := INF
+		for d in _everyone():
+			if d.care == "down" and d.zone == h.zone and d.pos.distance_squared_to(h.pos) < best_d:
+				best_d = d.pos.distance_squared_to(h.pos)
+				best = d
+		if best == null:
+			return
+		h.admit(best)
+		if on_admitted.is_valid():
+			on_admitted.call(best)
+		_w.events.append("t=%d %s in the %s" % [_w.clock.time, _who(best, "are now", "is now"), h.display_name().to_lower()])
+
+
 func _next_patient(a: Ambulance) -> Drone:
 	var coming := 0
 	for o in _w.ambulances:

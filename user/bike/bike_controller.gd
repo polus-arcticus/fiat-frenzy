@@ -1,6 +1,6 @@
 ## CONTROLLER. Getting on and off the bicycle with F. The rules are the model's (Riding); this changes how the
 ## player moves and what they see while riding: faster, no jumping, lower to the ground, handlebars in view
-## and the gun put away. It also keeps the model's bike with the player, and gets them off if they pass out.
+## and the gun put away. It also gets them off if they pass out.
 class_name BikeController
 extends Node
 
@@ -33,7 +33,7 @@ func _unhandled_input(e: InputEvent) -> void:
 
 func toggle() -> void:
 	if world.riding.riding():
-		var r := world.riding.dismount(player.rotation.y)
+		var r := world.riding.dismount()
 		hud.notify(r.text)
 		if r.ok:
 			_apply(false)
@@ -46,15 +46,12 @@ func toggle() -> void:
 
 ## Called every frame (by GameController), after the player's body has been copied into the model.
 func sync() -> void:
-	if world.bike == null:
-		return
 	if _view == null:
 		_view = BikeView.new().setup(world)
 		get_parent().add_child(_view)
 	if world.riding.riding() and world.player.unconscious():
-		world.riding.dismount(player.rotation.y)
+		world.riding.dismount()
 		_apply(false)
-	world.riding.follow_player()
 
 
 func _apply(on: bool) -> void:

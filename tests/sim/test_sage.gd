@@ -64,7 +64,7 @@ func test_he_notices_the_gun_when_the_hero_is_near_and_on_foot() -> void:
 	check(not w.sage.noticed(), "or one who is far away (%.0f m)" % w.player.pos.distance_to(w.cast.sage.pos))
 	w.player.pos = Vector2(5, 0)
 	check(w.sage.noticed() and not w.sage.calls_out(), "but one with the gun, near, on foot: he does")
-	w.bike = Bike.new(Vector2(5, 0))
+	w.player.gear.add("bicycle", 1)
 	w.riding.mount()
 	check(not w.sage.noticed() and w.sage.calls_out(), "on the bike he calls out instead, and waits")
 	w.riding.dismount()
@@ -130,7 +130,7 @@ func test_he_gives_up_on_a_hero_who_runs_off_and_calls_out_to_a_rider() -> void:
 	for i in 3:
 		w.tick(1.0)
 	check(not w.sage.approaching and not w.sage.arrived, "but gives up if the hero is gone")
-	w.bike = Bike.new(Vector2(4, 0))
+	w.player.gear.add("bicycle", 1)
 	w.player.pos = Vector2(4, 0)
 	w.riding.mount()
 	for i in 20:

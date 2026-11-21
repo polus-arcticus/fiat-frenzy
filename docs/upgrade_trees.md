@@ -43,8 +43,8 @@ Built tiers are in **bold**. Each tier says what it adds.
 4. Bread factory (t3): employs, and needs the supply trade's flour by the truckload.
 
 ### Lodging
-1. **Tent** (t0): a bed by a barrel fire, out of scrap.
-2. **Hostel** (t1): more beds, warmer.
+1. **Tent city** (t0): a tent for each person, kept warm; it holds an atom's worth.
+2. **Hostel** (t1): twice the room. **Built of 200 scrap** the runners pool into it, not money.
 3. Hotel (t2): **rooms in the block's building**. It is the first business to move in upstairs. A resident with a room has an
    address: newcomers come to a block whose rooms have space (population growth).
 4. Real estate seller (t3): buys the block's empty buildings (the map's unclaimed stock) and **sells floors to other owners**,
@@ -65,8 +65,15 @@ Built tiers are in **bold**. Each tier says what it adds.
 3. Market hall (t2): the wholesaler for a whole tile; runners become porters.
 4. Import terminal (t3): a region's goods, by rail or the river.
 
+### Salvage (built: `Camp`)
+1. **Homeless camp** (t0): among the bike scrap. Runners bring it scrap; it puts together an **old skateboard** ($15, at 60% of a
+   board's top speed).
+2. **Bike camp** (t1): **built of 60 scrap**. It puts together an **old bike** ($60, about half the shop bike's gain over walking).
+3. Scrap yard (t2): to come. It might sell scrap on to the bike and skate shops as parts.
+
 ### Bikes and skates (tier 1 is built: the story's shops)
-1. Bike stall (t0): bikes rebuilt from scrap, for the homeless trade.
+1. Bike stall (t0): bikes rebuilt from scrap, for the homeless trade. (The salvage trade's bike camp does this now; this tier may
+   fold into it.)
 2. **Bike shop** (t1): the story's shop, a rich owner, a flat $3,000 price.
 3. Cycle workshop (t2): repairs, and parts for the bus and the carts.
 4. E-bike factory (t3): employs.
@@ -76,6 +83,11 @@ and cheers) → a board works (t3).
 
 ### Medical (not a trade yet)
 The medical tent → a clinic (fewer days in bed) → a hospital (for a whole tile).
+
+### Clothing (built)
+1. **Thrift stall** (t0): stitches **old coats** from scrap ($8, insulation 0.3).
+2. **Clothing shop** (t1, $120): **coats** ($25, insulation 0.6), still of scrap until a cloth trade exists to buy from.
+3. Tailor (t2): to come. It might take cloth from a textile trade and make hats, gloves and boots, the "bling" richer NPCs want.
 
 ## Trades to come
 - **Builders.** At the moment a build cost is sunk, paid to the world outside. A builders' trade would be paid instead

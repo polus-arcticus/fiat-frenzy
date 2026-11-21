@@ -15,6 +15,8 @@ static func spawn(parent: Node, world: World, facing: Dictionary) -> void:
 		parent.add_child(FoodBankView.new().setup(fb, facing.get(fb, 0.0)))
 	for f in world.fires:
 		parent.add_child(FireView.new().setup(f))
+	for p in world.scrap_piles:
+		parent.add_child(ScrapPileView.new().setup(p))
 	for t in world.relief_trucks:
 		parent.add_child(ReliefView.new().setup(t, facing.get(t, 0.0)))
 	for h in world.hospitals:
@@ -41,6 +43,8 @@ static func add(parent: Node, world: World, thing: Object) -> void:
 		parent.add_child(FoodBankView.new().setup(thing, yaw.call(thing.front)))
 	elif thing is BarrelFire:
 		parent.add_child(FireView.new().setup(thing))
+	elif thing is ScrapPile:
+		parent.add_child(ScrapPileView.new().setup(thing))
 	elif thing is ReliefTruck:
 		parent.add_child(ReliefView.new().setup(thing, -(thing.heading as Vector2).angle() + PI / 2.0))
 	elif thing is Hospital:

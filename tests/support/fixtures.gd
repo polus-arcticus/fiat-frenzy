@@ -100,8 +100,7 @@ static func clinic() -> World:
 static func empty_shops(w: World) -> void:
 	for m in w.machines:
 		for raw in m.recipe:
-			if raw not in Catalog.free_inputs():
-				m.input.take(raw, 1000)
+			m.input.take(raw, 1000)
 
 
 static func hungry_crowd(w: World, n: int) -> void:

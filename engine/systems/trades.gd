@@ -30,7 +30,7 @@ static func float_for(kind: String) -> float:
 	var stock := 0.0
 	for raw in d.inputs:
 		stock += d.inputs[raw] * Catalog.base_price(raw)
-	return Drone.RESERVE + stock * Machine.INPUT_CRAFTS
+	return Drone.RESERVE + stock * d.stock_crafts
 
 
 ## Can `m`'s owner build it up now? Returns the next tier's id, or "".
@@ -38,6 +38,9 @@ func can_build(m: Machine) -> String:
 	var up := Catalog.next_tier(m.kind)
 	if up == "" or not m.working:
 		return ""
+	var scrap := Catalog.machine(up).build_scrap
+	if scrap > 0:  # built of the scrap the runners have pooled into it
+		return up if m.input.count("scrap") - m.recipe.get("scrap", 0) * Catalog.machine(m.kind).stock_crafts >= scrap else ""
 	var owner := _w.drone(m.owner)
 	if owner == null or owner.needless or owner.care != "":
 		return ""
@@ -58,11 +61,17 @@ func step(_dt: float) -> void:
 
 ## `m`'s owner pays to build it up into `up`.
 func build(m: Machine, up: String) -> void:
+	var was := m.display_name()
+	var scrap := Catalog.machine(up).build_scrap
+	if scrap > 0:
+		m.input.take("scrap", scrap)
+		m.retier(up)
+		_w.events.append("t=%d the %s was built up into a %s (%d scrap)" % [_w.clock.time, was, m.display_name(), scrap])
+		return
 	var cost := Catalog.machine(up).build
 	var owner := _w.drone(m.owner)
 	owner.wallet -= cost
 	_w.ledger.sunk += cost
 	m.built_total += cost
-	var was := m.display_name()
 	m.retier(up)
 	_w.events.append("t=%d the %s was built up into a %s ($%.0f)" % [_w.clock.time, was, m.display_name(), cost])

@@ -4,6 +4,7 @@ class_name ItemIcon
 extends Control
 
 const INK := Color(0.16, 0.14, 0.2)
+const RUST := Color(0.55, 0.32, 0.22)  # the old, scrap-built things (a camp's)
 
 var item := ""
 
@@ -35,17 +36,27 @@ func _draw() -> void:
 			var tent := PackedVector2Array([o + Vector2(0.1, 0.8) * s, o + Vector2(0.5, 0.2) * s, o + Vector2(0.9, 0.8) * s])
 			draw_colored_polygon(tent, Color(0.42, 0.55, 0.78))
 			draw_polyline(PackedVector2Array([tent[0], tent[1], tent[2], tent[0]]), INK, 2.0)
-		"bicycle":
+		"bicycle", "old_bike":
+			var frame := Color(0.86, 0.24, 0.2) if item == "bicycle" else RUST
 			for cx in [0.28, 0.72]:
 				draw_arc(o + Vector2(cx, 0.66) * s, 0.17 * s, 0, TAU, 20, INK, 2.2)
-			_line(o, s, Vector2(0.28, 0.66), Vector2(0.48, 0.4), Color(0.86, 0.24, 0.2), 2.5)
-			_line(o, s, Vector2(0.48, 0.4), Vector2(0.72, 0.66), Color(0.86, 0.24, 0.2), 2.5)
-			_line(o, s, Vector2(0.48, 0.4), Vector2(0.62, 0.38), Color(0.86, 0.24, 0.2), 2.5)
+			_line(o, s, Vector2(0.28, 0.66), Vector2(0.48, 0.4), frame, 2.5)
+			_line(o, s, Vector2(0.48, 0.4), Vector2(0.72, 0.66), frame, 2.5)
+			_line(o, s, Vector2(0.48, 0.4), Vector2(0.62, 0.38), frame, 2.5)
 			_line(o, s, Vector2(0.62, 0.38), Vector2(0.72, 0.66), INK, 2.0)
 			_line(o, s, Vector2(0.58, 0.3), Vector2(0.68, 0.3), INK, 2.5)
-		"skateboard":
+		"old_coat", "coat":
+			var cloth := Color(0.55, 0.5, 0.38) if item == "old_coat" else Color(0.25, 0.38, 0.6)
+			var body := PackedVector2Array([o + Vector2(0.36, 0.16) * s, o + Vector2(0.64, 0.16) * s, o + Vector2(0.88, 0.34) * s, o + Vector2(0.8, 0.5) * s, o + Vector2(0.7, 0.44) * s, o + Vector2(0.7, 0.86) * s, o + Vector2(0.3, 0.86) * s, o + Vector2(0.3, 0.44) * s, o + Vector2(0.2, 0.5) * s, o + Vector2(0.12, 0.34) * s])
+			draw_colored_polygon(body, cloth)
+			body.append(body[0])
+			draw_polyline(body, INK, 2.0)
+			_line(o, s, Vector2(0.5, 0.2), Vector2(0.5, 0.86), INK, 1.5)
+			if item == "old_coat":  # a patch
+				draw_rect(Rect2(o + Vector2(0.36, 0.56) * s, Vector2(0.1, 0.1) * s), Color(0.7, 0.35, 0.3))
+		"skateboard", "old_skateboard":
 			var deck := PackedVector2Array([o + Vector2(0.1, 0.5) * s, o + Vector2(0.22, 0.42) * s, o + Vector2(0.78, 0.42) * s, o + Vector2(0.9, 0.5) * s, o + Vector2(0.78, 0.56) * s, o + Vector2(0.22, 0.56) * s])
-			draw_colored_polygon(deck, Color(0.9, 0.55, 0.2))
+			draw_colored_polygon(deck, Color(0.9, 0.55, 0.2) if item == "skateboard" else RUST)
 			draw_polyline(PackedVector2Array([deck[0], deck[1], deck[2], deck[3], deck[4], deck[5], deck[0]]), INK, 2.0)
 			for wx in [0.3, 0.7]:
 				draw_circle(o + Vector2(wx, 0.68) * s, 0.07 * s, Color(0.95, 0.95, 0.9))

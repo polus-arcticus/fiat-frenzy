@@ -31,11 +31,11 @@ func test_the_stands_can_be_funded_in_any_order() -> void:
 	w.player.pos = (w.machine_of(cast.hot_dog) as Machine).pos + Vector2(2, 2)
 	tut.update(w.player.pos)
 	var ids: Array = tut.open_goals().map(func(g): return g.id)
-	check(ids.has("hot_dog") and ids.has("bakery") and ids.has("tent") and ids.has("lemonade") and ids.has("bankers"), "walking up opens all the funding goals at once, with the bankers: %s" % str(ids))
+	check(ids.has("hot_dog") and ids.has("bakery") and ids.has("tent") and ids.has("lemonade") and ids.has("bankers"), "walking up opens all the funding goals at once, with putting up a tent and the bankers: %s" % str(ids))
 	check(not ids.has("eat") and not ids.has("income"), "but what depends on them waits")
-	w.machine_of(cast.tent).working = true  # the last one first
+	w.lodging.add_tent(w.machine_of(cast.tent))  # the last one first
 	tut.update(w.player.pos)
-	check(tut.index == 2 and not (tut.open_goals().map(func(g): return g.id)).has("tent"), "funding the tent first is fine: it is done")
+	check(tut.index == 2 and not (tut.open_goals().map(func(g): return g.id)).has("tent"), "putting up a tent first is fine: it is done")
 	check(tut.text().contains("Also open:") and tut.text().contains("Fund the baker"), "and the text names the others open beside it")
 	var news := tut.take_news()
 	check(news.size() == 1 and news[0].contains("tent") and tut.take_news().is_empty(), "what the player did is put in words once: %s" % str(news))

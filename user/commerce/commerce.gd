@@ -69,18 +69,16 @@ func buy(m: Machine, item: String) -> Dictionary:
 	var price := m.price_of(item)
 	if _w.ledger.player_cash < price:
 		return _no("Not enough cash: it's $%.2f and you have $%.2f." % [price, _w.ledger.player_cash])
-	var is_bike := Catalog.class_of(item) == "vehicle"
-	if is_bike and _w.bike != null:
-		return _no("You already have a bike.")
-	if not is_bike and not Stacks.can_add(p.carry, item, CARRY_SLOTS):
+	var gear: bool = Catalog.item(item).gear and _w.loadout.has_room()  # (gear goes straight into a free loadout slot)
+	if not gear and not Stacks.can_add(p.carry, item, CARRY_SLOTS):
 		return _no("Your bag is full.")
 	m.output.take(item, 1)
 	_w.ledger.player_cash -= price
 	_w.logistics.pay_supplier(m, price)
-	if is_bike:
-		_w.bike = _w.mint(Bike.new(p.pos + m.front * 1.0))  # it waits by the player, on the customers' side of the counter
-		return _yes("Bought a bicycle for $%.0f. It is waiting beside you: press F to get on." % price)
-	p.carry.add(item, 1)
+	if _w.loadout.receive(item) == "gear":
+		var how: String = {"vehicle": " Press F to ride it, wherever you are.", "board": " Press B to ride it."}.get(Catalog.class_of(item), "")
+		var a := "an" if _name(item).left(1) in ["a", "e", "i", "o", "u"] else "a"
+		return _yes("Bought %s %s for $%.2f: it's in your loadout.%s" % [a, _name(item), price, how])
 	return _yes("Bought 1 %s for $%.2f." % [_name(item), price])
 
 

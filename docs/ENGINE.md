@@ -39,12 +39,22 @@ The classes of asset:
 | residential | houses agents and warms them at night (§3.5) | `Machine` with a `Shelter` (the tent; its own class *(to come)*) |
 | supply | stocks base materials from charity and sells them at cost (§4.3) | `FoodBank` (`engine/relief/food_bank.gd`) |
 | money | gives money out (§5.1) | `WelfareOffice` (`engine/welfare/welfare_office.gd`) |
-| camp *(to come)* | turns pooled scrap into a slow skateboard (tier 0) and a slow bike (tier 1) | |
+| medical | looks after the collapsed: a medic's first aid post (one bed; the medic tends those down nearby), then the medical tent (beds and an ambulance) | `Hospital` (`npc/medical/hospital.gd`) |
+| camp | the salvage trade: a homeless camp turns scrap into an old skateboard (tier 0); built up of scrap, a bike camp makes an old bike (tier 1). Both are sold to the hero at a flat price, cheap and slow (`ItemDef.speed`) | `Machine`, pitched with its pile by `Camp` (`engine/salvage/camp.gd`) |
+| clothing | a thrift stall stitches old coats from scrap (tier 0). Built up with money, it becomes a clothing shop that makes coats (still of scrap, until there is a cloth trade). Flat prices: the hero is the buyer, for now | `Machine`, pitched with its own pile by `Camp.pitch` |
 
 **1.4 Resource.** Something that can be held in an inventory: an **item**, defined once in the Catalog (`ItemDef`), with a
-class: `food`, `drink`, `material`, `warmth`, `vehicle`, `board`, `document`. An item may *restore* a bar (food, drink), be
-*delivered free* (the relief goods: flour, protein, bottled water, sugar), or be *found free* (scrap). **Money is not an item**:
-it is a number on a wallet, a hero's pocket, or a bill (§5).
+class: `food`, `drink`, `material`, `warmth`, `vehicle`, `board`, `clothes`, `document`.
+- An item may *restore* a bar (food, drink).
+- It may be *delivered free* (the relief goods: flour, protein, bottled water, sugar).
+- It may be *scavenged* (scrap: it lies in the street and runners gather it, §4.4).
+- It may be **gear** (`gear`): ridden or worn, in a loadout slot (bikes, boards, clothes). A ride has a `speed`, and clothes have
+  `insulation`, which makes a warmth bar last longer in the open (§3.1).
+
+**Money is not an item**: it is a number on a wallet, a hero's pocket, or a bill (§5).
+
+**1.4a The two roots.** At tier 0, food and drink are made from the relief goods. Everything else (boards, coats, …) is made from
+**scrap**. Higher tiers may take other inputs as supply chains grow. `test_trades` checks this rule.
 
 **1.5 Inventory** (`engine/core/inventory.gd`). Counts of items, with per-item capacities. An asset's output inventory *offers*
 items (`offer`) and its input inventory *wants* them (`want`); these flags are what supply searches read. Stacks of ten make
@@ -70,16 +80,26 @@ changes, the old stock goes and the new tier opens with one unit.
 
 **2.4** Nothing comes back down. There is no rent, no tax, no loan, no repossession.
 
-**2.5 One pattern for every asset** *(to come)*. A build cost is `{resource: amount}`, paid into the asset's **build stock**
-until it is full. Commercial assets are paid in money from savings (as in 2.2). Residential assets and camps are paid in **scrap**,
-pooled by runners (§4.4).
+**2.5 Built of scrap.** A tier may instead cost scrap (`MachineDef.build_scrap`): the hostel (200) and the bike camp (60).
+- The tier below then has room for that scrap in its input (`Machine.set_level`), on top of its recipe's.
+- Runners pool scrap into it (§4.4); the keeper pays only their fee.
+- At dawn, once that much is in hand beyond what its recipe keeps, the scrap is used and the asset climbs (`Trades.build`).
+  No money is sunk.
+
+Commercial stands are paid in money (2.2); residential assets and camps are paid in scrap. *(A tier costing both is not used yet.)*
 
 ## 3. Agents: what they want and do
 
 **3.1 Needs** (`npc/agents/needs.gd`). Bars fall with time: hunger in `HUNGER_SECONDS`, thirst in `THIRST_SECONDS`, warmth
 `NIGHT_COOLING / DAY_COOLING` times faster at night. Heat sources add warmth: every barrel fire in range by an inverse-square
-falloff (`Shelter.gain_at_sq`), being indoors (`Heating`), and lying in one's own bed (`Shelter.warm_rate`). A bar at 0 is a
-collapse (§3.6). A vendor in need takes one of their own stand's items, free (`Needs._own_shelf`).
+falloff (`Shelter.gain_at_sq`), being indoors (`Heating`: shops, houses, the bus and the shuttle), and lying in one's own bed
+(`Shelter.warm_rate`). A bar at 0 is a collapse (§3.6).
+- **The cold is per drone** (`Drone.cold_spans`: how many seconds a full bar lasts in the open by day and at night; zero is the
+  street's hardened usual, `DAY_COOLING` and `NIGHT_COOLING`). Whoever feels it harder also warms that much faster at a heat
+  source, so a fire still fills the bar in moments. The hero's is short (`user/hero/cold.gd`).
+- **Clothes** stretch the span: it is divided by `1 - Drone.insulation()` (the gear's `insulation` added up, at most
+  `MAX_INSULATION`).
+- Every atom has a barrel fire by its market (§8.0); its own people are housed, so it is for strangers. A vendor in need takes one of their own stand's items, free (`Needs._own_shelf`).
 
 **3.2 Demands** (`Needs.demands`), in order:
 1. **survival**: `food`, `drink`, `warmth` for each bar below `NEED_BELOW` (warmth also below `NIGHT_SEEKS_WARMTH` at night),
@@ -93,9 +113,9 @@ collapse (§3.6). A vendor in need takes one of their own stand's items, free (`
 own zone can answer, and makes it its job:
 - **food or drink**: the open asset with the best value, `price / restores + DISTANCE_COST × distance + WAIT_COST × queue`, that
   the agent can afford (`Supply.best_supply`);
-- **warmth**: its own bed, if its home is standing and has room, else the nearest fire with a free spot (`Supply.warmth_job`);
+- **warmth**: its own tent, if the tent city is standing, else the nearest fire with a free spot (`Supply.warmth_job`);
 - **restock**: the cheapest offer of the short input, keeping `RESERVE` (`Supply.restock_job`);
-- **haul**: a load from the food bank to the shop that wants it most (`Hauling.haul_job`);
+- **haul**: a load from the food bank, or of scrap from a pile, to whatever wants it most (`Hauling.haul_job`);
 - **repair**, **cash**: their own stand, the nearest loose bill.
 
 **3.4 Carrying out** (`Logistics.act`, `complete`). The agent walks to its stand point (`Walking`, `Navigation`), queues if the
@@ -103,11 +123,18 @@ target serves one at a time (`Queueing`), and completes: pays the price (the own
 `pay_supplier`), takes the item and uses it (`Needs.eat`), or repairs (money sunk), or lies down, or picks up the bill. A job that
 is no longer valid (sold out, room gone) is dropped and planned again. Pace follows need (`Needs.pace`).
 
-**3.5 Homes** (`Lodging`, `engine/lodging/lodging.gd`). An agent's home is a residential asset (`Drone.bed`). Everyone in a
-cluster has one (`Lodging.house_everyone`). At night they sleep in it, free, and get up warm or at dawn (`Needs.wake_sleepers`). A
-home with room and nobody for it draws a **newcomer** every `ARRIVE_EVERY` seconds while it stands (§5.3). A home with nobody for it
-and the arrivals are the population cap. *(To come: one tent per agent, side by side; a new tent brings one occupant; a tent from the
-hero's bag, opened at their feet.)*
+**3.5 Homes: the tent city** (`Lodging`, `engine/lodging/lodging.gd`). The tent keeper's business (the "tent" kind) is the
+cluster's **spawn factory**:
+- It is tents for one person each, and it stands from the start.
+- Everyone in the zone has a tent in it (`Drone.bed`, `Lodging.house_everyone`), the welfare clerk included and the story's
+  scripted cast left out. While it stands, a tent keeps its person warm, day and night (`Lodging.is_housed`).
+- Its tier holds at most `cap` tents: the first tier an atom's worth (§8.0). A bigger layout gets `Machine.tents_cap`. Growing
+  past the cap means building it up (the hostel).
+- Putting up a tent (`add_tent`, $15, the gun pays) brings a **newcomer** within `ARRIVE_EVERY` seconds, while the tent city
+  stands (§5.3). Who comes is a weighted roll (`Lodging.NEWCOMERS`: drifters and runners for now; more kinds as they exist).
+- So the number of tents is the population. Nobody is turned out.
+
+*(To come: a tent item in the hero's bag, opened at their feet; barrel fires sold by the tent keeper and placed by the hero.)*
 
 **3.6 Collapse and care** (`npc/medical/rescue.gd`). A bar at 0 and the agent is `down`. An idle ambulance carries them to the
 medical tent in their zone; care refills the bars and lets them go at 60% (the hero at 95%, five times as fast, but robbed of
@@ -130,9 +157,20 @@ shops) never changes its price.
 The **Red Cross van** (`Relief`) brings `load_per_good` of each relief good twice a day, free, shared equally among the working
 assets that want it.
 
-**4.4 Hauling** (`npc/agents/hauling.gd`). A runner buys a load at the food bank (up to `CART_CAPACITY`) and sells it to the
-shop that wants it at cost plus `DELIVERY_FEE` a unit, which is the runner's income. *(To come: runners also gather scrap lying in
-the street, free, and pool it into build stocks, §2.5.)*
+**4.4 Hauling** (`npc/agents/hauling.gd`). A runner buys a load at the food bank (up to `CART_CAPACITY`) and wheels it to the
+shop that wants it. **Cash on delivery:** the shop pays back what the goods cost and a flat `DELIVERY_FEE` ($1) for the trip,
+whatever the load; the fee is the runner's income.
+- The fee goes into what the shop's inputs cost it (`cost + fee / units`), so into its floor price (§4.2): a baker's bread carries
+  its share of the walk. A bigger load is cheaper a unit.
+- **A runner's cart is a business** (`Drone.equity`, worth `Drone.CART_VALUE` plus its experience, like a machine's repair cost
+  plus its experience). The hero can invest in it (§5.2); every fee is then split, the heroes' shares into their pockets.
+- How much a shop holds of each input is `MachineDef.stock_crafts` crafts' worth (6; the lemonade stand and coffee stop 16, a
+  cartload: their two goods come on two trips, and at six of each the stand sold out all day).
+- They also gather **scrap** from piles in the street, free (`ScrapPile`, `engine/salvage/scrap_pile.gd`). It gathers `RATE` a
+  minute, up to `CAP`. This is a placeholder for how scrap appears, which is still to be designed.
+- Scrap goes to whatever has room for it: a camp's input, or a tent city's build stock (§2.5). The keeper pays only the fee.
+- A trip is worth making when the destination is `MIN_DELIVERY` short. Free scrap costs only the fee, so it waits for
+  `MIN_SCRAP_LOAD`, unless that is more than the room left: a build is not left waiting on its last few pieces.
 
 ## 5. Money
 
@@ -145,12 +183,13 @@ the street, free, and pool it into build stocks, §2.5.)*
   (`Ledger.issued`).
 
 **5.2 Where money goes.** It moves only between wallets, the heroes' pockets (`Ledger.pockets`) and bills. It leaves only into
-`Ledger.sunk`: repairs, building up, beds, and the money of someone who leaves town.
+`Ledger.sunk`: repairs, building up, and tents.
 
 **5.3 The invariant.** `World.total_money() == Ledger.printed`, on every tick, in every test that moves money.
 
-**5.4 Stakes** (`engine/core/equity.gd`). A business is worth its rebuild cost plus its experience. The heroes together own at most
-49%. A sale pays each hero their share into their pocket.
+**5.4 Stakes** (`engine/core/equity.gd`, bought through `Gun.business_of`). A business is worth its rebuild cost plus its experience. The heroes together own at most
+49%. A sale pays each hero their share into their pocket. A runner's cart is a business too: its book is `Drone.CART_VALUE`, and
+each delivery fee is split the same way (§4.4). After a merge, both are put back under the cap (`Merge._cap`).
 
 ## 6. Time and space
 
@@ -203,6 +242,18 @@ combines (`sum`, `max`, `any`, `union`, else the host's), and `Merge.settle` put
 room, tiers, levels). The merged world holds exactly host + guest − seed in money.
 
 ## 8. Clusters
+
+**8.0 The atom** (`Atom`, `engine/core/atom.gd`). The seed of every new tile, the smallest town that keeps itself going. It has
+one of each role, each with a tent:
+- the tent keeper (the tent city);
+- a bakery and a lemonade stand;
+- the food bank's keeper and one runner;
+- the welfare clerk;
+- a medic with a one-bed first aid post.
+
+There are no drifters and no van. `Atom.seed(w, zone, at, site)` puts one down, found: the tent city standing, the stands
+wrecked, the owners broke. On its own it has no collapses in 120 days. Growth by mouths alone does not hold (§5.3), so growth must
+roll producers too. The tutorial's town is a special case: a grown cluster (8.1) plus the story.
 
 **8.1 The standard cluster** (`Cluster`, `engine/core/cluster.gd`). The people a block starts with, defined once:
 - four trades at tier 0;

@@ -89,6 +89,7 @@ static func settle(w: World) -> void:
 		if d.sheltered_in != null:
 			d.sheltered_in.release(d)
 		_relevel(d.growth)
+		_cap(w, d.equity, d, d.equity.value(Drone.CART_VALUE, d.growth.xp), d.label + "'s cart")
 	for m in w.machines:
 		var ladder: Array = Catalog.TRADES.get(m.trade, [])
 		if m.tier < ladder.size() and ladder[m.tier] != "":
@@ -115,18 +116,21 @@ static func settle(w: World) -> void:
 # every stake is scaled down to fit, and what the excess was worth goes back from the owner to each hero, as far as the
 # owner's wallet goes: money moves, nothing is made.
 static func _cap_stakes(w: World, m: Machine) -> void:
-	var total := m.equity.stake
+	_cap(w, m.equity, w.drone(m.owner), m.value(), "the " + m.display_name())
+
+
+# The same for any business: `e` its stakes, `owner` who refunds, `worth` what it is worth.
+static func _cap(w: World, e: Equity, owner: Drone, worth: float, what: String) -> void:
+	var total := e.stake
 	if total <= Equity.MAX_STAKE + 1e-9:
 		return
 	var keep := Equity.MAX_STAKE / total
-	var owner := w.drone(m.owner)
-	var worth := m.value()
 	var owed := {}
 	var owed_total := 0.0
-	for h in m.equity.stakes:
-		owed[h] = m.equity.stakes[h] * (1.0 - keep) * worth
+	for h in e.stakes:
+		owed[h] = e.stakes[h] * (1.0 - keep) * worth
 		owed_total += owed[h]
-		m.equity.stakes[h] *= keep
+		e.stakes[h] *= keep
 	var can := minf(owed_total, owner.wallet if owner != null else 0.0)
 	if can <= 0.0:
 		return
@@ -134,7 +138,7 @@ static func _cap_stakes(w: World, m: Machine) -> void:
 		var back: float = can * owed[h] / owed_total
 		owner.wallet -= back
 		w.ledger.pockets[h] = float(w.ledger.pockets.get(h, 0.0)) + back
-	w.events.append("t=%d stakes in the %s were over the cap after the merge: $%.2f refunded" % [w.clock.time, m.display_name(), can])
+	w.events.append("t=%d stakes in %s were over the cap after the merge: $%.2f refunded" % [w.clock.time, what, can])
 
 
 static func _clamp(inv: Inventory) -> void:

@@ -11,6 +11,8 @@ extends RefCounted
 
 enum Mode { ON_FOOT, RIDING, SKATING, SEATED }
 
+const COLD_WARNING := 0.4  # the feed warns as the hero's warmth falls past this
+
 var mode: Mode = Mode.ON_FOOT
 var last_mugged := 0.0  # what was taken from the hero's pockets the last time they were carried to the medical tent
 
@@ -26,7 +28,10 @@ func step(dt: float) -> void:
 	var p := _w.player
 	if p == null:
 		return
+	var was: float = p.bars.warmth
 	_w.needs.decay(p, dt)
+	if was >= COLD_WARNING and p.bars.warmth < COLD_WARNING:  # (the cold bites fast out here: see Cold)
+		_w.events.append("t=%d you're getting cold: get to a barrel fire, or find a coat (the thrift stall)" % _w.clock.time)
 	p.zone = _w.zones.zone_for(p.pos, p.zone)
 	_w.zones.wake(p.zone)
 

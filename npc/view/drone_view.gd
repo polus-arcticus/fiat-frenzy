@@ -88,9 +88,6 @@ func _capsule() -> CapsuleShape3D:
 
 
 func _process(delta: float) -> void:
-	if drone.gone:  # (packed up and left town: see Lodging)
-		queue_free()
-		return
 	var target := Vector3(drone.pos.x, 0, drone.pos.y)
 	global_position = global_position.lerp(target, 1.0 - exp(-14.0 * delta))
 	var moved := global_position - _last

@@ -43,7 +43,7 @@ func setup(h: Hospital, facing: float) -> HospitalView:
 	ground.rotation = Vector3(-PI * 0.5, PI, 0.0)  # lying flat, reading along the bay from the road
 	ground.position = Vector3(local.x, 0.04, local.y - 0.2)
 	prop.add_child(ground)
-	for i in Hospital.BEDS:
+	for i in h.beds():
 		var x := -1.35 + 0.9 * float(i)
 		Look.box(prop, Vector3(0.7, 0.12, 1.9), Vector3(x, 0.38, 0.2), Color(0.55, 0.6, 0.66))
 		Look.box(prop, Vector3(0.62, 0.05, 1.7), Vector3(x, 0.47, 0.2), Color(0.88, 0.9, 0.92))
@@ -64,4 +64,4 @@ func _process(delta: float) -> void:
 
 
 func _refresh() -> void:
-	_board.text = "MEDICAL TENT\n%d of %d beds free" % [hospital.free_beds(), Hospital.BEDS]
+	_board.text = "%s\n%d of %d beds free" % [hospital.display_name().to_upper(), hospital.free_beds(), hospital.beds()]

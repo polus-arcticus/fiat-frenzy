@@ -31,7 +31,7 @@ func test_the_market_is_a_zone_of_its_own_at_the_bus_stop() -> void:
 	check(w.hospitals.filter(func(h): return h.zone == Scenario.ECB_ZONE).size() == 1 and w.ambulances.size() == 2, "and a medical tent with an ambulance, for anyone who collapses there")
 	var visitors := w.zones.drones_in(Scenario.ECB_ZONE).filter(func(d): return d.kind == "drifter")
 	check(visitors.size() == 3 and visitors.all(func(d): return d.pos.distance_to(sc.ecb_stop.bus) < 40.0), "and three people the stands are for")
-	check(w.drones.filter(func(d): return d.zone == Zones.HOME).size() == 15, "the first market's cast is the one it always was, and the welfare office's clerk (15 people)")
+	check(w.drones.filter(func(d): return d.zone == Zones.HOME).size() == 17, "the first market's cast is the one it always was, the welfare office's clerk, the camp keeper and the thrift seller (17 people)")
 
 
 func test_the_stands_stand_clear_of_the_buildings() -> void:

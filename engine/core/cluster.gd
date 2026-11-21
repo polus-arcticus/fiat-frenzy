@@ -9,10 +9,11 @@
 ##   residents                  DRIFTERS drifters with PURSE dollars each
 ##   for the night and the sick a barrel fire, and the medical tent with its ambulance
 ##   the outside world          the Red Cross van's stop and the welfare office
-## As a block is found (`found`): every stand wrecked and every owner broke. The hero gets it going (`fund`): each owner is
-## given what their repair costs, their reserve and a little over, once.
+## As a block is found (`found`): every stand wrecked but the tent city, and every owner broke. The hero gets it going (`fund`):
+## each owner is given what their repair costs, their reserve and a little over, once.
 ##
-## Everyone in it has a bed in the tent (see Lodging): it is built with as many beds as people, and a free bed draws a newcomer.
+## Everyone in it, the welfare office's clerk included, has a tent of their own in the tent city (see Lodging): it is built with
+## one tent per person, and every tent added brings someone new.
 ##
 ## Where it stands: along one side of a street (a SITE: {point on the centre line, along, out toward the
 ## buildings, width of the carriageway, line: how far out the building line is}). The stands are at the kerb with their counters
@@ -30,6 +31,7 @@ const RUNNER_WALLET := 20.0
 const DRIFTERS := 6
 const PURSE := 15.0
 const FUND_OVER := 5.0  # what the hero gives an owner over their repair and reserve
+const ROOM_TO_GROW := 4  # tents its tent city may still have put up, beyond the ones it starts with (it is bigger than an Atom)
 
 ## Where each thing stands: [metres along the street from the site, where across it]. Across is "kerb" (just on the
 ## pavement), "wall" (this far in from the building line), or "road" (this far out from the kerb into the carriageway).
@@ -38,7 +40,7 @@ const FUND_OVER := 5.0  # what the hero gives an owner over their repair and res
 const LAYOUT := {
 	"bakery": [-7.5, "kerb", 0.6], "hot_dog_stand": [-2.5, "kerb", 0.6], "lemonade_stand": [2.5, "kerb", 0.6],
 	"fire": [5.5, "wall", 1.0], "tent": [9.0, "wall", 2.0], "food_bank": [-16.0, "kerb", 0.6], "runners": [-12.5, "road", 1.5],
-	"drifters": [-5.0, "road", 2.0], "welfare_office": [-24.0, "kerb", 0.6], "hospital": [-31.0, "wall", 2.0], "van": [12.0, "road", 1.6],
+	"drifters": [-5.0, "road", 2.0], "welfare_office": [-24.0, "kerb", 0.6], "hospital": [-31.0, "wall", 2.0], "van": [12.0, "road", 1.6], "scrap": [-36.0, "wall", 1.5],
 }
 
 
@@ -91,27 +93,30 @@ static func build(w: World, zone: String, at: Vector2, drifters := DRIFTERS, foo
 		w.add_drifter(_at(site, "drifters", i * 2.0), purse)
 	w.add_fire(_at(site, "fire"))
 	w.add_hospital(_at(site, "hospital"), street_side)
+	w.add_scrap_pile(_at(site, "scrap"))  # (the tent city is built up of scrap the runners pool into it)
 	if outside:
 		var van := w.add_relief_truck(_at(site, "van"))
 		van.heading = site.along
 		w.add_welfare_office(_at(site, "welfare_office"), street_side)
-	w.lodging.house_everyone(tent)  # a bed for everyone
+	w.lodging.house_everyone(tent)  # a tent each
+	tent.tents_cap = tent.tents + ROOM_TO_GROW  # (laid out bigger than an atom: room for a few more all the same)
 
 
-## The standard cluster as a block is found: built, then every stand wrecked and every owner's money gone (taken out of
+## The standard cluster as a block is found: built, then every stand but the tent city wrecked and every owner's money gone (taken out of
 ## what the world was seeded with, so the books still balance).
 static func found(w: World, zone: String, at: Vector2, site := {}) -> void:
 	build(w, zone, at, DRIFTERS, true, PURSE, true, site)
 	for d in w.zones.drones_in(zone):
 		if d.kind == "vendor":
-			w.machine_of(d).working = false
+			w.machine_of(d).working = w.machine_of(d).shelter != null  # (the tent city stands: it is where everyone lives)
 			w.ledger.printed -= d.wallet
 			d.wallet = 0.0
 
 
-## The hero gets a found cluster going: each owner is given (new money, as the gun gives it: Levels.give) what it takes to repair their stand, keep their
-## reserve, and a little over. Call after World.begin_play.
+## The hero gets a found cluster going: each owner is given (new money, as the gun gives it: Levels.give) what it takes to repair
+## their stand if it is wrecked, keep their reserve, and a little over. Call after World.begin_play.
 static func fund(w: World, zone: String) -> void:
 	for d in w.zones.drones_in(zone):
 		if d.kind == "vendor":
-			w.levels.give(d, w.machine_of(d).repair_cost + Drone.RESERVE + FUND_OVER)
+			var m := w.machine_of(d)
+			w.levels.give(d, (0.0 if m.working else m.repair_cost) + Drone.RESERVE + FUND_OVER)

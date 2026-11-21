@@ -27,6 +27,10 @@ var rich := false
 var trade := ""
 var tier := 0
 var build := 0.0
+var build_scrap := 0  # or the scrap pooled into it by runners that builds it up from the tier below (and then no money: Trades)
+## How many crafts' worth of each input it holds (one more per level). Six, so a van visit or a runner's trip goes further; more
+## where a craft takes two goods that come on two trips (lemonade: one load of each makes a cart's worth).
+var stock_crafts := 6
 var footprint := {"boxes": [[0.0, 0.0, 1.1, 0.45]]}
 
 

@@ -13,9 +13,11 @@ func run() -> void:
 	await tree.process_frame
 	check(ic.active and not p.controls_enabled and ic._cam.current and not game.gun.enabled, "F3: a free camera takes over, the hero's controls and gun are put away")
 	# put the camera where it can see a banker or any drone, and click them
+	# (someone near the hero with nobody else within 8 m south of them, between them and the camera, who would be clicked instead)
 	var d: Drone = w.drones[0]
 	for cand in w.drones:
-		if cand.zone == "district" and cand.pos.distance_to(Vector2(p.global_position.x, p.global_position.z)) < 60.0:
+		var in_the_way := w.drones.any(func(o): return o != cand and absf(o.pos.x - cand.pos.x) < 1.5 and o.pos.y > cand.pos.y - 0.5 and o.pos.y < cand.pos.y + 8.0)
+		if cand.zone == "district" and cand.care == "" and not in_the_way and cand.pos.distance_to(Vector2(p.global_position.x, p.global_position.z)) < 60.0:
 			d = cand
 			break
 	ic._cam.global_position = Vector3(d.pos.x, 3.0, d.pos.y + 6.0)

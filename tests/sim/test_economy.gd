@@ -61,13 +61,13 @@ func test_truck_fills_input_inventories_twice_a_day() -> void:
 	check(seen.size() == 3 and is_equal_approx(seen[0].start, 90.0) and is_equal_approx(seen[1].start, 300.0) and is_equal_approx(seen[2].start, 690.0), "visits at 15% and 50% of each day")
 	check(is_equal_approx(seen[0].end - seen[0].start, 100.0), "it stays 100 seconds")
 	var m := w.machine_of(baker)
-	check(seen[0].delivered == {"flour": 12, "protein": 6, "bottled_water": 6, "sugar": 6}, "the first visit filled exactly what the three working shops had room for")
+	check(seen[0].delivered == {"flour": 12, "protein": 6, "bottled_water": 15, "sugar": 15}, "the first visit filled what the three working shops had room for, as far as its 15 of each went (%s)" % [seen[0].delivered])
 	check(w.machine_of(broken).input.count("flour") == 0, "the broken bakery got nothing")
 	check(not seen[1].delivered.has("protein"), "and the second visit brought no protein: the hot dog stand was already full of it")
 	check(w.machine_of(hot).input.count("bread") == 0, "and bread is not on the truck: the hot dog stand has to buy it")
 	check(is_equal_approx(w.total_money(), w.ledger.printed) and w.ledger.sunk == 0.0, "no money changed hands")
 	check(is_equal_approx(m.input_cost["flour"], 1.0) and is_equal_approx(m.floor_price(), 2.0), "delivered goods cost their base price")
-	check(seen[0].delivered["sugar"] == w.machine_of(lem).input.caps["sugar"], "the lemonade stand's sugar was filled")
+	check(seen[0].delivered["sugar"] == mini(truck.load_per_good, w.machine_of(lem).input.caps["sugar"]), "the lemonade stand's sugar was filled, as far as the load went")
 
 
 func test_truck_shares_a_short_load() -> void:
@@ -129,7 +129,7 @@ func test_a_small_town_runs() -> void:
 	note("a small town: every business trades")
 	var w := World.new()
 	Cluster.build(w, "t", Vector2.ZERO, Cluster.DRIFTERS, true, 200.0)
-	w.add_player(Vector2(0, -20), 0.0)
+	w.add_player(Vector2(0, -20), 0.0).make_needless()  # (out in the cold three days, the hero would be carried off and robbed)
 	w.begin_play()
 	w.gun.invest(w.drones[0], 30.0)
 	Fixtures.run(w, int(Clock.DAY_SECONDS) * 3)

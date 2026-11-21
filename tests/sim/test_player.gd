@@ -8,6 +8,7 @@ func test_the_player_body() -> void:
 	var p := w.add_player(Vector2.ZERO)
 	check(w.ledger.player_cash == 25.0 and w.ledger.printed == 25.0 and is_equal_approx(w.total_money(), w.ledger.printed), "they start with $25, and it is accounted for")
 	check(not (p in w.drones) and w.drones.is_empty(), "the player is not one of the NPC drones")
+	p.cold_spans = Vector2.ZERO  # (hardened for this: five minutes in the open would be too cold for them. The cold: test_cold)
 	Fixtures.run(w, 300)
 	check(is_equal_approx(p.bars.hunger, 0.5) and is_equal_approx(p.bars.thirst, 1.0 - 300.0 / 420.0), "their bars drain like anyone's")
 	check(w.logistics.plan(p).is_empty() or true, "(no NPC logic is ever run on them)")
@@ -15,10 +16,10 @@ func test_the_player_body() -> void:
 	var q := dark.add_player(Vector2(100, 0))
 	dark.add_fire(Vector2(0, 0))
 	dark.clock.time = Clock.NIGHT_FROM * Clock.DAY_SECONDS + 1.0
-	Fixtures.run(dark, 60)
+	Fixtures.run(dark, 8)
 	var far: float = q.bars.warmth
 	q.pos = Vector2(1, 0)
-	Fixtures.run(dark, 60)
+	Fixtures.run(dark, 8)
 	check(q.bars.warmth > far, "standing at a barrel fire at night warms them (%.2f -> %.2f)" % [far, q.bars.warmth])
 
 

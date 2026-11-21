@@ -61,7 +61,7 @@ They are read from `features/story`, `sage`, `hero` and `control`, so the engine
 ### 2. `Drone` carries every role (phase 2)
 `sim/entities/drone.gd` mixes fields for every role:
 - the agent: needs, wallet, position, job;
-- a runner: `cart`, `home`, `delivered_total`, `fees_earned`;
+- a runner: `cart`, `home`, `delivered_total`, `deliveries`, `fees_earned`, `equity`;
 - a vendor: `stand`; a keeper: `bank`;
 - the hero: `care_rate`, `wake_at`;
 - chatter: `speech`, `speech_ttl`, `speech_seq`, `chat_cooldown`, `event_cooldown`;

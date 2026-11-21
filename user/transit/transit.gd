@@ -27,7 +27,8 @@ func add_bus(at: Vector2, facing: float) -> Bus:
 
 
 ## The shuttle, a golf cart waiting at `at` (at the gate), pointing `facing`. Slower than the bus, quicker off the mark, and it
-## turns tighter.
+## turns tighter. The bank's: its seats are heated, which matters, for its ride round to the entrance takes longer than the
+## hero's warmth lasts in the open by day (Cold).
 func add_shuttle(at: Vector2, facing: float) -> Bus:
 	var cart := Bus.new(at, facing)
 	cart.zone = _w.build_zone
@@ -37,6 +38,7 @@ func add_shuttle(at: Vector2, facing: float) -> Bus:
 	cart.brake = 2.2
 	cart.turn_radius = 5.0
 	_w.shuttle = cart
+	_w.heating.vehicles.append(cart)
 	return cart
 
 

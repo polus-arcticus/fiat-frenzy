@@ -8,7 +8,7 @@ Every number here comes from a bench in `tools/`, run headless, with what was me
 | tool | what it runs | how long |
 |---|---|---|
 | `tools/bench_economy.gd -- [summary] [nowelfare] [gift] [<days>]` | the standard cluster as it is found, funded once by the hero; a row a day, with who collapsed and why | 30 days: about 3 min in full detail, under a second in summary |
-| `tools/epoch.gd -- [days=365] [every=10] [dt=1] [full] [csv=<path>] [noup] [nofund] [beds=N]` | the same, for a long time: build-ups, owners' money, the books | a year in about 12 s (summary) |
+| `tools/epoch.gd -- [days=365] [every=10] [dt=1] [full] [csv=<path>] [noup] [nofund] [tents=N]` | the same, for a long time: build-ups, owners' money, the books | a year in about 12 s (summary) |
 | `tools/bench_equilibrium.gd` | two saves merged (one town with a food bank, one without) | 6 hours of play |
 | `tools/bench_zones.gd` | many towns, as one zone or a zone each, for the cost of a tick | seconds |
 | `tools/probe_*.gd` | one question each (stuck walkers, summary against full detail, the tent) | seconds |
@@ -59,7 +59,7 @@ In summary (dormant), the same town has 1 collapse in 30 days (on day 1).
   Higher tiers are where it should go.
 - **Unfunded** (`nofund`): 99 collapses in the first 5 days and 6 more by day 10, while the fountain's gifts (the broke owners are
   the poorest) pay for the repairs. After that it runs like a funded one. Funding a block when it is found spares it that week.
-- **More beds** (`beds=N`, the bed-cap prototype): +8 beds gives about 250 collapses every 30 days, and +20 about 900. Supply
+- **More people** (`tents=N`; measured with the earlier bed-cap prototype): +8 gives about 250 collapses every 30 days, and +20 about 900. Supply
   can't feed the extra people; prices climb and the money pools with the bread and drink sellers. Growing the population means
   growing supply with it. Parked: no scaling of NPCs or food balance for now.
 

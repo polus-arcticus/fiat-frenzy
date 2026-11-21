@@ -11,8 +11,8 @@ func run() -> void:
 	for need in Drone.NEEDS:
 		w.player.bars[need] = 1.0
 	sc.toggle()
-	check(not w.skating.mounted and not p.skating, "without a board in the bag, B does nothing")
-	w.player.carry.add("skateboard", 1)
+	check(not w.skating.mounted and not p.skating, "without a board in the loadout, B does nothing")
+	w.player.gear.add("skateboard", 1)
 	sc.toggle()
 	for i in 4:
 		await tree.physics_frame

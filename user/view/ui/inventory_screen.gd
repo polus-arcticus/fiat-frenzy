@@ -2,12 +2,15 @@
 ## (or just yours, when opened with no stand).
 ## Right-click an item in the stand's stock to buy one; right-click an item in your own to use it. The
 ## stand's *input* inventory is shown too: what it is waiting for, and how short it is. This view only
-## displays and asks (it emits `buy_requested` and `consume_requested`); the rules live in Commerce.
+## displays and asks (it emits `buy_requested`, `consume_requested`, `equip_requested` and `unequip_requested`); the rules live
+## in Commerce and Loadout. Above the bag is the loadout: what the hero rides and wears.
 class_name InventoryScreen
 extends CanvasLayer
 
 signal buy_requested(machine: Machine, item: String)
 signal consume_requested(item: String)
+signal equip_requested(item: String)    # from the bag into the loadout (see Loadout)
+signal unequip_requested(item: String)  # and back
 signal opened
 signal closed
 
@@ -25,6 +28,7 @@ var _right: PanelContainer
 var _left_bars := {}
 var _wallet: Label
 var _bag: GridContainer
+var _loadout: GridContainer
 var _title: Label
 var _status: Label
 var _sale: GridContainer
@@ -68,9 +72,11 @@ func _build_left() -> PanelContainer:
 	_wallet = _label(v, "", 17)
 	for k in ["hunger", "thirst", "warmth"]:
 		_left_bars[k] = _bar(v, k)
-	_label(v, "", 8)
+	_label(v, "Loadout", 18)
+	_loadout = _grid(v, Loadout.SLOTS)
+	_label(v, "Bag", 18)
 	_bag = _grid(v, BAG_COLUMNS)
-	var hint := _label(v, "Right-click something to eat or drink it.", 14)
+	var hint := _label(v, "Right-click to eat, drink or equip; right-click the loadout to take off.", 14)
 	hint.modulate.a = 0.7
 	return panel
 
@@ -186,14 +192,26 @@ func _refresh_player() -> void:
 	_wallet.text = "cash  $%.2f   (stakes paid you $%.2f)" % [world.ledger.player_cash, world.ledger.stake_income]
 	for k in _left_bars:
 		_left_bars[k].value = p.bars[k] * 100.0
+	_clear(_loadout)
+	var worn := world.loadout.items()
+	for i in Loadout.SLOTS:
+		if i < worn.size():
+			var item: String = worn[i]
+			var slot := SlotView.new().setup(item, 0, "", "%s: right-click to put it in your bag" % item.replace("_", " "), "good")
+			slot.right_clicked.connect(func(): unequip_requested.emit(item))
+			_loadout.add_child(slot)
+		else:
+			_loadout.add_child(SlotView.new().setup("", 0, "", "an empty slot: a bike, a board or clothes go here"))
 	_clear(_bag)
 	var stacks := Stacks.layout(p.carry)
 	for i in Commerce.CARRY_SLOTS:
 		if i < stacks.size():
 			var item: String = stacks[i].item
 			var usable := Catalog.is_consumable(item)
-			var slot := SlotView.new().setup(item, stacks[i].count, "", "Right-click to use" if usable else "can't be used", "good" if usable else "")
-			slot.right_clicked.connect(func(): consume_requested.emit(item))
+			var gear: bool = Catalog.item(item).gear
+			var hint := "Right-click to use" if usable else ("Right-click to equip" if gear else "can't be used")
+			var slot := SlotView.new().setup(item, stacks[i].count, "", hint, "good" if usable or gear else "")
+			slot.right_clicked.connect(func(): (equip_requested if gear else consume_requested).emit(item))
 			_bag.add_child(slot)
 		else:
 			_bag.add_child(SlotView.new().setup("", 0))
@@ -223,24 +241,28 @@ func _refresh_machine() -> void:
 		else:
 			_sale.add_child(SlotView.new().setup("", 0))
 	_clear(_wants)
-	for raw in m.recipe:
+	for raw in m.input.caps:  # (its recipe's inputs, and the scrap its next tier is built of)
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 10)
 		_wants.add_child(row)
 		var have: int = m.input.count(raw)
 		var cap: int = m.input.caps[raw]
-		var per_craft: int = m.recipe[raw]
-		var low: bool = have < per_craft * Needs.RESTOCK_BELOW and raw not in Catalog.free_inputs()
+		var per_craft: int = m.recipe.get(raw, 0)
+		var low: bool = have < per_craft * Needs.RESTOCK_BELOW
 		row.add_child(SlotView.new().setup(raw, have, "%d / %d" % [have, cap], "%s: %d of %d" % [raw.replace("_", " "), have, cap], "warn" if low else ""))
-		var note := _label(row, _source_note(raw, cap - have, have), 14)
+		var text := _source_note(raw, cap - have, have)
+		var up := Catalog.next_tier(m.kind)
+		if up != "" and raw == "scrap" and Catalog.machine(up).build_scrap > 0:
+			text += " %d of it builds it up into a %s." % [Catalog.machine(up).build_scrap, Catalog.machine(up).name]
+		var note := _label(row, text, 14)
 		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		note.custom_minimum_size.x = 250
 
 
 func _source_note(raw: String, short: int, have: int) -> String:
 	var name := raw.replace("_", " ")
-	if raw in Catalog.free_inputs():
-		return "%s: found lying around, never runs out." % name
+	if raw in Catalog.scavenged_goods():
+		return "%s: wants %d more. Runners gather it from the street." % [name, short] if short > 0 else "%s: full." % name
 	if raw in Catalog.relief_goods():
 		return "%s: wants %d more. The Red Cross van brings it, free." % [name, short] if short > 0 else "%s: full." % name
 	return "%s: wants %d more. Bought from another stand." % [name, short] if short > 0 else "%s: full." % name

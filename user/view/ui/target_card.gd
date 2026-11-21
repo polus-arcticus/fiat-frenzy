@@ -37,7 +37,9 @@ func _describe(d: Drone, w: World) -> String:
 	if d.kind == "runner":
 		var load_text := ", ".join(d.cart.counts.keys().filter(func(k): return d.cart.count(k) > 0).map(func(k): return "%d %s" % [d.cart.count(k), k.replace("_", " ")]))
 		text += "\ncart: %s" % (load_text if load_text != "" else "empty")
-		text += "\n%d units delivered, $%.2f in fees" % [d.delivered_total, d.fees_earned]
+		text += "\n%d trips, %d units, $%.2f in fees" % [d.deliveries, d.delivered_total, d.fees_earned]
+		var worth := d.equity.value(Drone.CART_VALUE, d.growth.xp)
+		text += "\ncart worth $%.0f  ·  you own %d%% of its fees" % [worth, roundi(d.equity.share(w.ledger.local) * 100.0)]
 	var fb := w.food_bank_of(d)
 	if fb != null:
 		text += "\n%s: %s" % [fb.display_name(), ", ".join(Catalog.food_bank.goods.keys().map(func(g): return "%d %s" % [fb.output.count(g), g.replace("bottled_", "").replace("_", " ")]))]

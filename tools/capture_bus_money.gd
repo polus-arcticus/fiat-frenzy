@@ -44,8 +44,8 @@ func _run(game: Node, dir: String) -> void:
 	# look down at the floor and fire
 	p.look(0.0, -0.55)
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	game.world.gun_tree.unlock("bill_5")  # (fives, so the floor fills up)
 	for k in 8:
-		game.gun.bill_value = 5.0
 		game.gun.shoot()
 		for i in 12:
 			await physics_frame

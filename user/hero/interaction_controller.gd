@@ -51,14 +51,16 @@ func setup(w: World, p: PlayerController, h: Hud, s: InventoryScreen, t: TentScr
 	name = "Interaction"
 	screen.buy_requested.connect(_on_buy)
 	screen.consume_requested.connect(_on_consume)
+	screen.equip_requested.connect(func(item: String): screen.refresh(world.loadout.equip(item).text))
+	screen.unequip_requested.connect(func(item: String): screen.refresh(world.loadout.unequip(item).text))
 	if tents != null:
 		tents.add_requested.connect(func(tent: Machine):
-			var cost := world.lodging.add_bed(tent)
+			var cost := world.lodging.add_tent(tent)
+			if cost <= 0.0:
+				tents.refresh("No room for another tent: build the tent city up first.")
+				return
 			world.gun.credit_hero(cost)  # (money the hero puts in is experience for them too)
-			tents.refresh("A bed is added ($%.0f, printed by the gun). %s" % [cost, "Someone will come for it." if tent.working else "Nobody will come while the tent is wrecked."]))
-		tents.remove_requested.connect(func(tent: Machine):
-			var left = world.lodging.remove_bed(tent)
-			tents.refresh("A free bed is taken away." if left == null else ("%s packs up and leaves town." % (left.label if left.label != "" else "A drifter") if left is Drone else "Nobody here can leave.")))
+			tents.refresh("A tent is up ($%.0f, printed by the gun). %s" % [cost, "Someone will come to live in it." if tent.working else "Nobody will come while the tent city is wrecked."]))
 		tents.warm_requested.connect(func(tent: Machine): tents.refresh(world.commerce.warm_at(tent)))
 	_build_verbs()
 	return self
@@ -112,7 +114,7 @@ func open_player() -> void:
 
 func _process(delta: float) -> void:
 	if tents != null and tents.visible:
-		if player.ground_pos().distance_to(tents.tent.pos) > CLOSE_AT + tents.tent.modules() * Machine.MODULE_WIDTH:
+		if player.ground_pos().distance_to(tents.tent.pos) > CLOSE_AT + tents.tent.tents * Machine.TENT_WIDTH:
 			tents.close()
 			return
 		_refresh_in -= delta

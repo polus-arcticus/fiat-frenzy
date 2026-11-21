@@ -39,9 +39,20 @@ func _init(world: World) -> void:
 
 ## Why the hero can't get on a board right now, or "".
 func why_not() -> String:
-	if _w.player == null or _w.player.carry.count("skateboard") < 1:
-		return "You don't have a skateboard."
+	if _w.player == null or board() == "":
+		return "You don't have a skateboard in your loadout."
 	return _w.hero.why_not(Hero.Mode.SKATING)
+
+
+## The best board in the hero's loadout ("skateboard", or a camp's "old_skateboard"), or "".
+func board() -> String:
+	return _w.loadout.ride("board")
+
+
+## How fast the board goes flat out: an old one from a homeless camp, slower (ItemDef.speed).
+func top_speed() -> float:
+	var b := board()
+	return TOP_SPEED * (Catalog.item(b).speed if b != "" else 1.0)
 
 
 ## Returns {ok, text}.
@@ -77,7 +88,7 @@ func dismount() -> void:
 ## radians a second to turn, the upward speed to launch with (0 for none), and whether a kickflip was done this frame.
 func step(dt: float, input: Dictionary, grounded: bool, at: Vector2) -> Dictionary:
 	if input.get("push", false):
-		speed = minf(TOP_SPEED, speed + ACCEL * dt)
+		speed = minf(top_speed(), speed + ACCEL * dt)
 	elif input.get("brake", false):
 		speed = maxf(0.0, speed - BRAKE * dt)
 	else:

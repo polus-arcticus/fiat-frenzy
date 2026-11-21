@@ -12,12 +12,12 @@ var build_zone := "district"
 var relief_trucks: Array[ReliefTruck] = []
 var fires: Array[BarrelFire] = []
 var food_banks: Array[FoodBank] = []
+var scrap_piles: Array[ScrapPile] = []
 var hospitals: Array[Hospital] = []
 var welfare_offices: Array[WelfareOffice] = []  # the town's purse (see Welfare)
 var ambulances: Array[Ambulance] = []
 var bills: Array[Bill] = []  # printed money, in flight or lying about
 var roads: RoadGraph = null  # optional: with one, drones walk the streets
-var bike: Bike = null        # the player's bicycle, once they have bought one
 ## The story's scripted cast, by role (Mr. Nobody, the bank's people, its lift): the story's to fill and read. The world only
 ## holds it (it is the composition root); nothing in the engine looks inside.
 var cast := Cast.new()
@@ -77,7 +77,9 @@ var rescue: Rescue
 var chatter: Chatter
 # The hero's (user/) and the story's (story/): only in the game's world (see _init)
 var gun: Gun
+var gun_tree: GunTree
 var commerce: Commerce
+var loadout: Loadout
 var hero: Hero
 var riding: Riding
 var transit: Transit
@@ -92,7 +94,7 @@ var _end_of_tick: Array = []
 ## The systems whose state is saved, by their field here (Snapshot saves them; Merge merges a system by its class's MERGE table
 ## if it has one, else takes the host's). Summary, Walking, Navigation and Heating hold nothing a save needs (the scenario
 ## rebuilds them). This is the one list: a new system with state is added here, beside its field.
-const SAVED := ["clock", "ledger", "needs", "logistics", "relief", "gun", "commerce", "cash", "levels", "rescue", "chatter",
+const SAVED := ["clock", "ledger", "needs", "logistics", "relief", "gun", "gun_tree", "commerce", "cash", "levels", "rescue", "chatter",
 	"hero", "riding", "sage", "portals", "transit", "skating", "quests", "attention", "zones", "borders", "welfare", "trades",
 	"lodging"]
 
@@ -129,7 +131,9 @@ func _init(game := true) -> void:
 ## before everyone else, the story's watchers last.
 func _attach_game() -> void:
 	gun = Gun.new(self)
+	gun_tree = GunTree.new(self)
 	commerce = Commerce.new(self)
+	loadout = Loadout.new(self)
 	hero = Hero.new(self)
 	riding = Riding.new(self)
 	transit = Transit.new(self)
@@ -289,6 +293,7 @@ func add_player(at: Vector2, cash := 25.0) -> Drone:
 	player.label = "You"
 	player.care_rate = 5.0  # the tent fusses over the hero: a short sleep, and they wake properly well
 	player.wake_at = 0.95
+	player.cold_spans = Cold.spans()  # new to the street: a couple of blocks from a fire by day, less at night
 	for n in Drone.NEEDS:
 		player.bars[n] = 1.0
 	ledger.player_cash += cash
@@ -308,6 +313,22 @@ func add_relief_truck(at: Vector2) -> ReliefTruck:
 
 ## The medical tent, with an ambulance parked outside it. `toward_street` is the unit vector from the
 ## tent out to the street.
+## A first aid post (one bed, no ambulance) at `at`, facing `toward_street`, and its medic, who minds it and tends whoever is down
+## in the zone (see Rescue). Returns the medic.
+func add_first_aid(at: Vector2, toward_street: Vector2, wallet := 0.0) -> Drone:
+	var h := Hospital.new(at, toward_street, "first_aid")
+	h.zone = build_zone
+	mint(h)
+	hospitals.append(h)
+	var medic := add_drifter(h.post(), wallet)
+	medic.kind = "medic"
+	medic.label = "Medic"
+	medic.home = h.post()  # (where they wait between patients)
+	h.owner = medic.uid
+	zones.invalidate()
+	return medic
+
+
 func add_hospital(at: Vector2, toward_street: Vector2) -> Hospital:
 	var h := Hospital.new(at, toward_street)
 	h.zone = build_zone
@@ -316,6 +337,15 @@ func add_hospital(at: Vector2, toward_street: Vector2) -> Hospital:
 	zones.invalidate()
 	ambulances.append(mint(Ambulance.new(h)))
 	return h
+
+
+## A pile of scrap in the street (see ScrapPile), starting with `start`.
+func add_scrap_pile(at: Vector2, start := 10) -> ScrapPile:
+	var p := ScrapPile.new(at, start)
+	p.zone = build_zone
+	mint(p)
+	scrap_piles.append(p)
+	return p
 
 
 func add_fire(at: Vector2) -> BarrelFire:
@@ -371,6 +401,9 @@ func tick(dt := 1.0) -> void:
 			m.step(dt)
 		for fb in zones.food_banks_in(z):
 			fb.step(dt)
+		for p in scrap_piles:
+			if p.zone == z:
+				p.step(dt)
 	needs.wake_sleepers()
 	for z in running:
 		var here: Array = zones.drones_in(z).duplicate()

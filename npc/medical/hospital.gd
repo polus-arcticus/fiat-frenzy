@@ -1,34 +1,28 @@
-## The medical tent. A few beds where people who have collapsed are brought, and looked after for free:
-## each patient's bars refill until they are well enough to be up and about. No money changes hands.
+## Where people who have collapsed are looked after, for free: each patient's bars refill until they are well enough to be up
+## and about. No money changes hands. The medical trade's premises (Catalog.TRADES): a first aid post (tier 0, one bed, run by a
+## medic, who tends whoever is down in the zone themselves) or the medical tent (tier 1, BEDS beds and an ambulance).
 class_name Hospital
-extends RefCounted
+extends Premises
 
 const BEDS := 4
 const CARE_RATE := 0.012  # a second, on each survival bar: about a minute and a half from empty to fit
 const WAKE_AT := 0.6      # a patient is discharged once their lowest bar is back to this
+const BEDS_OF := {"first_aid": 1, "medical_tent": BEDS}
 
-var uid := ""  # see World.mint
-var zone := "district"
-var pos := Vector2.ZERO
-var front := Vector2(0, 1)  # unit vector from the tent out to the street
 var patients: Array[Drone] = []
 var admitted_total := 0
-var _solid: Footprint = null
 
 
-func _init(at := Vector2.ZERO, toward_street := Vector2(0, 1)) -> void:
+func _init(at := Vector2.ZERO, toward_street := Vector2(0, 1), what := "medical_tent") -> void:
+	kind = what
+	trade = "medical"
+	tier = Catalog.TRADES.medical.find(what)
 	pos = at
 	front = toward_street
 
 
-func solid() -> Footprint:
-	if _solid == null:
-		_solid = Footprint.of("hospital", pos, front)
-	return _solid
-
-
-func display_name() -> String:
-	return "Medical tent"
+func beds() -> int:
+	return BEDS_OF.get(kind, BEDS)
 
 
 ## Where the ambulance parks: out in the street, to the market side of the entrance so it doesn't block it.
@@ -48,7 +42,7 @@ func exit_pos(index: int) -> Vector2:
 
 
 func free_beds() -> int:
-	return BEDS - patients.size()
+	return beds() - patients.size()
 
 
 func admit(d: Drone) -> void:
