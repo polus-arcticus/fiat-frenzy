@@ -33,7 +33,7 @@ func test_the_letter_is_offered_once_the_stands_run_and_the_bankers_are_fed() ->
 	check(w.quests.state.get(QuestBook.LETTER, "") == "offered" and w.quests.giver == banker, "all running and a banker who has had a meal: he has a favour to ask")
 	check(w.quests.objective().text.contains("press Q") and w.quests.objective().at == banker.pos, "and the objective sends you to him")
 	check(w.events.any(func(e): return e.contains("want a word")), "with a note in the feed")
-	check(banker.label == "Banker with a letter", "he is labelled")
+	check(banker.profession == "Banker with a letter", "he is labelled")
 
 
 func test_a_stand_still_wrecked_holds_the_letter_back() -> void:

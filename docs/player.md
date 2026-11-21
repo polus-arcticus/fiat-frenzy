@@ -34,13 +34,31 @@ User space: the hero's controls, screens and vehicles. The engine's rules are in
 - **Gift** sprays $1 bills, six a second. A bill that hits someone is theirs. One that misses lands in the street as loose cash:
   the hero picks it up by walking over it, and NPCs fetch it within 14 m. That is also how the hero prints money for themselves.
 - **Invest**: hold to charge ($25 up to $250 a shot) and release a contract. One that reaches a business buys a share; anywhere
-  else it is void. A runner (the cart pushers) is a business too: a share of one is a share of its $1 delivery fees, paid as it
+  else it is void. A runner (the cart pushers) is a business too: a share of one is a share of its $0.40 delivery fees, paid as it
   delivers. Its card (aim at it) says what the cart is worth and how much of it you own.
 - Every dollar given is **experience**, for the receiver and for the hero: $50 to level 2, then 1.5× each level
   (`engine/core/growth.gd`). A business levels with its owner: +25% production and more shelf.
 - The heroes together own at most **49%** of any business (`engine/core/equity.gd`).
 - Bills never end up where nobody can reach them: one that lands in a building is put on the nearest open ground
   (`Navigation.nearest_open`).
+
+## A new game: where you land (`user/landing/landing_screen.gd`)
+
+New Game opens the landing picker, as in Planet Crafter.
+- **Frankfurt · Bahnhofsviertel**: the story.
+- **Anywhere on Earth**: a tile of your own, its streets from OpenStreetMap, the atom on it (a tent city, a market, a first
+  aid post), no story yet. The hero starts on the street nearest the point chosen, facing the way to the market.
+- **The planet:**
+  - drag it to turn it, scroll to zoom, and click to choose (or type "lat, lon");
+  - it is a globe, or with **Flat map** an azimuthal equidistant map over the north pole (`PlanetProjection`; both drawn by
+    `assets/shaders/planet.gdshader`).
+  - Zoomed in, the game's tile grid shows (`TileKey`, zoom 16), with the regions (zoom 10) in gold. The chosen tile is pink;
+    the panel gives its key, its size, and whether its map is already here.
+  - Pins: the story's Frankfurt in gold; green squares for tiles already landed in on this machine.
+- **Its pictures** are OpenStreetMap's map tiles (`MapTiles`), fetched two at a time and kept in `user://maptiles`: the whole
+  world at zoom 3, and closer tiles where you look. The map is credited in the corner.
+- **Land here** fetches the tile's streets if they aren't cached ("FETCHING THE MAP OF …" over the loading picture). If that
+  fails, the picker stays and says why.
 
 ## Screens
 

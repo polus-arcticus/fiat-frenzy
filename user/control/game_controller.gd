@@ -7,14 +7,17 @@ const DISTRICT_PATH := "res://data/bahnhofsviertel.json"
 const SIM_STEP := SimLoop.STEP
 
 var world: World
-var scenario: Scenario
+## Where the game begins (see Landing). Set before the scene is added (tests, tools) or chosen on the title screen (Launch);
+## the story's Frankfurt otherwise.
+var landing: Landing
+var scenario: Scenario  # the landing, when it is the story's (else null: no cast, quests, bus or opening crash)
 var city: Node3D
 var sky: DayNight
 var player: PlayerController
 var gun: GunController
 var hud: Hud
 var marker: MarkerView
-var tutorial: Tutorial
+var tutorial: Objectives  # (the story's Tutorial, or a tile's LandingObjectives)
 var inventory: InventoryScreen
 var interaction: InteractionController
 var story_verbs: StoryVerbs
@@ -62,11 +65,18 @@ func _ready() -> void:
 	var args := OS.get_cmdline_user_args()
 	var load_slot := Launch.take_slot()
 	skip_intro = skip_intro or "--skip-intro" in args or load_slot != "" or Launch.skip_intro
-	var district := _load_district()
-	_build_town(district)
+	if landing == null:
+		var spec: Dictionary = Launch.take_landing()
+		if load_slot != "":
+			spec = SaveStore.read(load_slot).get("landing", {"kind": "story"})  # (a save is built again on its own landing)
+		landing = _landing_of(spec)
+	scenario = landing as Scenario
+	if scenario == null:
+		skip_intro = true  # (no opening crash off the story: the gun is in hand)
+	_build_town()
 	_build_player()
 	world.begin_play()  # the town is built: whatever turns up from now on is named after this game (see World.mint)
-	_build_screens(district)
+	_build_screens()
 	_build_story()
 	presenter = HudPresenter.new(world, hud, player, gun, inventory, tutorial, marker)
 	hud.notify("Click to capture the mouse.")
@@ -74,11 +84,23 @@ func _ready() -> void:
 		if not load_game(load_slot):
 			hud.notify("That save could not be read: starting fresh.")
 	_last_day = world.clock.day()
-	dev_stages = DevStageController.new().setup(self)
-	add_child(dev_stages)
-	for a in args:
-		if a.begins_with("--stage="):
-			_jump_when_free(a.trim_prefix("--stage="))
+	if scenario != null:
+		dev_stages = DevStageController.new().setup(self)
+		add_child(dev_stages)
+		for a in args:
+			if a.begins_with("--stage="):
+				_jump_when_free(a.trim_prefix("--stage="))
+
+
+## The landing a spec names ({kind: "story"}, or {kind: "tile", key, lat, lon}: its map must be in the tile cache, see
+## TileSource).
+func _landing_of(spec: Dictionary) -> Landing:
+	if spec.get("kind", "story") == "tile":
+		var map := TileSource.district(spec.key)
+		if not map.is_empty():
+			return TileLanding.new(spec.key, map, float(spec.lat), float(spec.lon))
+		push_warning("tile %s is not in the cache: landing in Frankfurt" % spec.key)
+	return Scenario.new(_load_district())
 
 
 ## `--stage=<id>`: once the hero is free to move (the intro, if there is one, is over), play the story forward to there.
@@ -89,17 +111,17 @@ func _jump_when_free(id: String) -> void:
 
 
 ## The map, the sky and the model, and the views that draw what the model starts with.
-func _build_town(district: Dictionary) -> void:
-	scenario = Scenario.new(district)
-	city = CityBuilder.build(district, scenario.openings())
+func _build_town() -> void:
+	city = CityBuilder.build(landing.district, landing.openings())
 	add_child(city)
 	sky = DayNight.new()
 	add_child(sky)
 	sky.lit_windows = city.get_node("LitWindows")
-	world = scenario.build()
+	world = landing.build()
 	sim = SimLoop.new(world)
-	WorldViews.spawn(self, world, scenario.facing)
-	StoryViews.spawn(self, world, scenario)
+	WorldViews.spawn(self, world, landing.facing)
+	if scenario != null:
+		StoryViews.spawn(self, world, scenario)
 	bills_view = BillsView.new().setup(world)
 	add_child(bills_view)
 
@@ -110,8 +132,8 @@ func _build_player() -> void:
 	add_child(hud)
 	player = PlayerController.new()
 	add_child(player)
-	player.teleport(Vector3(scenario.start.x, 0.1, scenario.start.y), scenario.start_yaw)
-	world.add_player(scenario.start)
+	player.teleport(Vector3(landing.start.x, 0.1, landing.start.y), landing.start_yaw)
+	world.add_player(landing.start)
 	gun = GunController.new()
 	player.camera.add_child(gun)
 	gun.position = Vector3(0.2, -0.22, -0.4)
@@ -123,11 +145,17 @@ func _build_player() -> void:
 	add_child(marker)
 	gun.set_enabled(skip_intro)
 	world.gun_owned = skip_intro
-	tutorial = Tutorial.new(world, scenario.cast, not skip_intro)
+	if scenario != null:
+		tutorial = Tutorial.new(world, scenario.cast, not skip_intro)
+	else:
+		tutorial = LandingObjectives.new(landing)
+		for item in TileLanding.KIT:
+			world.player.carry.add(item, TileLanding.KIT[item])
 	inventory = InventoryScreen.new()  # added last, so it sees input first
 	add_child(inventory)
 	interaction = InteractionController.new().setup(world, player, hud, inventory)
-	story_verbs = StoryVerbs.new().setup(world, interaction)  # (the story's talks: Q at its people)
+	if scenario != null:
+		story_verbs = StoryVerbs.new().setup(world, interaction)  # (the story's talks: Q at its people)
 	add_child(interaction)
 	bike_controller = BikeController.new().setup(world, player, gun, hud)
 	add_child(bike_controller)
@@ -142,7 +170,7 @@ func _build_player() -> void:
 
 
 ## The full-screen screens, all registered with the stack (which owns Esc and the player's controls while one is open).
-func _build_screens(district: Dictionary) -> void:
+func _build_screens() -> void:
 	screens = ScreenStack.new()
 	screens.player = player
 	add_child(screens)
@@ -150,7 +178,7 @@ func _build_screens(district: Dictionary) -> void:
 	dialogue = DialogueScreen.new()  # after the inventory, so it sees input first
 	add_child(dialogue)
 	screens.register(dialogue)
-	map_screen = MapScreen.new().setup(district, world, player, func(): return presenter.current_marker(), scenario.landmarks(world))
+	map_screen = MapScreen.new().setup(landing.district, world, player, func(): return presenter.current_marker(), landing.landmarks(world), landing.title())
 	add_child(map_screen)
 	screens.register(map_screen)
 	map_screen.opened.connect(func(): hud.show_prompt(""))
@@ -168,7 +196,7 @@ func _build_screens(district: Dictionary) -> void:
 	fade = FadeScreen.new()
 	add_child(fade)
 	pause = PauseScreen.new()
-	pause.stages = DevStageController.STAGES
+	pause.stages = DevStageController.STAGES if scenario != null else []
 	add_child(pause)
 	screens.register(pause)
 	pause.save_requested.connect(func(): pause.say("Saved." if save_game("manual") else "Could not save."))
@@ -179,11 +207,22 @@ func _build_screens(district: Dictionary) -> void:
 		dev_stages.go(id))
 	pause.opened.connect(func(): sim.hold("pause"))
 	pause.closed.connect(func(): sim.hold("pause", false))
-	screens.mouse_freed.connect(func(): if not intro.running: pause.open())
+	screens.mouse_freed.connect(func(): if not _intro_running(): pause.open())
+
+
+## Whether the story's opening crash is playing (never, off the story).
+func _intro_running() -> bool:
+	return intro != null and intro.running
 
 
 ## What happens to the hero: the conversations, the bus, passing out, and the opening crash.
 func _build_story() -> void:
+	collapse = CollapseController.new().setup(world, player, hud, screens, gun)
+	add_child(collapse)
+	inspector = InspectorController.new().setup(world, player, gun, screens, self)
+	add_child(inspector)
+	if scenario == null:
+		return  # (a tile with no story: passing out and the inspector are all of this there is)
 	sage_controller = SageController.new().setup(world, player, hud, dialogue, self)
 	add_child(sage_controller)
 	bus = BusView.new().setup(scenario.bus_stop.pos, scenario.bus_stop.yaw)
@@ -202,10 +241,6 @@ func _build_story() -> void:
 			quest_controller.talk(who))
 	interaction.board_prompt = quest_controller.board_prompt
 	interaction.board_requested.connect(quest_controller.board)
-	collapse = CollapseController.new().setup(world, player, hud, screens, gun)
-	add_child(collapse)
-	inspector = InspectorController.new().setup(world, player, gun, screens, self)
-	add_child(inspector)
 	intro = IntroController.new().setup(world, player, hud, scenario, self, add_drone_view)
 	add_child(intro)
 	intro.pickup_spawned.connect(_on_pickup_spawned)
@@ -309,13 +344,14 @@ func _unhandled_input(e: InputEvent) -> void:
 
 ## Whether the world is at rest enough to be written down: not mid-intro, not on the bus ride, not passed out.
 func can_save() -> bool:
-	return not intro.running and not quest_controller.riding_the_bus and world.player.care == "" and not world.hero.mode == Hero.Mode.SEATED
+	var on_the_bus := quest_controller != null and quest_controller.riding_the_bus
+	return not _intro_running() and not on_the_bus and world.player.care == "" and not world.hero.mode == Hero.Mode.SEATED
 
 
 ## What the model cannot say: where the hero looks, and the scene bits the controllers keep.
 func _hero_state() -> Dictionary:
 	return {"yaw": player.rotation.y, "pitch": player.camera.rotation.x, "third_person": player.wanted_third_person,
-		"gun_mode": gun.mode, "quest": quest_controller.save_state()}
+		"gun_mode": gun.mode, "quest": quest_controller.save_state() if quest_controller != null else {}}
 
 
 ## Writes the game to `slot`. False if it could not be (or is not at a point where it can be).
@@ -323,7 +359,7 @@ func save_game(slot: String) -> bool:
 	if not can_save():
 		hud.notify("Not now.")
 		return false
-	var ok := SaveStore.write(slot, world, _hero_state())
+	var ok := SaveStore.write(slot, world, _hero_state(), SaveStore.DIR, landing.spec())
 	if ok and slot != SaveStore.AUTOSAVE:
 		hud.notify("Game saved.")
 	return ok
@@ -345,7 +381,8 @@ func load_game(slot: String) -> bool:
 	player.set_third_person(h.get("third_person", false))
 	gun.mode = h.get("gun_mode", "gift")
 	gun.set_enabled(world.gun_owned)
-	quest_controller.load_state(h.get("quest", {}))
+	if quest_controller != null:
+		quest_controller.load_state(h.get("quest", {}))
 	tutorial.update(world.player.pos)
 	tutorial.take_news()  # (what was done before the save is not news)
 	sky.update(world.clock.fraction())
@@ -365,7 +402,7 @@ func _autosave(delta: float) -> void:
 
 ## The first time the story reaches a chapter's start, and the hero is somewhere that can be saved, the game writes its checkpoint.
 func _checkpoint() -> void:
-	if not (can_save() and player.controls_enabled):
+	if scenario == null or not (can_save() and player.controls_enabled):
 		return
 	var q := world.quests
 	var reached := ""

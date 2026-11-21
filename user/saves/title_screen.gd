@@ -79,6 +79,14 @@ func _button(text: String, action: Callable, accent := CREAM) -> Button:
 	b.text = text
 	b.custom_minimum_size = Vector2(360, 54)
 	b.add_theme_font_size_override("font_size", 24)
+	style(b, accent)
+	b.pressed.connect(action)
+	_menu.add_child(b)
+	return b
+
+
+## The title's look for a button (also the new-game screen's): ink, with an `accent` border and text that fills in on hover.
+static func style(b: Button, accent := CREAM) -> void:
 	for state in ["normal", "hover", "pressed", "focus"]:
 		var sb := StyleBoxFlat.new()
 		sb.bg_color = Color(INK, 0.85) if state == "normal" else Color(accent, 0.95) if state != "focus" else Color(INK, 0.85)
@@ -90,9 +98,6 @@ func _button(text: String, action: Callable, accent := CREAM) -> Button:
 	b.add_theme_color_override("font_color", accent)
 	b.add_theme_color_override("font_hover_color", INK)
 	b.add_theme_color_override("font_pressed_color", INK)
-	b.pressed.connect(action)
-	_menu.add_child(b)
-	return b
 
 
 func _show_main() -> void:
@@ -102,7 +107,7 @@ func _show_main() -> void:
 	if not _saves.is_empty():
 		var newest: Dictionary = _saves[0]
 		first = _button("Continue   ·   %s" % _describe(newest), func(): _start(newest.slot), GOLD)
-	var fresh := _button("New Game", func(): _start(""))
+	var fresh := _button("New Game", _show_landing)
 	if first == null:
 		first = fresh
 	var load_b := _button("Load Game", _show_saves)
@@ -156,9 +161,25 @@ func _ago(then: float) -> String:
 	return "%d days ago" % (secs / 86400)
 
 
-func _start(slot: String) -> void:
+## New Game: where to land (LandingScreen), over the title.
+func _show_landing() -> void:
+	var picker := LandingScreen.new()
+	add_child(picker)
+	_menu.hide()
+	picker.back.connect(func():
+		picker.queue_free()
+		_menu.show()
+		_show_main())
+	picker.chosen.connect(func(spec: Dictionary): _start("", spec, picker))
+
+
+## Starts a slot, or a new game on `landing` (Launch). If the landing's map can't be fetched, the picker says why and stays.
+func _start(slot: String, landing := {}, picker: LandingScreen = null) -> void:
 	if _busy:
 		return
 	_busy = true
 	Launch.skip_intro = false
-	Launch.begin(get_tree(), slot)
+	var error: String = await Launch.begin(get_tree(), slot, landing)
+	_busy = false
+	if error != "" and picker != null:
+		picker.failed(error)

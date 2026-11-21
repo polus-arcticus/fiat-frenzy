@@ -32,6 +32,6 @@ func run() -> void:
 	# the level bar is gone from the card and the HUD; the card lists reputation in points where the wallet used to be
 	drifter0.rep = 0.37
 	game.hud.card.show_target(drifter0, w)
-	check(game.hud.card.info.text.begins_with("reputation 37 points") and not game.hud.card.info.text.contains("wallet") and not game.hud.card.bars.has("level"), "the card says 'reputation 37 points' and has no level bar")
+	check(game.hud.card.info.text.contains("reputation 37 points") and not game.hud.card.info.text.contains("wallet") and not game.hud.card.bars.has("level"), "the card says 'reputation 37 points' and has no level bar")
 	check(not game.hud.player_panel.bars.has("level") and game.hud.player_panel.bars.has("cash"), "and the player's own panel has no level bar either (its title still says the level)")
 	game.hud.card.show_target(null, w)

@@ -27,6 +27,33 @@ as it pours. Aiming it at the poor only changes how many collapse on the way. Th
 
 (The 5 and 6 rows were measured before the supply fixes below.)
 
+## The atom: just above baseline (2026-11-21)
+
+The user's target for an atom left alone after one funding: **an expected value of zero collapses, and no real capital formed
+for at least a month.** Measured over 8 atoms with different dice, 60 days each, in summary (the probe is in the session
+notes; `tools/probe_atomic.gd` runs one):
+
+| | before | now |
+|---|---|---|
+| collapses per atom | 0.25 (the baker, days 1–5) | **0.00** |
+| residents' money, day 0 → day 30 | $138 → ~$480 (the runner hoarding ~$8 a day) | $138 → ~$168, then flat |
+| money issued by the welfare office | ~$590 in 45 days | ~$95 in 60 days |
+| the first building (the hostel) | day 24 | **day 36** |
+
+What changed:
+- **A runner's delivery keeps the shop owner's reserve** (`Hauling.spendable`): cash on delivery took the baker's last dollar
+  for flour, and the baker went thirsty.
+- **The delivery fee is $0.40 a trip**, just above what a runner needs to eat and drink (about $7 a day over ~22 trips). At $1
+  the runner earned twice that, the stands paid it, and the fountain printed to keep them fed.
+- **The welfare office is a net, not savings** (`Welfare.ENOUGH`, $25): it gives only to someone with less than a few days'
+  food money. Given to everyone, it printed about $10 a day into a town that was getting by.
+- **The hostel takes 320 scrap** (it was 200), about 35 days of a pile's scrap.
+
+The standard cluster (with its drifters, who have no income) still has 0 collapses in 120 days, and its stands build up out of
+their own trade (the burger bar on day 16, the bake shop on day 31, the hostel on day 36). **Open:** the lemonade stand's
+margin is too thin to build up to a coffee stop in a season now that welfare does not fill its savings. That is for the
+growth tuning (SimCity-like balanced growth), left for later.
+
 ## The standard cluster over 30 days
 
 `tools/bench_economy.gd`: all stalls wrecked and vendors broke; the hero pays each repair once, then leaves.

@@ -39,7 +39,10 @@ func setup(d: Drone, w: World) -> DroneView:
 	drone = d
 	world = w
 	name = ("Drone_" + d.uid).validate_node_name()
-	_model = Look.model(MODELS[d.look if MODELS.has(d.look) else d.kind])
+	if d.kind == "medic" and d.look == "":
+		_model = MedicLook.model()  # (the builder's rig, dressed as a paramedic)
+	else:
+		_model = Look.model(MODELS[d.look if MODELS.has(d.look) else (d.kind if MODELS.has(d.kind) else "drifter")])
 	# The models are made facing +z (the glTF way), but this view turns -z toward where the drone is going
 	# (and puts a runner's cart at -z), so the model is spun half a turn to face the way it walks.
 	_pose = Node3D.new()
@@ -70,6 +73,10 @@ func setup(d: Drone, w: World) -> DroneView:
 		var emblem := Emblem.new()
 		emblem.position = Vector3(-0.02, 1.34, -0.2)  # a pin on his left lapel: you only notice it close up
 		_pose.add_child(emblem)
+	if d.kind == "medic" and d.look == "":
+		var red_cross := MedicLook.cross()
+		red_cross.position = Vector3(0.0, 1.3, -0.19)  # on the chest of the vest
+		_pose.add_child(red_cross)
 	Look.pick_area(self, _capsule(), Vector3(0, 0.9, 0), LAYER_NPC, "drone", d)
 	position = Vector3(d.pos.x, 0, d.pos.y)
 	_last = position
@@ -186,4 +193,7 @@ func _caption() -> String:
 	var head := drone.label if drone.label != "" else drone.kind
 	if drone.kind != "sage" and (drone.kind != "drifter" or drone.growth.level > 1):
 		head += "  ·  Lv %d" % drone.growth.level
+	var job := world.profession_of(drone)  # (what they do, under their name)
+	if job != "":
+		head += "\n" + job
 	return head if line == "" else "%s\n%s" % [head, line]

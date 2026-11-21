@@ -53,7 +53,7 @@ func setup(d: Drone, w: World, number: int, status: String, open: bool) -> IdCar
 	var id_l := Ui.label(v, "ID %s   ·   tent no. %d   ·   level %d" % [bio.id, number, d.growth.level], 12)
 	id_l.modulate.a = 0.7
 	var since := "here from the start" if d.arrived_at < 0.0 else "here since " + _when(d.arrived_at)
-	Ui.label(v, "%s  ·  from %s  ·  %s" % [_role_name(d, w), bio.hometown, since], 12)
+	Ui.label(v, "%s  ·  from %s  ·  %s" % [w.profession_of(d), bio.hometown, since], 12)
 	if open:
 		var story := Ui.label(v, "Was %s. %s %s %s" % [bio.was, bio.fell, bio.here, bio.hope], 13)
 		story.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -72,14 +72,6 @@ static func _role_color(d: Drone, w: World) -> Color:
 	if m != null and m.shelter != null:
 		return ROLE_COLORS.lodging
 	return ROLE_COLORS.get(d.kind, ROLE_COLORS.drifter)
-
-
-static func _role_name(d: Drone, w: World) -> String:
-	var m := w.machine_of(d)
-	if m != null:
-		return "keeper of the " + m.display_name().to_lower() if m.shelter != null else m.display_name().to_lower()
-	return {"drifter": "drifter", "runner": "cart runner", "keeper": "food bank keeper", "clerk": "welfare clerk",
-		"medic": "medic"}.get(d.kind, d.kind)
 
 
 ## "day 3, 14:20" for a time on the world clock.

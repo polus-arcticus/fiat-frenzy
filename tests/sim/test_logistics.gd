@@ -80,9 +80,10 @@ func test_a_runner_delivers_for_a_fee() -> void:
 	note("    delivered after %d s; runner now has $%.2f (earned $%.2f in fees); baker $%.2f; keeper $%.2f" % [t, runner.wallet, runner.fees_earned, baker.wallet, keeper.wallet])
 	check(t >= 0 and bakery.input.count("flour") == 10 and runner.cart.count("flour") == 0, "the flour went from the food bank, through the cart, into the bakery's input inventory")
 	check(is_equal_approx(keeper.wallet, 10.0) and w.food_bank_of(keeper).sold_total == 10, "the food bank took its price: $10 for ten flour at cost")
-	check(is_equal_approx(baker.wallet, 40.0 - 11.0), "cash on delivery: the baker paid the $10 the flour cost and the $1 flat fee")
-	check(is_equal_approx(runner.wallet, 20.0 + 1.0) and is_equal_approx(runner.fees_earned, 1.0) and runner.delivered_total == 10 and runner.deliveries == 1, "and the runner kept the fee: that is its revenue")
-	check(is_equal_approx(bakery.input_cost["flour"], 1.1) and is_equal_approx(bakery.floor_price(), 2.2), "the fee is part of what the shop's flour costs it ($1.10 a unit), so its floor price is $2.20")
+	var fee := Hauling.DELIVERY_FEE
+	check(is_equal_approx(baker.wallet, 40.0 - 10.0 - fee), "cash on delivery: the baker paid the $10 the flour cost and the $%.2f flat fee" % fee)
+	check(is_equal_approx(runner.wallet, 20.0 + fee) and is_equal_approx(runner.fees_earned, fee) and runner.delivered_total == 10 and runner.deliveries == 1, "and the runner kept the fee: that is its revenue")
+	check(is_equal_approx(bakery.input_cost["flour"], 1.0 + fee / 10.0) and is_equal_approx(bakery.floor_price(), 2.0 + fee / 5.0), "the fee is part of what the shop's flour costs it, so its floor price is $%.2f" % (2.0 + fee / 5.0))
 	check(is_equal_approx(w.total_money(), w.ledger.printed), "no money went missing")
 	w.food_banks[0].working = false  # (nothing more to fetch: the food bank's trickle would soon have another load for it)
 	var back := Fixtures.until(w, func(): return runner.pos.distance_to(runner.home) < 1.0, 40)

@@ -21,7 +21,7 @@ func run() -> void:
 	await tree.process_frame
 	check(w.quests.state.get(QuestBook.LETTER, "") == "offered" and game.hud._objective.text.contains("press Q"), "the banker is fed and the stands run: he has a favour to ask, and the objective line says so")
 	game.interaction.talk_requested.emit(banker)
-	check(game.dialogue.visible and game.dialogue.mode == "read" and not game.player.controls_enabled and game.dialogue.speaker == "Banker with a letter", "Q at him opens his request, and takes the controls")
+	check(game.dialogue.visible and game.dialogue.mode == "read" and not game.player.controls_enabled and game.dialogue.speaker.ends_with("Banker with a letter"), "Q at him opens his request, and takes the controls")
 	guard = 0
 	while game.dialogue.visible and guard < 10:
 		game.dialogue.advance()
@@ -79,7 +79,7 @@ func run() -> void:
 		await game.get_tree().physics_frame
 	check(game.story_verbs.aimed_doorman() == doorman and game.interaction._verbs.any(func(v): return v.action == "chat" and v.prompt.call() == "Q   show the doorman the letter"), "aiming at him at the gate shows the Q prompt (the real path, not a signal)")
 	check(game.interaction._do("chat"), "and Q does something")
-	check(game.dialogue.visible and game.dialogue.speaker == "ECB doorman" and not game.player.controls_enabled, "Q at him opens his check of the letter")
+	check(game.dialogue.visible and game.dialogue.speaker.ends_with("ECB doorman") and not game.player.controls_enabled, "Q at him opens his check of the letter")
 	guard = 0
 	while game.dialogue.visible and guard < 10:
 		game.dialogue.advance()
@@ -110,7 +110,7 @@ func run() -> void:
 	for i in 3:
 		await game.get_tree().physics_frame
 	check(game.story_verbs.aimed_receptionist() == desk and game.interaction._do("chat"), "aiming at the receptionist shows the prompt and Q works")
-	check(game.dialogue.visible and game.dialogue.speaker == "ECB receptionist" and not game.player.controls_enabled, "Q at them opens their reply")
+	check(game.dialogue.visible and game.dialogue.speaker.ends_with("ECB receptionist") and not game.player.controls_enabled, "Q at them opens their reply")
 	guard = 0
 	while game.dialogue.visible and guard < 10:
 		game.dialogue.advance()

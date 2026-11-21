@@ -27,6 +27,16 @@ gun is a curse (see `docs/story.md`).
 The keys are in `docs/player.md`: WASD, the mouse to spray, E to use a stand or tent, Tab for the bag, Q to talk, M for the map,
 F3 for the inspector.
 
+**Where you land.** New Game asks: the story's Frankfurt, or anywhere on Earth. Anywhere is picked on a globe (or a flat map
+over the north pole) with the game's tile grid on it (`TileKey`: zoom-16 tiles, about 390 m across at Frankfurt). Everyone
+who picks a place in the same tile gets the same streets and the same market, so saves fit together. The game uses the
+network for two things, both public OpenStreetMap services:
+- the picker's map pictures, from `https://tile.openstreetmap.org/{z}/{x}/{y}.png`, kept in `user://maptiles`;
+- a tile's streets, one Overpass request (`https://overpass-api.de/api/interpreter`) when you land in a tile not yet in
+  `user://tiles`.
+
+Nothing about the player is sent.
+
 ## How it is built
 
 **Model, view, controller.**
@@ -112,3 +122,5 @@ The world holds the story's scripted cast (`World.cast`, a story `Cast`) without
 - `tools/probe_*.gd`: one question each, asked of the model.
 - `tools/check_stages.gd`: every developer jump.
 - `tools/osm_to_district.py`: the map from OpenStreetMap. It names its Overpass URLs before fetching anything.
+- `tools/make_tile.gd -- lat=… lon=… [days=N] [offline]`: fetch (or read from the cache) a tile, put its atom on it and run it.
+- `tools/capture_globe.gd`, `tools/capture_newgame.gd`: the landing picker, and starting a game from the title on a tile.

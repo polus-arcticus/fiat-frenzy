@@ -211,6 +211,7 @@ func add_drifter(at: Vector2, wallet := 0.0) -> Drone:
 	var d := Drone.new(at, wallet)
 	d.zone = build_zone
 	mint(d)
+	d.label = Names.of(d.uid)  # (a real name: what they do is their profession, see profession_of)
 	var dice := random()
 	d.heading = dice.randf() * TAU
 	for n in Drone.NEEDS:  # desync the crowd so they don't all go shopping at once
@@ -241,7 +242,6 @@ func add_vendor(machine_kind: String, at: Vector2, wallet := 0.0, working := tru
 func add_food_bank(at: Vector2, keeper_wallet := 8.0) -> Drone:
 	var keeper := add_drifter(at, keeper_wallet)
 	keeper.kind = "keeper"
-	keeper.label = "Food bank keeper"
 	var fb := FoodBank.new(at, keeper.uid)
 	fb.zone = build_zone
 	mint(fb)
@@ -261,7 +261,6 @@ func add_welfare_office(at: Vector2, toward := Vector2(0, 1), purse := 0.0) -> D
 	var clerk := add_drifter(office.post(), purse)
 	clerk.kind = "clerk"
 	clerk.look = "clerk"
-	clerk.label = "Welfare office clerk"
 	clerk.make_needless()
 	clerk.aloof = true
 	office.owner = clerk.uid
@@ -324,7 +323,6 @@ func add_first_aid(at: Vector2, toward_street: Vector2, wallet := 0.0) -> Drone:
 	hospitals.append(h)
 	var medic := add_drifter(h.post(), wallet)
 	medic.kind = "medic"
-	medic.label = "Medic"
 	medic.home = h.post()  # (where they wait between patients)
 	h.owner = medic.uid
 	zones.invalidate()
@@ -357,6 +355,18 @@ func add_fire(at: Vector2) -> BarrelFire:
 	fires.append(f)
 	zones.invalidate()
 	return f
+
+
+## What `d` does, as words under their name: what the story calls them (Drone.profession), else the keeper of their stand (so
+## it follows the stand up its tiers: Catalog.KEEPERS), else their kind's.
+func profession_of(d: Drone) -> String:
+	if d.profession != "":
+		return d.profession
+	var m := machine_of(d)
+	if m != null:
+		return Catalog.KEEPERS.get(m.kind, m.display_name() + " keeper")
+	return {"runner": "Cart runner", "keeper": "Food bank keeper", "clerk": "Welfare clerk", "medic": "Medic",
+		"drifter": "Out of work", "player": ""}.get(d.kind, d.kind.capitalize())
 
 
 func machine_of(d: Drone) -> Machine:

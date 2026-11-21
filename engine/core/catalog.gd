@@ -132,7 +132,9 @@ static func _build_machines() -> Dictionary[String, MachineDef]:
 	hostel.cap = Atom.ROLES.size() * 2
 	hostel.tick = 0.0
 	hostel.warm = 0.03
-	hostel.build_scrap = 200  # (about 20 days of a pile's scrap: ScrapPile.RATE. Built of scrap the runners pool into the tent city, not of money)
+	# (Built of scrap the runners pool into the tent city, not of money: about 35 days of a pile's scrap, ScrapPile.RATE, with its
+	# tents' and barrels' share. At 200 an atom had it on day 24: the user wants no capital formed in an atom's first month.)
+	hostel.build_scrap = 320
 	# The salvage trade: a homeless camp among the bike scrap, where someone puts together old boards from scrap the runners bring
 	# (tier 0), and, built up, old bikes (tier 1). Cheap and slow (ItemDef.speed), at the item's flat price.
 	var camp := MachineDef.new("scrap_camp", "Homeless camp", "old_skateboard")
@@ -198,6 +200,11 @@ const TRADES := {
 	"money": ["welfare_office"],
 	"medical": ["first_aid", "medical_tent"],
 }
+## What the keeper of each kind of stand is called (World.profession_of).
+const KEEPERS := {"bakery": "Baker", "bake_shop": "Baker", "hot_dog_stand": "Hot dog vendor", "burger_bar": "Burger cook",
+	"lemonade_stand": "Lemonade seller", "coffee_stop": "Barista", "tent": "Tent keeper", "hostel": "Hostel keeper",
+	"bike_shop": "Bike shop owner", "skate_shop": "Skate shop owner", "scrap_camp": "Board maker", "bike_camp": "Bike mender",
+	"thrift_stall": "Thrift seller", "clothing_shop": "Tailor"}
 ## The names of the premises that are not machines (see Premises.display_name).
 const PREMISES_NAMES := {"welfare_office": "Welfare office", "first_aid": "First aid post", "medical_tent": "Medical tent"}
 

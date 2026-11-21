@@ -36,7 +36,7 @@ func _spawn() -> Node:
 
 
 func _bankers(game: Node) -> Array:
-	return game.world.drones.filter(func(d): return d.label == "Banker")
+	return game.world.drones.filter(func(d): return d.profession == "Banker")
 
 
 func _natural_run() -> void:

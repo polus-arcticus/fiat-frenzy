@@ -14,7 +14,8 @@ var lift: Portal = null         # the lift in the bank's plaza, up to that room
 ## Mr. Nobody, standing at `at`: an unremarkable stranger. He never bends down for loose money, which is how you can tell he is
 ## strange.
 func add_sage(w: World, at: Vector2) -> Drone:
-	sage = _scripted(w, at, "sage", "sage", "Stranger")  # (a stranger until he introduces himself: Sage.learn_name)
+	sage = _scripted(w, at, "sage", "sage", "")
+	sage.label = "Stranger"  # (a stranger until he introduces himself: Sage.learn_name)
 	return sage
 
 
@@ -36,11 +37,11 @@ func add_technician(w: World, at: Vector2) -> Drone:
 	return technician
 
 
-func _scripted(w: World, at: Vector2, kind: String, look: String, label: String) -> Drone:
+func _scripted(w: World, at: Vector2, kind: String, look: String, profession: String) -> Drone:
 	var d := w.add_drifter(at, 0.0)
 	d.kind = kind
 	d.look = look
-	d.label = label
+	d.profession = profession
 	d.make_needless()
 	d.aloof = true
 	return d

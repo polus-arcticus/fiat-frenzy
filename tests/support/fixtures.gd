@@ -18,6 +18,31 @@ static func scenario() -> Scenario:
 	return Scenario.new(district())
 
 
+## A tile with no story, offline: the zoom-16 tile round the Bahnhofsviertel, imported from the raw OpenStreetMap extract the
+## Frankfurt map was made from (it covers the whole tile). Where the hero lands: TILE_LAT, TILE_LON.
+const TILE_LAT := 50.1086307
+const TILE_LON := 8.6687641
+static var _tile_raw := {}
+
+
+static func tile_key() -> String:
+	return TileKey.of(TILE_LAT, TILE_LON)
+
+
+static func tile_raw() -> Dictionary:
+	if _tile_raw.is_empty():
+		_tile_raw = JSON.parse_string(FileAccess.get_file_as_string("res://data/raw/bahnhofsviertel_raw.json"))
+	return _tile_raw
+
+
+static func tile_district() -> Dictionary:
+	return OsmImport.tile(tile_raw(), tile_key())
+
+
+static func tile_landing() -> TileLanding:
+	return TileLanding.new(tile_key(), tile_district(), TILE_LAT, TILE_LON)
+
+
 static func run(w: World, seconds: int, keep_fed := false) -> void:
 	for i in seconds:
 		if keep_fed:

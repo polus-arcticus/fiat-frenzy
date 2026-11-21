@@ -33,7 +33,8 @@ func show_target(d: Drone, w: World) -> void:
 
 ## The lines under the bars.
 func _describe(d: Drone, w: World) -> String:
-	var text := "reputation %d points" % roundi(d.rep * 100.0)
+	var job := w.profession_of(d)
+	var text := ("%s  ·  " % job if job != "" else "") + "reputation %d points" % roundi(d.rep * 100.0)
 	if d.kind == "runner":
 		var load_text := ", ".join(d.cart.counts.keys().filter(func(k): return d.cart.count(k) > 0).map(func(k): return "%d %s" % [d.cart.count(k), k.replace("_", " ")]))
 		text += "\ncart: %s" % (load_text if load_text != "" else "empty")

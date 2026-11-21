@@ -23,12 +23,14 @@ static func path(slot: String, dir := DIR) -> String:
 
 
 ## Writes a save. `hero` is whatever the controller needs to put the player back (position, which way they face).
-static func write(slot: String, world: World, hero: Dictionary, dir := DIR) -> bool:
+## `landing` is what the game began from (Landing.spec): a load builds that again before laying the save over it.
+static func write(slot: String, world: World, hero: Dictionary, dir := DIR, landing := {"kind": "story"}) -> bool:
 	DirAccess.make_dir_recursive_absolute(dir)
 	var doc := {
 		"format": FORMAT,
 		"saved_at": Time.get_unix_time_from_system(),
 		"summary": summary(world),
+		"landing": landing,
 		"hero": hero,
 		"world": Snapshot.new(world).capture(),
 	}

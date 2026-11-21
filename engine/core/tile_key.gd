@@ -73,6 +73,11 @@ static func rect(k: String) -> Rect2:
 	return Rect2(Vector2(t - r * PER_REGION) * s, Vector2(s, s))
 
 
+## The middle of a tile on the planet, [lat, lon].
+static func middle(k: String) -> Array:
+	return lat_lon(rect(k).get_center(), region_of(k))
+
+
 ## The tile of `region` that holds the point `p` (metres in that region).
 static func at(region: String, p: Vector2) -> String:
 	var r := parse(region)

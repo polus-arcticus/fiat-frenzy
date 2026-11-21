@@ -23,6 +23,7 @@ var world: World
 var player: PlayerController
 var objective: Callable  # () -> Vector2 or null: where the tutorial wants you to go
 var landmarks: Array = []  # [{pos: Vector2, label: String, color: Color}]
+var title := ""  # what the place is called (Landing.title)
 
 var _district: Dictionary
 var _roads: ArrayMesh
@@ -36,7 +37,8 @@ var _dragging := false
 var _font: Font
 
 
-func setup(district: Dictionary, w: World, p: PlayerController, objective_callable: Callable, marks: Array) -> MapScreen:
+func setup(district: Dictionary, w: World, p: PlayerController, objective_callable: Callable, marks: Array, place := "") -> MapScreen:
+	title = place
 	_district = district
 	world = w
 	player = p
@@ -318,7 +320,7 @@ func _draw_frame(size: Vector2) -> void:
 	_root.draw_string(_font, c + Vector2(-6, -57), "N", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.75, 0.12, 0.12))
 	# the title, the way you face, the scale and the keys
 	_root.draw_rect(Rect2(Vector2(14, 14), Vector2(640, 42)), Color(PAPER, 0.92))
-	_root.draw_string(_font, Vector2(26, 44), "Frankfurt, Bahnhofsviertel to the old town    ·    you are facing %s" % compass_name(facing()), HORIZONTAL_ALIGNMENT_LEFT, -1, 22, INK)
+	_root.draw_string(_font, Vector2(26, 44), "%syou are facing %s" % [title + "    ·    " if title != "" else "", compass_name(facing())], HORIZONTAL_ALIGNMENT_LEFT, -1, 22, INK)
 	var metres := 100.0
 	for m in [20.0, 50.0, 100.0, 200.0, 500.0, 1000.0]:
 		metres = m

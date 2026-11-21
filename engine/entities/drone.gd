@@ -17,7 +17,8 @@ const CART_VALUE := 20.0
 const MAX_INSULATION := 0.9  # however many coats: the cold still gets in (a tenth as fast)
 
 var uid := ""      # who this is, for good: unique across saves, so two saves can be combined (see World.mint)
-var label := ""        # a name for the HUD
+var label := ""        # their name (World.add_drifter gives everyone a real one: Names)
+var profession := ""   # what the story calls them, if it is not what they do (else World.profession_of works it out)
 var kind := "drifter"  # drifter, vendor, keeper or runner
 var look := ""         # which model to wear, if not the one for its kind (e.g. "banker")
 var wallet := 0.0

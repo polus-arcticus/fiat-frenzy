@@ -38,11 +38,23 @@ func test_the_fountain_gives_about_its_rate_and_it_is_accounted_for() -> void:
 	var s := _street()
 	var w: World = s[0]
 	_days(w, s[1], 5)
-	var expected := Welfare.DOLLARS_A_DAY * 4 * 5
-	check(w.welfare_offices[0].given_out > expected * 0.6 and w.welfare_offices[0].given_out < expected * 1.4, "in five days it gives out about $%.0f for 4 people ($%.2f)" % [expected, w.welfare_offices[0].given_out])
+	var most := Welfare.DOLLARS_A_DAY * 4 * 5
+	var given: float = w.welfare_offices[0].given_out
+	check(given > 0.0 and given <= most * 1.4, "in five days it gives out at most about $%.0f for 4 people ($%.2f)" % [most, given])
+	check(s[1].all(func(d): return d.wallet < Welfare.ENOUGH + Welfare.GIFT_MAX), "and only until they have enough: a net, not savings (%s)" % [s[1].map(func(d): return roundi(d.wallet))])
 	check(is_equal_approx(w.ledger.issued, w.welfare_offices[0].given_out), "all of it new money here: no food bank, no gifts to the clerk")
 	check(s[1].all(func(d): return d.wallet > 0.0), "and everyone got some, at random (%s)" % [s[1].map(func(d): return d.wallet)])
 	check(_accounted(w), "counted as printed")
+
+
+func test_who_has_enough_gets_nothing() -> void:
+	var s := _street()
+	var w: World = s[0]
+	for d in s[1]:
+		d.wallet += Welfare.ENOUGH
+	w.ledger.printed = w.total_money()
+	_days(w, s[1], 2)
+	check(is_equal_approx(w.welfare_offices[0].given_out, 0.0), "with a few days' food money each, nobody is given anything ($%.2f)" % w.welfare_offices[0].given_out)
 
 
 func test_the_food_banks_takings_go_out_before_anything_is_printed() -> void:

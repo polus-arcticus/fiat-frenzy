@@ -81,7 +81,7 @@ func step(_dt := 0.0) -> void:
 		state[QuestBook.LETTER] = "offered"
 		giver = bankers()[0]
 		for b in bankers():
-			b.label = "Banker with a letter"  # any of them will do: they are all in the same boat
+			b.profession = "Banker with a letter"  # any of them will do: they are all in the same boat
 		_w.events.append("The bankers want a word with you: aim at any of them and press Q.")
 
 

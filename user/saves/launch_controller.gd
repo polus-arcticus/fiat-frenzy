@@ -10,6 +10,18 @@ static var slot := ""
 static var skip_intro := false
 
 
+## Where a new game lands (Landing.spec): {} or {kind: "story"} for Frankfurt, {kind: "tile", key, lat, lon} for a tile (its map
+## already in the cache: TileSource).
+static var landing := {}
+
+
+## Takes the pending landing (and forgets it).
+static func take_landing() -> Dictionary:
+	var l := landing
+	landing = {}
+	return l
+
+
 ## Takes the pending slot (and forgets it).
 static func take_slot() -> String:
 	var s := slot
@@ -19,10 +31,25 @@ static func take_slot() -> String:
 
 ## Shows the loading cinematic over everything, builds the game behind it, and lets the cinematic play out. The screen is a
 ## layer on the tree's root, so it outlives the change of scene.
-static func begin(tree: SceneTree, saved_slot := "") -> void:
+## A new game lands on `new_landing` (a Landing spec; {} is the story). A tile whose map isn't in the cache is fetched first
+## (TileFetchController), under the cinematic; if that fails nothing starts, and the reason is returned ("" when all is well).
+static func begin(tree: SceneTree, saved_slot := "", new_landing := {}) -> String:
 	slot = saved_slot
+	landing = new_landing
 	var loading := LoadingScreen.new()
 	tree.root.add_child(loading)
+	if new_landing.get("kind", "story") == "tile" and not TileSource.cached(new_landing.key):
+		loading.holding = true
+		loading.caption = "FETCHING THE MAP OF %s..." % new_landing.key
+		var fetcher := TileFetchController.new()
+		tree.root.add_child(fetcher)
+		var got: Dictionary = await fetcher.fetch(new_landing.key)
+		fetcher.queue_free()
+		if not got.ok:
+			loading.queue_free()
+			landing = {}
+			return "The map of %s couldn't be fetched: %s." % [new_landing.key, got.error]
+		loading.caption = LoadingScreen.PRINTING
 	loading.holding = false
 	ResourceLoader.load_threaded_request(MAIN)
 	var started := Time.get_ticks_msec()
@@ -41,3 +68,4 @@ static func begin(tree: SceneTree, saved_slot := "") -> void:
 	await tree.process_frame
 	await tree.process_frame
 	loading.release()
+	return ""

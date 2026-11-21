@@ -33,7 +33,10 @@ const BILL := Color("#58c26a")
 const BILL_DARK := Color("#2f7d3f")
 const CREAM := Color("#fff2cf")
 
+const PRINTING := "PRINTING THE DISTRICT..."
+
 var progress := 0.0   # 0..1, set by whoever is loading
+var caption := PRINTING  # what it says it is doing
 var holding := false  # waiting for the build: freeze on the best frame
 
 var _t := 0.0
@@ -366,8 +369,8 @@ func _bar() -> void:
 		var r := Rect2(x0 + i * 30.0, 826.0, 26.0, 16.0)
 		_canvas.draw_rect(r, BILL if lit else Color(1, 1, 1, 0.08))
 		_canvas.draw_rect(r, INK, false, 2.0)
-	_canvas.draw_string_outline(font, Vector2(420, 810), "PRINTING THE DISTRICT...", HORIZONTAL_ALIGNMENT_LEFT, 700, 22, 6, INK)
-	_canvas.draw_string(font, Vector2(420, 810), "PRINTING THE DISTRICT...", HORIZONTAL_ALIGNMENT_LEFT, 700, 22, CREAM)
+	_canvas.draw_string_outline(font, Vector2(420, 810), caption, HORIZONTAL_ALIGNMENT_LEFT, 700, 22, 6, INK)
+	_canvas.draw_string(font, Vector2(420, 810), caption, HORIZONTAL_ALIGNMENT_LEFT, 700, 22, CREAM)
 	_canvas.draw_string_outline(font, Vector2(420, 876), _tip, HORIZONTAL_ALIGNMENT_LEFT, 780, 20, 5, INK)
 	_canvas.draw_string(font, Vector2(420, 876), _tip, HORIZONTAL_ALIGNMENT_LEFT, 780, 20, Color("#ffe9a8"))
 

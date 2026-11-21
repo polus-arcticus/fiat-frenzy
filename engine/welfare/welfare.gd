@@ -17,6 +17,10 @@ const PER_LEVEL := 0.25     # this much more (as a fraction) for every office le
 const GIFT_MIN := 1         # dollars at a time, at the least...
 const GIFT_MAX := 3         # ...and at the most
 const TILL_FLOAT := 20.0    # dollars a food bank's keeper keeps for themselves: the rest of its takings are the fountain's
+## A gift goes only to someone with less than this (a few days' food and drink, about $7 a day): the fountain is a net under
+## the town, not its savings. Given to everyone, it printed about $10 a day into an atom that was getting by, and its people's
+## money more than doubled in a month (tools/probe_atomic.gd).
+const ENOUGH := 25.0
 
 var _w: World
 
@@ -78,7 +82,8 @@ func step(dt: float) -> void:
 				var other: Drone = people[_w.rng.randi() % people.size()]
 				if other.wallet < lucky.wallet:
 					lucky = other
-			_give(office, lucky)
+			if lucky.wallet < ENOUGH:  # (who has a few days' food money needs no help: the gift is not given)
+				_give(office, lucky)
 
 
 func _give(office: WelfareOffice, lucky: Drone) -> void:

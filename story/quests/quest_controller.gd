@@ -59,7 +59,7 @@ func talk(who: Drone) -> void:
 		game.sim.hold("quest")
 		hud.show_prompt("")
 		player.look_toward(Vector3(who.pos.x, 1.55, who.pos.y))
-		dialogue.read(who.label, QuestBook.quest(QuestBook.LETTER).offer)
+		dialogue.read(_speaker(who), QuestBook.quest(QuestBook.LETTER).offer)
 	elif state == "active":
 		world.chatter.say_line(who, QuestBook.quest(QuestBook.LETTER).reminder)
 
@@ -108,7 +108,13 @@ func _start_reading(d: Drone, lines: Array) -> void:
 	game.sim.hold("quest")
 	hud.show_prompt("")
 	player.look_toward(Vector3(d.pos.x, 1.55, d.pos.y))
-	dialogue.read(d.label, lines)
+	dialogue.read(_speaker(d), lines)
+
+
+## Who is talking, for the dialogue's heading: their name and what they do.
+func _speaker(d: Drone) -> String:
+	var job := world.profession_of(d)
+	return d.label if job == "" else "%s  ·  %s" % [d.label, job]
 
 
 ## The request has been read through: the quest is accepted, or the gate opens, or the letter goes over.

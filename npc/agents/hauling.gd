@@ -10,7 +10,7 @@ class_name Hauling
 extends RefCounted
 
 const CART_CAPACITY := 16    # units a cart holds
-const DELIVERY_FEE := 1.0    # what the shop pays the runner for a delivery, flat, on top of the goods' cost
+const DELIVERY_FEE := 0.4    # what the shop pays the runner for a delivery, flat, on top of the goods' cost
 const MIN_DELIVERY := 4      # a shop must be this many units short before a runner makes the trip
 const MIN_LOAD := 2          # and a load smaller than this is not worth wheeling
 ## Scrap is free, so all a load costs is the fee: a trip waits for this much (at $2 for two, a tent city's keeper went hungry
@@ -70,8 +70,8 @@ func haul_job(d: Drone, from_zone := "", to_zone := "") -> Dictionary:
 			var qty := mini(mini(short, CART_CAPACITY), fb.output.count(item))
 			if price > 0.0:
 				qty = mini(qty, int(d.wallet / price))
-				qty = mini(qty, int((owner.wallet - DELIVERY_FEE) / price))
-			elif owner.wallet < DELIVERY_FEE:
+				qty = mini(qty, int((spendable(owner) - DELIVERY_FEE) / price))
+			elif spendable(owner) < DELIVERY_FEE:
 				continue
 			if qty < maxi(least_load, 1):
 				continue
@@ -92,7 +92,7 @@ func best_destination(d: Drone, item: String) -> Machine:
 	for dest in _w.zones.machines_in(d.zone):
 		if not dest.working or not dest.input.caps.has(item) or dest.owner == "" or dest.input.room(item) < 1:
 			continue
-		if _w.drone(dest.owner).wallet < least:
+		if spendable(_w.drone(dest.owner)) < least:
 			continue
 		var need: float = float(dest.input.room(item)) / float(dest.input.caps[item])
 		var value := need * 10.0 - Logistics.DISTANCE_COST * d.pos.distance_to(dest.pos)
@@ -100,6 +100,12 @@ func best_destination(d: Drone, item: String) -> Machine:
 			best_value = value
 			best = dest
 	return best
+
+
+## What a shop's owner can spend on a delivery: their wallet less the reserve every agent keeps back for food and drink
+## (Drone.RESERVE). (Cash on delivery once took the baker's last dollar for flour, and the baker went thirsty.)
+static func spendable(owner: Drone) -> float:
+	return owner.wallet - (0.0 if owner.needless else Drone.RESERVE)
 
 
 ## Units of `item` other runners are already bringing to `dest`.
@@ -143,8 +149,8 @@ func complete(d: Drone, job: Dictionary) -> void:
 	var owner: Drone = _w.drone(dest.owner)
 	var n := mini(d.cart.count(item), dest.input.room(item))
 	if cost > 0.0:
-		n = mini(n, int((owner.wallet - DELIVERY_FEE) / cost))
-	if n <= 0 or owner.wallet < cost * n + DELIVERY_FEE:
+		n = mini(n, int((spendable(owner) - DELIVERY_FEE) / cost))
+	if n <= 0 or spendable(owner) < cost * n + DELIVERY_FEE:
 		return
 	d.cart.take(item, n)
 	dest.receive(item, n, cost + DELIVERY_FEE / n)  # the fee becomes part of what the shop's input costs it

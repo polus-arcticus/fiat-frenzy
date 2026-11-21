@@ -14,7 +14,7 @@ const PILE_AT := Vector2(4.5, 0.0)  # where its pile lies, from the camp: along 
 ## the thrift stall too, which stitches coats from it).
 static func pitch(w: World, at: Vector2, toward_street: Vector2, wallet := KEEPER_WALLET, kind := "scrap_camp", label := "Camp keeper") -> Machine:
 	var keeper := w.add_vendor(kind, at, wallet, true, true)  # (open, with a few things already made)
-	keeper.label = label
+	keeper.profession = label  # (what they are called: their name is their own)
 	var camp := w.machine_of(keeper)
 	camp.front = toward_street
 	keeper.pos = camp.post()

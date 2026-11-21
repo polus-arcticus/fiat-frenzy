@@ -80,7 +80,7 @@ changes, the old stock goes and the new tier opens with one unit.
 
 **2.4** Nothing comes back down. There is no rent, no tax, no loan, no repossession.
 
-**2.5 Built of scrap.** A tier may instead cost scrap (`MachineDef.build_scrap`): the hostel (200) and the bike camp (60).
+**2.5 Built of scrap.** A tier may instead cost scrap (`MachineDef.build_scrap`): the hostel (320) and the bike camp (60).
 - The tier below then has room for that scrap in its input (`Machine.set_level`), on top of its recipe's.
 - Runners pool scrap into it (§4.4); the keeper pays only their fee.
 - At dawn, once that much is in hand beyond what its recipe keeps, the scrap is used and the asset climbs (`Trades.build`).
@@ -165,7 +165,7 @@ The **Red Cross van** (`Relief`) brings `load_per_good` of each relief good twic
 assets that want it.
 
 **4.4 Hauling** (`npc/agents/hauling.gd`). A runner buys a load at the food bank (up to `CART_CAPACITY`) and wheels it to the
-shop that wants it. **Cash on delivery:** the shop pays back what the goods cost and a flat `DELIVERY_FEE` ($1) for the trip,
+shop that wants it. **Cash on delivery:** the shop pays back what the goods cost and a flat `DELIVERY_FEE` ($0.40, just above what a runner needs to live on) for the trip,
 whatever the load; the fee is the runner's income.
 - The fee goes into what the shop's inputs cost it (`cost + fee / units`), so into its floor price (§4.2): a baker's bread carries
   its share of the walk. A bigger load is cheaper a unit.
@@ -187,7 +187,13 @@ whatever the load; the fee is the runner's income.
 - **the fountain** (`Welfare`, `engine/welfare/welfare.gd`): each office gives, at random, $1–3 to the poorest of `PICKS`
   random residents of its own zone, about `DOLLARS_A_DAY` per resident a day (25% more per office level). It pays first from its
   zone's food bank till (above `TILL_FLOAT`), then from what the hero gave its clerk; only then is it new money
-  (`Ledger.issued`).
+  (`Ledger.issued`). It is a net, not savings: the one picked gets nothing if they already have `ENOUGH` ($25, a few days' food).
+  So an atom left alone holds just above baseline (docs/balance.md).
+- **People's names** are real ones (`Names`, picked by uid); what they do is their profession (`World.profession_of`: the story's
+  word for them, else their stand's keeper, `Catalog.KEEPERS`, else their kind's), shown under the name.
+- **A tile from anywhere** (§8): its map from OpenStreetMap (`OsmImport`, cached by `TileSource`, fetched by
+  `TileFetchController`, `tools/make_tile.gd`), its atom where `SiteFinder` puts it (one site per tile, so two players' tiles
+  agree), the hero where they chose (`TileLanding`).
 
 **5.2 Where money goes.** It moves only between wallets, the heroes' pockets (`Ledger.pockets`) and bills. It leaves only into
 `Ledger.sunk`: repairs, building up, and tents.

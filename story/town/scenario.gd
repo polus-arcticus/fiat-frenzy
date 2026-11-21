@@ -4,7 +4,7 @@
 ## garden of Eden, and nothing runs until the player funds it. It only builds the model; the game
 ## controller makes views for what it finds.
 class_name Scenario
-extends RefCounted
+extends Landing  # (the story's landing: see Landing)
 
 const STREET := "Kaiserstraße"
 const NEAR := Vector2(30, 0)
@@ -33,14 +33,10 @@ const LIFT_ROOM_CENTRE := Vector2(-3000.0, -3000.0)
 const LIFT_ROOM_HALF := Vector2(8.0, 7.0)  # half its width (x) and depth (y)
 const ECB_KERB_BACK := 9.0     # the stalls stand this far out from the buildings opposite the bank (the pavement and its yard), on that side
 
-var district: Dictionary
 var cast := {}      # "hot_dog", "bakery", "lemonade", "tent", "food_bank": the keeper; "runners": the cart runners
 var van: ReliefTruck
 var hospital: Hospital
-var facing := {}    # Machine/BarrelFire/ReliefTruck -> yaw that faces the street
 var _toward := {}   # Machine -> unit vector from its kerb to the middle of the street (its customers' side)
-var start := Vector2.ZERO  # where the player begins
-var start_yaw := 0.0
 var wreck_pos := Vector2.ZERO  # where the helicopter ends up, in the street beyond the market
 var wreck_yaw := 0.0
 var gun_rest := Vector2.ZERO   # where the money gun lands: just ahead of where the player begins
@@ -189,7 +185,7 @@ func build() -> World:
 
 	for i in DRIFTER_COUNT:
 		var d := w.add_drifter(_at(_dice.randf_range(-12.0, 12.0), _dice.randf_range(-1.0, 1.0)), _dice.randf_range(3.0, 12.0))
-		d.label = DRIFTER_NAMES[i]
+		d.label = "%s %s" % [DRIFTER_NAMES[i], Names.surname(d.uid)]
 
 	# The food bank, 40 m down the street from the market on the left kerb like a stall, with two cart runners waiting on the
 	# pavement beside it.
@@ -203,7 +199,7 @@ func build() -> World:
 	var runners: Array[Drone] = []
 	for k in 2:
 		var r := w.add_runner(_spot(-38.0 - 3.0 * k, -1.0, KERB_STALL + 2.2).pos, 15.0)
-		r.label = ["Runner Jakob", "Runner Lena"][k]
+		r.label = "%s %s" % [["Jakob", "Lena"][k], Names.surname(r.uid)]
 		runners.append(r)
 	cast["runners"] = runners
 	_add_bike_shop(w)
@@ -270,7 +266,7 @@ func _add_bike_shop(w: World) -> void:
 	var inward: Vector2 = bike_shop.inward
 	var counter: Vector2 = (bike_shop.door as Vector2) + inward * minf(bike_shop.depth * 0.55, 9.0)
 	var owner := w.add_vendor("bike_shop", counter, 800.0, true, true)
-	owner.label = "Bike shop owner"
+	owner.profession = "Bike shop owner"
 	var m := w.machine_of(owner)
 	m.front = -inward  # the customers are on the door side of the counter
 	facing[m] = atan2(inward.x, inward.y)  # the yaw that faces `front`
@@ -295,7 +291,7 @@ func _add_skate_shop(w: World) -> void:
 	var inward: Vector2 = skate_shop.inward
 	var counter: Vector2 = (skate_shop.door as Vector2) + inward * minf(skate_shop.depth * 0.55, 9.0)
 	var owner := w.add_vendor("skate_shop", counter, 600.0, true, true)
-	owner.label = "Skate shop owner"
+	owner.profession = "Skate shop owner"
 	var m := w.machine_of(owner)
 	m.front = -inward
 	facing[m] = atan2(inward.x, inward.y)
@@ -395,7 +391,7 @@ func _add_ecb_market(w: World) -> void:
 	keeper.pos = fb.post()
 	cast["ecb_food_bank"] = keeper
 	var runner := w.add_runner(_spot(-26.0, side, kerb, ecb_lane).pos, 15.0)
-	runner.label = "Runner Mara"
+	runner.label = "Mara %s" % Names.surname(runner.uid)
 	var clinic := _spot(30.0, side, kerb + 1.4, ecb_lane)
 	var tent := w.add_hospital(clinic.pos, clinic.toward)
 	var yaw := -(ecb_lane.frame.dir as Vector2).angle() + PI / 2.0  # (the way the street runs, as the van's is laid)
@@ -403,7 +399,7 @@ func _add_ecb_market(w: World) -> void:
 	facing[w.ambulances[w.ambulances.size() - 1]] = yaw
 	for i in 3:  # the people the stands are for: they had come to see the bank
 		var d := w.add_drifter(_spot(_dice.randf_range(-10.0, 10.0), -side, _dice.randf_range(0.5, 3.0), ecb_lane).pos, _dice.randf_range(3.0, 12.0))
-		d.label = ECB_VISITORS[i]
+		d.label = "%s %s" % [ECB_VISITORS[i], Names.surname(d.uid)]
 	w.build_zone = Zones.HOME
 	w.zones.asleep.append(ECB_ZONE)  # the bank's people wait, fresh, until the hero gets there
 
@@ -432,6 +428,14 @@ func _bounds(poly: PackedVector2Array) -> Rect2:
 	return r
 
 
+func story() -> bool:
+	return true
+
+
+func title() -> String:
+	return "Frankfurt, Bahnhofsviertel to the old town"
+
+
 func landmarks(w: World) -> Array:
 	var marks: Array = []
 	marks.append({"pos": w.machine_of(cast.hot_dog).pos, "label": "market", "color": Color(0.9, 0.7, 0.25)})
@@ -450,7 +454,7 @@ func landmarks(w: World) -> Array:
 func _vendor(w: World, kind: String, label: String, along: float, side: float, wallet: float, lateral: float, faces_road: bool, lane := {}) -> Drone:
 	var spot := _spot(along, side, lateral, lane)
 	var d := w.add_vendor(kind, spot.pos, wallet, false, false)
-	d.label = label
+	d.profession = label
 	var m := w.machine_of(d)
 	var toward: Vector2 = spot.toward if faces_road else spot.away
 	facing[m] = atan2(-toward.x, -toward.y)

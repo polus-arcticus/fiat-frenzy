@@ -97,7 +97,7 @@ func test_any_banker_can_give_the_letter() -> void:
 		(b as Drone).bars.hunger = 0.9
 	w.tick(1.0)
 	check(w.quests.state.get(QuestBook.LETTER, "") == "offered", "all the bankers are fed: the letter is on offer")
-	check(bankers.all(func(b): return w.quests.is_banker(b) and (b as Drone).label == "Banker with a letter"), "and all of them say so, not just one")
+	check(bankers.all(func(b): return w.quests.is_banker(b) and (b as Drone).profession == "Banker with a letter"), "and all of them say so, not just one")
 	w.player.pos = (bankers[2] as Drone).pos + Vector2(0, 2)
 	check(w.quests.objective().at == (bankers[2] as Drone).pos, "the beacon points at the nearest one, wherever you are")
 	check(not w.quests.is_banker(cast.hot_dog) and not w.quests.is_banker(null), "a vendor is not a banker")

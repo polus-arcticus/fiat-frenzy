@@ -21,8 +21,6 @@ const NEWCOMERS := {"drifter": 3.0, "runner": 1.0}
 const ARRIVE_EVERY := 30.0   # seconds between newcomers, while a tent stands empty
 const NEWCOMER_PURSE := 15.0
 const NEWCOMER_FROM := 28.0  # metres down the street from the tents that a newcomer walks in from
-const NAMES := ["Aylin", "Bruno", "Chiara", "Dimitri", "Elif", "Finn", "Greta", "Hamza", "Ilse", "Jonas", "Kemal", "Lotte",
-	"Milan", "Nora", "Olek", "Paula", "Rafa", "Sven", "Tamar", "Ugo", "Vera", "Wim", "Yusuf", "Zora"]
 
 var waiting := {}  # tent city uid -> seconds an empty tent has waited for its newcomer
 
@@ -103,7 +101,6 @@ func found(at: Vector2, front: Vector2, zone: String) -> Machine:
 	var city := _w.machine_of(keeper)
 	city.front = front
 	keeper.pos = city.post()
-	keeper.label = _free_name(zone)
 	keeper.bed = city.uid
 	keeper.arrived_at = _w.clock.time
 	set_tents(city, 1)
@@ -111,15 +108,6 @@ func found(at: Vector2, front: Vector2, zone: String) -> Machine:
 	_w.arrivals.append(keeper)
 	_w.events.append("t=%d a tent city was founded: %s keeps it" % [_w.clock.time, keeper.label])
 	return city
-
-
-## A name nobody in `zone` has, while there are any.
-func _free_name(zone: String) -> String:
-	var taken := _w.zones.drones_in(zone).map(func(o): return o.label)
-	var names := NAMES.filter(func(n): return not n in taken)
-	if names.is_empty():
-		names = NAMES
-	return names[_w.random().randi() % names.size()]
 
 
 func step(dt: float) -> void:
@@ -161,7 +149,6 @@ func _newcomer(city: Machine) -> void:
 	var at := city.pos + down_the_street
 	var d := _w.add_runner(at, NEWCOMER_PURSE) if role == "runner" else _w.add_drifter(at, NEWCOMER_PURSE)
 	_w.build_zone = was
-	d.label = _free_name(city.zone)
 	d.bed = city.uid
 	d.arrived_at = _w.clock.time
 	_w.arrivals.append(d)

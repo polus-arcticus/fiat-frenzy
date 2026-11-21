@@ -23,8 +23,14 @@ func _initialize() -> void:
 	root.size = window
 	game = load("res://main.tscn").instantiate()
 	game.skip_intro = true
+	_configure()
 	root.add_child(game)
 	_run()
+
+
+## Anything to set on the game before it is built (its landing, say). Override it.
+func _configure() -> void:
+	pass
 
 
 ## What the capture does. Override it.

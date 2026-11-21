@@ -147,7 +147,7 @@ func _impact() -> void:
 
 func _spawn_banker(at: Vector2) -> void:
 	var d := _world.add_drifter(at, BANKER_CASH)
-	d.label = "Banker"
+	d.profession = "Banker"
 	d.look = "banker"
 	var view: DroneView = _make_view.call(d)
 	view.hold_animation("Dazed", 5.0)
