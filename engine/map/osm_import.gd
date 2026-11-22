@@ -18,6 +18,13 @@ const STOREY := 3.3
 const ROAD_WIDTH := {"primary": 12, "secondary": 9, "tertiary": 8, "residential": 7, "unclassified": 6, "pedestrian": 6,
 	"service": 4, "living_street": 5}
 const MIN_AREA := 15.0       # square metres: anything smaller is not a building worth drawing
+## A mapped roof shape (`roof:shape`) as the one CityBuilder draws (Landmarks.roof): the rest are drawn flat.
+const ROOF_SHAPES := {"gabled": "gable", "hipped": "hip", "half-hipped": "hip", "gambrel": "hip", "mansard": "hip",
+	"pyramidal": "hip", "dome": "dome", "onion": "dome"}
+const ROOF_STOREY := 2.6     # metres a roof level (`roof:levels`) rises
+## What a building's wall looks like by its `building:material`, where it has no `building:colour` of its own.
+const MATERIAL_COLOUR := {"brick": Color(0.66, 0.38, 0.30), "stone": Color(0.76, 0.72, 0.64), "sandstone": Color(0.78, 0.58, 0.46),
+	"glass": Color(0.56, 0.66, 0.74), "concrete": Color(0.72, 0.71, 0.68), "wood": Color(0.58, 0.44, 0.32), "metal": Color(0.62, 0.64, 0.68)}
 const STREET_REACH := 60.0   # a street within this of the tile is kept
 const PAVE_REACH := 18.0     # how far out the pavement is looked for
 const PAVE_STEP := 8.0       # metres between the samples along a street
@@ -96,7 +103,30 @@ static func _building(e: Dictionary, tags: Dictionary, raw: PackedVector2Array) 
 	var rounded := PackedVector2Array()
 	for p in pts:
 		rounded.append(Vector2(_r(p.x), _r(p.y)))
-	return {"id": int(e.id), "kind": kind, "levels": levels, "h": _r(h), "pts": rounded}
+	var b := {"id": int(e.id), "kind": kind, "levels": levels, "h": _r(h), "pts": rounded}
+	_looks(b, tags)
+	return b
+
+
+## What the map says a building looks like, where it says (CityBuilder draws it): its roof's shape and rise, and its walls'
+## colour (`building:colour`, or its material's).
+static func _looks(b: Dictionary, tags: Dictionary) -> void:
+	var shape := str(tags.get("roof:shape", ""))
+	if ROOF_SHAPES.has(shape):
+		b["roof"] = ROOF_SHAPES[shape]
+		var levels := str(tags.get("roof:levels", ""))
+		var rise := str(tags.get("roof:height", "")).split(" ")[0]
+		if rise.is_valid_float():
+			b["rise"] = clampf(rise.to_float(), 1.0, 12.0)
+		elif levels.is_valid_float():
+			b["rise"] = clampf(levels.to_float() * ROOF_STOREY, 1.5, 12.0)
+	var colour := str(tags.get("building:colour", ""))
+	if colour != "":
+		var c := Color.from_string(colour, Color(0, 0, 0, 0))
+		if c.a > 0.0:
+			b["colour"] = c
+	elif MATERIAL_COLOUR.has(str(tags.get("building:material", ""))):
+		b["colour"] = MATERIAL_COLOUR[str(tags["building:material"])]
 
 
 static func _road(tags: Dictionary, pts: PackedVector2Array, rect: Rect2) -> Dictionary:
@@ -113,6 +143,14 @@ static func _road(tags: Dictionary, pts: PackedVector2Array, rect: Rect2) -> Dic
 	var bike := _bike_lanes(tags)
 	if bike != ["", ""]:
 		r["bike"] = bike
+	if str(tags.get("bridge", "no")) != "no":  # (over water, or a road, or the rails: OsmWater cuts every street out of water)
+		r["bridge"] = true
+	if tags.has("surface"):  # what it's paved with (CityBuilder's colour; cobbles are rough to skate: Kerbs.rough_at)
+		r["surface"] = str(tags.surface)
+	if str(tags.get("lit", "no")) in ["yes", "24/7", "automatic", "limited"]:  # it has street lamps (StreetThings puts them up)
+		r["lit"] = true
+	if str(tags.get("lanes", "")).is_valid_int():
+		r["lanes"] = int(str(tags.lanes))
 	return r
 
 

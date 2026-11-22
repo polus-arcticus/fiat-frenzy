@@ -1,65 +1,73 @@
-## Windowed screenshots of skateboarding: on the board, rolling, the ollie's crouch, a kickflip in the air and the $25 it
-## sprays on the ground. Needs a real window and GPU.
-##   godot --path . --script tools/capture_skate.gd -- <output dir>
-extends SceneTree
+## Windowed screenshots of the skater's body (SkateController): a push with the foot (left click), and a bail into a kerb
+## (rolling down, lying in the recovery position, getting up), seen from the side.
+##   godot --path . --script tools/capture_skate.gd -- <out dir>
+extends CaptureTool
 
-var out_dir := "/tmp/ff3d_skate_trick"
-var game: Node
-
-
-func _initialize() -> void:
-	var args := OS.get_cmdline_user_args()
-	if args.size() > 0:
-		out_dir = args[0]
-	DirAccess.make_dir_recursive_absolute(out_dir)
-	root.size = Vector2i(1200, 700)
-	game = load("res://main.tscn").instantiate()
-	game.skip_intro = true
-	root.add_child(game)
-	_run()
-
-
-func _frames(n: int) -> void:
-	for i in n:
-		await physics_frame
-
-
-func _shot(name: String) -> void:
-	await process_frame
-	await RenderingServer.frame_post_draw
-	root.get_texture().get_image().save_png("%s/%s.png" % [out_dir, name])
-	print("saved ", name)
+var cam: Camera3D
 
 
 func _run() -> void:
 	await _frames(20)
-	var sc: Scenario = game.scenario
-	var p: PlayerController = game.player
-	var w: World = game.world
-	game.sim_paused = true
-	p.teleport(Vector3(sc.start.x + 14.0, 0.1, sc.start.y), 0.0)
-	var street: Vector2 = sc.start + (sc.start - sc.bike_shop.door).normalized() * 0.0
-	p.look_toward(Vector3(sc.start.x + 14.0 + (sc._frame.dir as Vector2).x * 30.0, 1.0, sc.start.y + (sc._frame.dir as Vector2).y * 30.0))
-	w.player.carry.add("skateboard", 1)
+	var k: Kerbs = game.kerbs
+	var e := {}
+	for i in k.edges_near(game.landing.start, 60.0):
+		var c: Dictionary = k.edges[i]
+		if e.is_empty() or c.a.distance_to(c.b) > e.a.distance_to(e.b):
+			e = c
+	var along: Vector2 = (e.b - e.a).normalized()
+	var side: Vector2 = e.side
+	game.world.player.make_needless()
+	game.world.player.gear.add("skateboard", 1)
+	# rolling along the road, a push
+	var start: Vector2 = (e.a + e.b) * 0.5 - side * 3.0 - along * 6.0
+	game.player.teleport(Vector3(start.x, 0.05, start.y), atan2(-along.x, -along.y))
 	game.skate_controller.toggle()
-	await _frames(40)
-	await _shot("1_on_the_board")
+	await _physics(10)
+	cam = Camera3D.new()
+	game.add_child(cam)
+	cam.current = true
+	_press("fire")
+	await _physics(6)  # (the lean's deepest: KICK_TIME / 2)
+	_side_view(side)
+	await _shot("1_push", 1)
+	await _physics(30)
+	# into the kerb, fast, no ollie: a bail
+	var at := game.player.ground_pos()
+	game.player.teleport(Vector3(at.x, 0.05, at.y), atan2(side.x, side.y) + PI)
+	game.world.skating.speed = 7.0
 	Input.action_press("move_forward")
-	await _frames(70)
-	await _shot("2_rolling")
-	Input.action_press("jump")
-	await _frames(14)
-	await _shot("3_winding_up_the_ollie")
-	Input.action_release("jump")
-	await _frames(14)
-	await _shot("4_the_ollie")
-	Input.action_press("jump")
-	await _frames(2)
-	Input.action_release("jump")
-	await _frames(6)
-	await _shot("5_the_kickflip")
+	var t0 := Time.get_ticks_msec()
+	while not game.world.skating.bailing and Time.get_ticks_msec() - t0 < 4000:
+		await physics_frame
 	Input.action_release("move_forward")
-	await _frames(100)
-	await _shot("6_the_cash_on_the_ground")
-	print("cash lying about: $", w.ledger.printed - 25.0)
-	quit(0)
+	print("bailed: ", game.world.skating.bailing)
+	await _physics(16)
+	_side_view(along)
+	await _shot("2_bail_rolling", 1)
+	await _physics(40)
+	_side_view(along)
+	await _shot("3_bail_lying", 1)
+	while game.world.skating.bailing:
+		await physics_frame
+	await _physics(4)
+	_side_view(along)
+	await _shot("4_up_again", 1)
+	quit()
+
+
+# A camera off to one side of the hero, looking at them.
+func _side_view(across: Vector2) -> void:
+	var p := game.player.global_position
+	cam.global_position = p + Vector3(across.x, 0.0, across.y) * 4.2 + Vector3(0, 1.3, 0)
+	cam.look_at(p + Vector3(0, 0.6, 0))
+
+
+func _press(action: String) -> void:
+	Input.action_press(action)
+	await physics_frame
+	Input.action_release(action)
+
+
+func _physics(n: int) -> void:
+	for i in n:
+		await physics_frame

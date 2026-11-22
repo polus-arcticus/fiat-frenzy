@@ -15,7 +15,7 @@ func setup(o: WelfareOffice, world: World) -> WelfareOfficeView:
 	office = o
 	_world = world
 	name = "WelfareOffice"
-	position = Vector3(o.pos.x, 0, o.pos.y)
+	position = Ground.at(o.pos)
 	rotation.y = atan2(-o.front.x, -o.front.y)  # (facing its front, as the stalls do)
 	var prop := Node3D.new()
 	add_child(prop)

@@ -14,7 +14,7 @@ var _t := 0.0
 func setup(p: Portal) -> PortalView:
 	portal = p
 	name = "Portal"
-	position = Vector3(p.pos.x, 0.0, p.pos.y)
+	position = Ground.at(p.pos)
 	rotation.y = p.exit_yaw()  # the ring's local -Z is its front, the way you come out
 
 	var hoop := MeshInstance3D.new()

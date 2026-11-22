@@ -84,7 +84,7 @@ func test_hold_space_and_let_go_for_an_ollie_that_is_higher_the_longer_you_hold(
 	check(w.skating.step(0.05, {}, true, Vector2.ZERO).jump == 0.0, "nothing more launches until you jump again")
 
 
-func test_a_second_press_in_the_air_is_a_kickflip_that_sprays_25_dollars() -> void:
+func test_a_second_press_in_the_air_is_a_kickflip_that_strews_its_cash_out_of_reach() -> void:
 	var w := _rider()
 	w.skating.mount()
 	w.skating.step(0.05, {"jump_down": true}, true, Vector2(10, 10))
@@ -94,7 +94,8 @@ func test_a_second_press_in_the_air_is_a_kickflip_that_sprays_25_dollars() -> vo
 	var total_before := w.ledger.total(w.drones, w.bills) + 0.0
 	var flip: Dictionary = w.skating.step(0.05, {"jump_pressed": true}, false, Vector2(10, 10))
 	check(flip.flip and w.skating.kickflips == 1 and w.skating.last_trick.begins_with("Kickflip"), "tapping jump again in the air is a kickflip")
-	check(is_equal_approx(w.ledger.printed - printed_before, 25.0), "it prints $25")
+	var cash := Skating.KICKFLIP_CASH
+	check(is_equal_approx(w.ledger.printed - printed_before, cash), "it prints $%d" % int(cash))
 	var loose := 0.0
 	var piles := 0
 	for b in w.bills:
@@ -102,8 +103,10 @@ func test_a_second_press_in_the_air_is_a_kickflip_that_sprays_25_dollars() -> vo
 			loose += b.value
 			piles += 1
 			check_quiet_near(b, Vector2(10, 10))
-	check(is_equal_approx(loose, 25.0) and piles == 5, "and it lies on the ground round you, in five piles ($%.0f in %d)" % [loose, piles])
-	check(is_equal_approx(w.ledger.total(w.drones, w.bills) - total_before, 25.0), "the money is all accounted for: the world total grew by exactly what was printed")
+	check(is_equal_approx(loose, cash) and piles == Skating.KICKFLIP_BILLS, "and it lies strewn round you, in %d piles ($%.0f in %d)" % [Skating.KICKFLIP_BILLS, loose, piles])
+	var picked := w.commerce.pick_up_cash()
+	check(picked == 0.0, "none of it within reach as you land: style is strewn, not pocketed")
+	check(is_equal_approx(w.ledger.total(w.drones, w.bills) - total_before, cash), "the money is all accounted for: the world total grew by exactly what was printed")
 	var again: Dictionary = w.skating.step(0.05, {"jump_pressed": true}, false, Vector2(10, 10))
 	check(not again.flip and w.skating.kickflips == 1, "only one kickflip a jump")
 	w.skating.step(0.05, {}, true, Vector2(10, 10))
@@ -115,8 +118,9 @@ func test_a_second_press_in_the_air_is_a_kickflip_that_sprays_25_dollars() -> vo
 
 
 func check_quiet_near(b: Bill, at: Vector2) -> void:
-	if b.pos.distance_to(at) > 3.0 or b.pos.distance_to(at) < 0.5:
-		check(false, "a bill landed %.1f m away: outside the ring round the board" % b.pos.distance_to(at))
+	var d := b.pos.distance_to(at)
+	if d > Skating.KICKFLIP_STREW.y + 0.01 or d <= Commerce.PICKUP_REACH:
+		check(false, "a bill landed %.1f m away: outside the strewn ring round the board" % d)
 
 
 func test_no_kickflip_on_the_ground_and_none_walking_off_nothing() -> void:
@@ -126,3 +130,56 @@ func test_no_kickflip_on_the_ground_and_none_walking_off_nothing() -> void:
 	check(not out.flip and w.skating.kickflips == 0 and w.ledger.printed == 100.0, "pressing jump on the ground is just the start of a charge, not a trick")
 	var off: Dictionary = w.skating.step(0.05, {"jump_pressed": true}, false, Vector2.ZERO)
 	check(off.flip, "but rolling off a ledge and pressing jump is a kickflip: you are in the air")
+
+
+func test_a_left_click_is_a_push_with_the_foot() -> void:
+	var w := _rider()
+	w.skating.mount()
+	w.skating.step(0.05, {"kick": true}, true, Vector2.ZERO)
+	check(is_equal_approx(w.skating.speed, Skating.KICK) and w.skating.kicks == 1, "a click kicks the board along (%.1f m/s)" % w.skating.speed)
+	w.skating.step(0.05, {"kick": true}, true, Vector2.ZERO)
+	check(w.skating.kicks == 1, "not again till the foot is back on the board (every %.1f s)" % Skating.KICK_EVERY)
+	for i in int(Skating.KICK_EVERY / 0.05) + 1:
+		w.skating.step(0.05, {}, true, Vector2.ZERO)
+	w.skating.step(0.05, {"kick": true}, true, Vector2.ZERO)
+	check(w.skating.kicks == 2 and w.skating.speed > Skating.KICK, "then another")
+	var fastest := 0.0
+	for i in 60:
+		w.skating.step(0.05, {"kick": true}, true, Vector2.ZERO)
+		fastest = maxf(fastest, w.skating.speed)
+	check(is_equal_approx(fastest, Skating.TOP_SPEED), "clicking away gets you to the top speed and no more (it coasts between pushes)")
+	var air := _rider()
+	air.skating.mount()
+	air.skating.in_air = true
+	air.skating.step(0.05, {"kick": true}, false, Vector2.ZERO)
+	check(air.skating.kicks == 0 and air.skating.speed == 0.0, "no push in the air: the foot has nothing to push on")
+
+
+func test_a_long_crouch_pumps_the_board_along() -> void:
+	var w := _rider()
+	w.skating.mount()
+	for i in int(Skating.CHARGE_TIME / 0.05):
+		w.skating.step(0.05, {"jump_down": true}, true, Vector2.ZERO)
+	check(w.skating.speed == 0.0, "crouching to ollie doesn't move you")
+	for i in 100:
+		w.skating.step(0.05, {"jump_down": true}, true, Vector2.ZERO)
+	var top := Skating.TOP_SPEED * Skating.PUMP_TOP
+	check(w.skating.speed > 2.0 and w.skating.speed <= top + 0.001, "held on, it pumps you along, slower than pushing (%.1f m/s, at most %.1f)" % [w.skating.speed, top])
+	var out: Dictionary = w.skating.step(0.05, {}, true, Vector2.ZERO)
+	check(is_equal_approx(out.jump, Skating.OLLIE_MAX), "and letting go is still a full ollie")
+
+
+func test_into_something_fast_you_bail() -> void:
+	var w := _rider()
+	w.skating.mount()
+	w.skating.speed = 2.0
+	check(not w.skating.bump(2.0) and not w.skating.bailing and w.skating.speed == 0.0, "slowly into a kerb: the board just stops")
+	check(w.skating.bump(6.0) and w.skating.bailing and w.skating.bails == 1, "fast: you bail")
+	var out: Dictionary = w.skating.step(0.05, {"push": true, "kick": true, "jump_down": true}, true, Vector2.ZERO)
+	check(out.bail and out.speed == 0.0 and w.skating.charge == 0.0, "down on the ground: nothing you press does anything")
+	check(not w.skating.bump(6.0) and w.skating.bails == 1, "and you can't bail twice at once")
+	for i in int(Skating.BAIL_TIME / 0.05) + 1:
+		w.skating.step(0.05, {}, true, Vector2.ZERO)
+	check(not w.skating.bailing and w.skating.mounted, "a moment later you're up, still on the board")
+	w.skating.step(0.05, {"kick": true}, true, Vector2.ZERO)
+	check(w.skating.speed > 0.0, "and can push off again")

@@ -35,7 +35,7 @@ const FAR := 400.0
 func point_at(pos: Vector2, text: String, from := Vector2(INF, INF)) -> void:
 	if from.is_finite() and from.distance_to(pos) > FAR:
 		pos = from + (pos - from).normalized() * FAR
-	position = Vector3(pos.x, 0, pos.y)
+	position = Ground.at(pos)
 	_label.text = text
 	visible = true
 

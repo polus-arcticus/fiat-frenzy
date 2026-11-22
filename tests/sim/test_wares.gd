@@ -32,7 +32,7 @@ func test_they_are_made_of_scrap() -> void:
 	check(city.output.count("tent") == 1 and city.output.count("barrel_fire") == 1 and city.input.count("scrap") == 0, "four scrap make a tent and two a barrel, the emptiest first (%d tents, %d barrels, %d scrap left)" % [city.output.count("tent"), city.output.count("barrel_fire"), city.input.count("scrap")])
 	city.craft()
 	check(city.output.count("tent") == 1, "and with no scrap, nothing")
-	check(city.input.caps["scrap"] == 6 * Catalog.machine("tent").stock_crafts + Catalog.machine("hostel").build_scrap, "its store holds the wares' scrap and the hostel's (%d)" % city.input.caps["scrap"])
+	check(city.input.caps["scrap"] == city.per_craft("scrap") * Catalog.machine("tent").stock_crafts + Catalog.machine("hostel").build_scrap, "its store holds the wares' scrap and the hostel's (%d)" % city.input.caps["scrap"])
 	var _w := w
 
 

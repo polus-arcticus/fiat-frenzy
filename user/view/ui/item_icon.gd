@@ -38,6 +38,12 @@ func _draw() -> void:
 			draw_polyline(PackedVector2Array([tent[0], tent[1], tent[2], tent[0]]), INK, 2.0)
 			if item == "tent":  # (the open flap)
 				draw_colored_polygon(PackedVector2Array([o + Vector2(0.5, 0.2) * s, o + Vector2(0.62, 0.8) * s, o + Vector2(0.38, 0.8) * s]), Color(0.2, 0.22, 0.3))
+		"camp_kit":  # a tarp over a crate
+			var tarp := PackedVector2Array([o + Vector2(0.08, 0.78) * s, o + Vector2(0.62, 0.2) * s, o + Vector2(0.92, 0.78) * s])
+			draw_colored_polygon(tarp, Color(0.35, 0.5, 0.42))
+			draw_polyline(PackedVector2Array([tarp[0], tarp[1], tarp[2]]), INK, 2.0)
+			draw_rect(Rect2(o + Vector2(0.3, 0.56) * s, Vector2(0.32, 0.26) * s), RUST)
+			draw_rect(Rect2(o + Vector2(0.3, 0.56) * s, Vector2(0.32, 0.26) * s), INK, false, 2.0)
 		"barrel_fire":
 			draw_rect(Rect2(o + Vector2(0.3, 0.42) * s, Vector2(0.4, 0.44) * s), RUST)
 			draw_rect(Rect2(o + Vector2(0.3, 0.42) * s, Vector2(0.4, 0.44) * s), INK, false, 2.0)

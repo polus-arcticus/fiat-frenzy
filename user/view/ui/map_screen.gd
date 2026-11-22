@@ -12,6 +12,7 @@ signal closed
 const INK := Color(0.16, 0.14, 0.2)
 const PAPER := Color(0.93, 0.9, 0.8)
 const BUILDING := Color(0.74, 0.69, 0.6)
+const WATER := Color(0.62, 0.76, 0.84)
 const MIN_SCALE := 0.12  # pixels per metre
 const MAX_SCALE := 5.0
 const START_SCALE := 1.6
@@ -28,6 +29,7 @@ var title := ""  # what the place is called (Landing.title)
 var _district: Dictionary
 var _roads: ArrayMesh
 var _buildings: ArrayMesh
+var _water: ArrayMesh
 var _names: Array = []  # [{text, pos, major}]
 var _root: Control
 var _scale := START_SCALE
@@ -170,6 +172,13 @@ func _build_meshes() -> void:
 		if name != "" and pts.size() >= 2:
 			_names.append({"text": name, "pos": pts[pts.size() / 2], "major": String(r["class"]) in ["primary", "secondary", "tertiary"], "n": pts.size()})
 	_roads = _mesh(rv, rc)
+	var wv := PackedVector3Array()  # the water (OsmWater), under the streets: the bridges cross it
+	var wc := PackedColorArray()
+	for poly in _district.get("water", {}).get("pieces", []):
+		for i in Geometry2D.triangulate_polygon(poly):
+			wv.append(Vector3(poly[i].x, poly[i].y, 0))
+			wc.append(WATER)
+	_water = _mesh(wv, wc)
 	var bv := PackedVector3Array()
 	var bc := PackedColorArray()
 	for b in _district.buildings:
@@ -208,6 +217,7 @@ func _draw_map() -> void:
 	var size := _root.size
 	_root.draw_rect(Rect2(Vector2.ZERO, size), PAPER)
 	_root.draw_set_transform(size * 0.5 - _center * _scale, 0.0, Vector2(_scale, _scale))
+	_root.draw_mesh(_water, null)
 	_root.draw_mesh(_roads, null)
 	_root.draw_mesh(_buildings, null)
 	_root.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

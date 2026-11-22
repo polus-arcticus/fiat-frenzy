@@ -5,6 +5,18 @@ extends Node3D
 
 const DISTRICT_PATH := "res://data/bahnhofsviertel.json"
 const SIM_STEP := SimLoop.STEP
+## What the loading picture counts through while the game is built from the title (Launch.loading); built anywhere else
+## (tests, tools) it is built all at once, as before.
+const STEPS := ["READING THE MAP", "RAISING THE BUILDINGS", "SEEDING THE TOWN", "HANDING YOU THE GUN", "HANGING THE SIGNS",
+	"SETTING THE STREET", "WARMING UP"]
+
+## The game is built (from the title, it is built over several frames: see STEPS).
+signal built
+var is_built := false
+var _stepwise := false
+var _step_at := 0
+var dressing: DressingController  # a tile's water and green, coming in the background (none in the story)
+var kerbs: Kerbs  # the raised pavements and their kerb lines (drawn, stood on, ground by a skateboard)
 
 var world: World
 ## Where the game begins (see Landing). Set before the scene is added (tests, tools) or chosen on the title screen (Launch);
@@ -62,6 +74,10 @@ const AUTOSAVE_EVERY := 240.0  # real seconds between autosaves
 func _ready() -> void:
 	process_physics_priority = -10  # the sim steps first each physics frame, then the views that follow it, then the player
 	Controls.register()
+	_stepwise = Launch.loading != null
+	if _stepwise:
+		process_mode = Node.PROCESS_MODE_DISABLED  # (nothing ticks half-built: the build gives it back at the end)
+	await _step()
 	var args := OS.get_cmdline_user_args()
 	var load_slot := Launch.take_slot()
 	skip_intro = skip_intro or "--skip-intro" in args or load_slot != "" or Launch.skip_intro
@@ -73,10 +89,16 @@ func _ready() -> void:
 	scenario = landing as Scenario
 	if scenario == null:
 		skip_intro = true  # (no opening crash off the story: the gun is in hand)
+	await _step()
+	await _build_city()
+	await _step()
 	_build_town()
+	await _step()
 	_build_player()
 	world.begin_play()  # the town is built: whatever turns up from now on is named after this game (see World.mint)
+	await _step()
 	_build_screens()
+	await _step()
 	_build_story()
 	presenter = HudPresenter.new(world, hud, player, gun, inventory, tutorial, marker)
 	hud.notify("Click to capture the mouse.")
@@ -90,6 +112,49 @@ func _ready() -> void:
 		for a in args:
 			if a.begins_with("--stage="):
 				_jump_when_free(a.trim_prefix("--stage="))
+	var tile := landing as TileLanding
+	if tile != null:
+		dressing = DressingController.new().setup(tile.key, tile.district, city)
+		add_child(dressing)
+	await _step()
+	if _stepwise:  # (the first frames compile the shaders: let them happen behind the picture)
+		for i in 3:
+			await get_tree().process_frame
+		process_mode = Node.PROCESS_MODE_INHERIT
+	is_built = true
+	built.emit()
+
+
+## The next step of the build: tells the loading picture, and lets a frame be drawn. Nothing, built all at once.
+func _step() -> void:
+	if not _stepwise:
+		return
+	if Launch.loading != null and _step_at < STEPS.size():
+		Launch.loading.step(_step_at, STEPS.size(), STEPS[_step_at])
+	_step_at += 1
+	await get_tree().process_frame
+
+
+## The city's meshes: its geometry baked on a worker thread while the picture keeps moving (from the title), then made into
+## nodes here.
+func _build_city() -> void:
+	var district := landing.district
+	var openings := landing.openings()
+	var tile_key: String = landing.key if landing is TileLanding else ""
+	var make := func():
+		var kerbs := Kerbs.of(district, openings)
+		Ground.kerbs = kerbs  # (the street things stand on the pavements: set before they're baked)
+		var things := StreetThingsBuilder.bake(StreetThings.of(district, kerbs, tile_key))
+		return {"kerbs": kerbs, "city": CityBuilder.bake(district, openings, kerbs), "things": things}
+	var baked: Dictionary
+	if _stepwise:
+		baked = await OffThread.run(self, make)
+	else:
+		baked = make.call()
+	kerbs = baked.kerbs
+	Ground.kerbs = kerbs  # (the views stand things on the pavements)
+	city = CityBuilder.assemble(baked.city)
+	city.add_child(StreetThingsBuilder.assemble(baked.things))  # (lamps, stops, signs, benches, hedges: StreetThings)
 
 
 ## The landing a spec names ({kind: "story"}, or {kind: "tile", key, lat, lon}: its map must be in the tile cache, see
@@ -112,7 +177,6 @@ func _jump_when_free(id: String) -> void:
 
 ## The map, the sky and the model, and the views that draw what the model starts with.
 func _build_town() -> void:
-	city = CityBuilder.build(landing.district, landing.openings())
 	add_child(city)
 	sky = DayNight.new()
 	add_child(sky)
@@ -160,6 +224,7 @@ func _build_player() -> void:
 	bike_controller = BikeController.new().setup(world, player, gun, hud)
 	add_child(bike_controller)
 	skate_controller = SkateController.new().setup(world, player, gun, hud)
+	world.skating.kerbs = kerbs  # (what a board grinds)
 	add_child(skate_controller)
 	placement = PlacementController.new().setup(world, player, gun, hud)
 	add_child(placement)

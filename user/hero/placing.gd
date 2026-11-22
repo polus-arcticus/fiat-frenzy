@@ -2,6 +2,7 @@
 ## These are the rules; the ghost that shows where it would go is PlacementController's.
 ##   a barrel fire   becomes a barrel fire there: anyone near it warms up (see Cold, Needs)
 ##   a tent          founds a tent city of its own at tier 0, with a newcomer who keeps it (Lodging.found)
+##   a camp kit      only in a park (World.parks): a homeless camp with its own fire, a newcomer keeping it (Camp.found)
 ## It goes only where someone could stand: on open ground (not in a wall or a stand: Navigation.blocked), within REACH of the
 ## hero, and not on top of anything else that stands in the street.
 class_name Placing
@@ -9,7 +10,7 @@ extends RefCounted
 
 const REACH := 6.0
 ## How much room each needs round its middle: the open ground it must have, and how far it must be from anything else.
-const ROOM := {"barrel_fire": 0.6, "tent": 1.3}
+const ROOM := {"barrel_fire": 0.6, "tent": 1.3, "camp_kit": 3.0}  # (a camp: its stall, and its fire beside it)
 const GAP := 1.2  # metres of clear ground between it and the next thing
 
 var _w: World
@@ -28,6 +29,8 @@ func why_not(item: String, at: Vector2) -> String:
 		return "You don't have one."
 	if p.pos.distance_to(at) > REACH:
 		return "Too far away."
+	if item == "camp_kit" and not _w.in_park(at):
+		return "A camp goes in a park." if not _w.parks.is_empty() else "There's no park here for a camp."
 	var r: float = ROOM[item]
 	for off in [Vector2.ZERO, Vector2(r, 0), Vector2(-r, 0), Vector2(0, r), Vector2(0, -r)]:
 		if _w.nav.blocked(p.zone, at + off):
@@ -57,6 +60,9 @@ func place(item: String, at: Vector2, front := Vector2(0, 1)) -> Dictionary:
 		_w.arrivals.append(f)
 		_w.zones.invalidate()
 		return {"ok": true, "text": "A barrel fire, lit: anyone near it warms up."}
+	if item == "camp_kit":
+		var camp := Camp.found(_w, at, front, p.zone)
+		return {"ok": true, "text": "A camp in the park: %s has come to keep it, by its fire. Runners will bring it scrap; it puts together old skateboards." % _w.drone(camp.owner).label}
 	var city := _w.lodging.found(at, front, p.zone)
 	return {"ok": true, "text": "A tent of your own in the street: %s has come to keep it. Put up more tents there and others will come." % _w.drone(city.owner).label}
 

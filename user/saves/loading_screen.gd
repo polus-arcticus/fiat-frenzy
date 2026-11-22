@@ -22,7 +22,8 @@ const TIPS := [
 	"Scroll the wheel to switch from gifting to investing.",
 	"A stake in a business pays you forever.",
 	"Nights are cold. A barrel fire warms whoever stands near it.",
-	"Press B on a skateboard. Press jump twice for a kickflip. It pays $25.",
+	"Press B on a skateboard. Press jump twice for a kickflip: it strews cash.",
+	"Ollie onto a kerb, running along it, to grind. It leaves a trail of money.",
 	"Anyone with a gold glow needs your help.",
 ]
 const SKY_TOP := Color("#2b1d4a")
@@ -34,6 +35,7 @@ const BILL_DARK := Color("#2f7d3f")
 const CREAM := Color("#fff2cf")
 
 const PRINTING := "PRINTING THE DISTRICT..."
+const STEPS_FROM := 0.35  # how much of the bar is filled when the build's steps begin
 
 var progress := 0.0   # 0..1, set by whoever is loading
 var caption := PRINTING  # what it says it is doing
@@ -41,6 +43,8 @@ var holding := false  # waiting for the build: freeze on the best frame
 
 var _t := 0.0
 var _released := -1.0 # the time of release, or -1
+var _steps := 0       # the build's steps (0 until it begins: see step)
+var _step_i := 0
 var _canvas: Control
 var _tip := TIPS[0]
 var _rng := RandomNumberGenerator.new()
@@ -88,6 +92,13 @@ func _process(delta: float) -> void:
 
 
 ## The game is up: let the cinematic play out and go.
+## The game's build has reached step `i` of `n` (counting from 0), called `what`: the caption counts it, the bar fills with it.
+func step(i: int, n: int, what: String) -> void:
+	_steps = n
+	_step_i = i
+	caption = "%d / %d   ·   %s..." % [i + 1, n, what]
+
+
 func release() -> void:
 	holding = false
 	if _released < 0.0:
@@ -359,7 +370,10 @@ func _title() -> void:
 
 func _bar() -> void:
 	var font := ThemeDB.fallback_font
-	var shown := clampf(maxf(progress, minf(_t / 2.4, 0.9)), 0.0, 0.99)
+	# the scene file's loading fills the first STEPS_FROM of the bar, the game's build steps the rest
+	var shown := clampf(maxf(progress, minf(_t / 2.4, 1.0)), 0.0, 1.0) * STEPS_FROM
+	if _steps > 0:
+		shown = STEPS_FROM + (1.0 - STEPS_FROM) * float(_step_i) / float(_steps)
 	if _released >= 0.0:
 		shown = 1.0
 	var n := 24

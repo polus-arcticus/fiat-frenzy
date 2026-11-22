@@ -15,6 +15,7 @@ const COLD_WARNING := 0.4  # the feed warns as the hero's warmth falls past this
 
 var mode: Mode = Mode.ON_FOOT
 var last_mugged := 0.0  # what was taken from the hero's pockets the last time they were carried to the medical tent
+var _in_park_at_night := false  # (so the feed says it once, as they come into the park)
 
 var _w: World
 
@@ -29,6 +30,12 @@ func step(dt: float) -> void:
 	if p == null:
 		return
 	var was: float = p.bars.warmth
+	var parked := _w.in_park(p.pos)
+	if p.cold_spans != Vector2.ZERO:  # (zero: hardened to it, like the street's people, as a test may have them)
+		p.cold_spans = Cold.spans(parked)  # (the night wind in a park: see Cold.PARK_NIGHT)
+	if parked and _w.clock.is_night() and not _in_park_at_night:
+		_w.events.append("t=%d the wind comes across the park: you'll get cold faster here" % _w.clock.time)
+	_in_park_at_night = parked and _w.clock.is_night()
 	_w.needs.decay(p, dt)
 	if was >= COLD_WARNING and p.bars.warmth < COLD_WARNING:  # (the cold bites fast out here: see Cold)
 		_w.events.append("t=%d you're getting cold: get to a barrel fire, or find a coat (the thrift stall)" % _w.clock.time)

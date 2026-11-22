@@ -28,17 +28,20 @@ func _run() -> void:
 		var mid: Array = TileKey.lat_lon(TileKey.rect(key).get_center(), TileKey.region_of(key))
 		lat = mid[0]
 		lon = mid[1]
-	print("tile %s (%.5f, %.5f), %.0f m across; cached: %s" % [key, lat, lon, TileKey.size_m(TileKey.region_of(key)), TileSource.cached(key)])
-	if not TileSource.cached(key):
+	print("tile %s (%.5f, %.5f), %.0f m across; ready: %s" % [key, lat, lon, TileKey.size_m(TileKey.region_of(key)), TileSource.ready(key)])
+	for layer in TileSource.BEFORE_LANDING:
+		if TileSource.cached(key, TileSource.CACHE, layer):
+			continue
 		if "offline" in OS.get_cmdline_user_args():
-			print("not in the cache, and offline")
+			print("its %s layer is not in the cache, and offline" % layer)
 			quit(1)
 			return
-		print("fetching from %s ..." % TileSource.OVERPASS)
+		print("fetching its %s layer from %s ..." % [layer, TileSource.OVERPASS])
 		var fetcher := TileFetchController.new()
 		root.add_child(fetcher)
 		var started := Time.get_ticks_msec()
-		var r: Dictionary = await fetcher.fetch(key)
+		var r: Dictionary = await fetcher.fetch(key, TileSource.CACHE, layer)
+		fetcher.queue_free()
 		print("  %s in %.1f s%s" % ["fetched" if r.ok else "FAILED", (Time.get_ticks_msec() - started) / 1000.0, "" if r.ok else ": " + r.error])
 		if not r.ok:
 			quit(1)
@@ -46,7 +49,9 @@ func _run() -> void:
 	var district := TileSource.district(key)
 	var landing := TileLanding.new(key, district, lat, lon)
 	var w := landing.build()
-	print("map: %d buildings, %d streets" % [district.buildings.size(), district.roads.size()])
+	print("map: %d buildings, %d streets (%d bridges), water in %d pieces with %d m of bank" % [district.buildings.size(), district.roads.size(),
+		district.roads.filter(func(r): return r.get("bridge", false)).size(), district.get("water", {}).get("pieces", []).size(),
+		roundi(district.get("water", {}).get("edges", []).reduce(func(s, e): return s + e.a.distance_to(e.b), 0.0))])
 	print("atom: on %s at %s (along %s); the hero lands %.0f m from the market" % [landing.site.get("street", "(an open site)"), landing.site.point, landing.site.along, landing.start.distance_to(landing.market)])
 	print("people: %s" % ", ".join(w.drones.map(func(d): return "%s (%s)" % [d.label, w.profession_of(d)])))
 	var days := _arg("days", "30").to_int()

@@ -42,7 +42,7 @@ func _build(b: Bill) -> Node3D:
 		pile.position = Vector3(b.local.x, BusView.FLOOR + 0.03, b.local.y)
 		bus.add_child(pile)
 	else:
-		pile.position = Vector3(b.pos.x, 0.04, b.pos.y)
+		pile.position = Ground.at(b.pos, 0.04)
 		add_child(pile)
 	var at: Vector2 = b.local if b.aboard else b.pos
 	var rng := RandomNumberGenerator.new()

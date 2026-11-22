@@ -57,8 +57,42 @@ New Game opens the landing picker, as in Planet Crafter.
   - Pins: the story's Frankfurt in gold; green squares for tiles already landed in on this machine.
 - **Its pictures** are OpenStreetMap's map tiles (`MapTiles`), fetched two at a time and kept in `user://maptiles`: the whole
   world at zoom 3, and closer tiles where you look. The map is credited in the corner.
-- **Land here** fetches the tile's streets if they aren't cached ("FETCHING THE MAP OF …" over the loading picture). If that
-  fails, the picker stays and says why.
+- **Land here** fetches the tile's streets if they aren't cached ("FETCHING THE MAP OF …" over the loading picture; "THE MAP
+  SERVER IS BUSY: ASKING AGAIN IN 8 S" while it backs off). If that fails, the picker stays and says why.
+- **The loading picture counts the build:** "1 / 7 · READING THE MAP" up to "7 / 7 · WARMING UP" (`GameController.STEPS`). The
+  city's geometry is baked on a worker thread (`CityBuilder.bake`, `OffThread`), so the picture keeps moving.
+- **Water is solid** (`engine/map/osm_water.gd`), and comes with the streets, before you land: lakes, ponds, river areas, and
+  rivers and canals as wide as they're tagged. One rule: all the water merged, then every street cut out of it, so a
+  **bridge** is a street over the water, and a street along the bank stays a street. A low stone wall (0.85 m) runs along
+  every edge where water meets land: quays along the banks, parapets along the bridges; an unseen wall above it means you
+  can't jump in. The town walks round it (Navigation), and the market is never put in it, nor on a bridge. The map shows it.
+  It reaches 60 m past the tile's edge, as far as its streets.
+- **The street's detail, from the map** (no extra requests: the street's tags, and points in the land request):
+  - **Buildings:** mapped roof shapes (gabled, hipped, domed) instead of flat tops, and mapped colours or materials (brick,
+    stone, glass) mixed into the watercolour palette (`OsmImport._looks`).
+  - **Streets:** what they're paved with (cobbles and setts darker, paving stones), dashed lines between mapped lanes, and
+    **cobbles slow a skateboard** to 60% of its top speed (`Kerbs.rough_at`, `Skating.ROUGH`).
+  - **Furniture** (`engine/map/street_things.gd`): street lamps (the mapped ones, and one every 30 m along the streets the map
+    says are lit; in the story's Frankfurt along its main streets), bus and tram stops (a shelter and a sign, on the
+    pavement facing the road), stop and give-way signs, traffic lights, zebra crossings, bike stands, benches, bins, recycling
+    containers, and hedges, walls and fences (hedges and walls are solid). Each kind is one small model, instanced
+    (`StreetThingsBuilder`: 18 to 90 triangles each; about 7,000 for a whole tile). At night the lamps glow and throw a soft
+    pool of light (group `night_lights`, switched by `DayNight`).
+  - **Recycling is where the scrap is:** a tile's real recycling containers within 220 m of the market on foot (up to 3)
+    are its scrap piles, sharing the one pile's rate, so the town has as much scrap as ever (`SiteFinder.recycling`). With
+    none near, the atom lays out its own pile as before.
+- **Parks** (the map's green, `World.parks`) are where the homeless camps go:
+  - **A camp at landing:** the park nearest the market gets one, at most 90 m from it on foot (`SiteFinder.camp`; a park
+    further round gets none: its people would spend their day on the road). The same spot for everyone. It has its own
+    barrel fire, and its keeper lives by it. It shares the market's scrap pile.
+  - **Camps of your own:** the tent keeper makes **camp kits** ($20, of scrap). Put one down in a park (only in a park) and
+    a newcomer comes to keep it, by its own fire (`Camp.found`).
+  - **The night wind:** after dark a park has no walls to cut it: your warmth lasts 60% as long there (`Cold.PARK_NIGHT`),
+    unless you're by a fire. The feed says so as you come in. (Only you: the street's people keep their own cold.)
+- **The dressing comes in after you land** (`DressingController`): a tile's parks, pitches, woods and trees
+  (`OsmDressing`, `DressingBuilder`; each tree's crown one of seven solids at random, the same for everyone in the tile:
+  the five Platonic ones, the cuboctahedron and the icosidodecahedron, `Solids`), fetched in the background a few seconds in, baked off the main thread and laid under
+  the streets. It's only looked at: nothing walks round it (yet), so a tile plays the same with or without it.
 
 ## Screens
 
@@ -99,9 +133,24 @@ cash (`user/hero/collapse_controller.gd`).
 Rides are **gear**: they live in the loadout (below), so F or B gets on wherever the hero stands.
 - **The bike** (`user/bike/`): $3,000 at the shop; about 2.4× walking; no sprint, jump or gun.
 - **The skateboard** (`user/skating/`): $120.
-  - W pushes (up to 12 m/s), S brakes, A/D steer.
-  - Hold Space and let go to ollie. Tap Space in the air for a kickflip, which sprays $25 (printed, and counted).
+  - **Left click** is a push with the foot: +2.4 m/s at once, at most every 0.3 s (the body leans out of a crouch and back).
+    W pushes too, smoothly. Up to 12 m/s. S brakes, A/D steer.
+  - Holding the crouch (Space) past a full charge pumps the board along, slowly, up to 60% of the top speed: a fallback.
+  - **Bail:** into a wall, or a kerb you didn't ollie, faster than 3 m/s, and you're thrown off: over head first, a log roll
+    along the ground, and a moment lying on your side in the recovery position, the top leg crossed over; then up and on
+    the board again (`Skating.bump`, `SkateController._bail_pose`). Slower, the board just stops.
+  - Hold Space and let go to ollie. Tap Space in the air for a kickflip, which strews $5 in five bills 2 to 4 m round where
+    you are (printed, and counted).
+  - **Style is strewn, not pocketed:** what a trick prints lands out of your reach (`Commerce.PICKUP_REACH`, 1.4 m), for you
+    to go back for, or for whoever gets there first.
   - A wall stops it dead.
+  - **Kerbs** (`engine/map/kerbs.gd`): pavements are raised 12 cm, with a lighter kerb stone along the drop. Walking and
+    the bike step up onto them (`PlayerController.STEP_UP`); a board rolled into one stops dead, so ollie up it.
+  - **Grind:** roll along a kerb, ollie, and come down with the board over the kerb line, running along it (within about
+    35°): it locks onto the edge and slides (`Skating`). A $1 bill drops every 2 m, strewn on the pavement 2 or so metres
+    behind you: a trail to come back for. The edge slows you:
+    flat out it's about 30 m and $15. It carries on round a kerb's joins, ends where the kerb does (at a junction) or when
+    you've slowed too much, and Space pops you off.
 - **Old ones** from the homeless camps: an old board ($15, 60% of the top speed) and an old bike ($60, about half the gain).
   With more than one equipped, the fastest is ridden.
 

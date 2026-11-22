@@ -31,11 +31,17 @@ F3 for the inspector.
 over the north pole) with the game's tile grid on it (`TileKey`: zoom-16 tiles, about 390 m across at Frankfurt). Everyone
 who picks a place in the same tile gets the same streets and the same market, so saves fit together. The game uses the
 network for two things, both public OpenStreetMap services:
-- the picker's map pictures, from `https://tile.openstreetmap.org/{z}/{x}/{y}.png`, kept in `user://maptiles`;
-- a tile's streets, one Overpass request (`https://overpass-api.de/api/interpreter`) when you land in a tile not yet in
-  `user://tiles`.
+- the picker's map pictures, from `https://tile.openstreetmap.org/{z}/{x}/{y}.png`, two at a time, only where you look, kept
+  in `user://maptiles`;
+- a tile's map from Overpass (`https://overpass-api.de/api/interpreter`), two requests per tile, ever, both before you land
+  (kept in `user://tiles`):
+  - its buildings and streets;
+  - its land: water (solid), parks (where camps go), and the street's furniture as points (lamps, stops, signs, bike
+	stands, benches, recycling), cut to the tile's box by the server. Trees are scattered with the tile's own dice, not
+	fetched. (Its file is named by the version of its query: a tile cached with an older one fetches it once more.)
 
-Nothing about the player is sent.
+Every request backs off exponentially when the server is busy (`Backoff`: 2 s doubling to 60 s, with jitter; `Retry-After`
+honoured). Nothing about the player is sent.
 
 ## How it is built
 

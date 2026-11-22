@@ -70,3 +70,6 @@ func update(frac: float) -> void:
 	env.fog_light_color = horizon
 	if lit_windows:
 		lit_windows.visible = daylight < 0.35
+	if is_inside_tree():  # (and the street lamps: StreetThingsBuilder)
+		for n in get_tree().get_nodes_in_group("night_lights"):
+			n.visible = daylight < 0.35

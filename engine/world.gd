@@ -18,6 +18,9 @@ var welfare_offices: Array[WelfareOffice] = []  # the town's purse (see Welfare)
 var ambulances: Array[Ambulance] = []
 var bills: Array[Bill] = []  # printed money, in flight or lying about
 var roads: RoadGraph = null  # optional: with one, drones walk the streets
+## The parks on the map (the green, OsmDressing: kind "green"), as polygons: where a camp may be pitched (Placing), and where
+## the night wind bites (Cold). From the map, not saved: built again with it. None in the story's Frankfurt (yet).
+var parks: Array[PackedVector2Array] = []
 ## The story's scripted cast, by role (Mr. Nobody, the bank's people, its lift): the story's to fill and read. The world only
 ## holds it (it is the composition root); nothing in the engine looks inside.
 var cast := Cast.new()
@@ -359,6 +362,14 @@ func add_fire(at: Vector2) -> BarrelFire:
 
 ## What `d` does, as words under their name: what the story calls them (Drone.profession), else the keeper of their stand (so
 ## it follows the stand up its tiers: Catalog.KEEPERS), else their kind's.
+## Is `p` in a park?
+func in_park(p: Vector2) -> bool:
+	for poly in parks:
+		if Geometry2D.is_point_in_polygon(p, poly):
+			return true
+	return false
+
+
 func profession_of(d: Drone) -> String:
 	if d.profession != "":
 		return d.profession

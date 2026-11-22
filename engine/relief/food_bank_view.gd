@@ -17,7 +17,7 @@ var _clock := 0.0
 func setup(fb: FoodBank, facing: float) -> FoodBankView:
 	bank = fb
 	name = "FoodBank"
-	position = Vector3(fb.pos.x, 0, fb.pos.y)
+	position = Ground.at(fb.pos)
 	rotation.y = facing
 	var prop := Node3D.new()
 	add_child(prop)

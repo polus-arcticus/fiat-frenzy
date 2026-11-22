@@ -48,6 +48,11 @@ func begin(what: String) -> void:
 		prism.size = Vector3(1.84, 1.25, 2.6)
 		mesh.mesh = prism
 		mesh.position.y = 0.625
+	elif item == "camp_kit":  # (the camp's stall, its footprint)
+		var box := BoxMesh.new()
+		box.size = Vector3(2.4, 1.6, 1.8)
+		mesh.mesh = box
+		mesh.position.y = 0.8
 	else:
 		var barrel := CylinderMesh.new()
 		barrel.top_radius = 0.33
@@ -102,7 +107,7 @@ func _update() -> void:
 	_at = target()
 	var to_hero := world.player.pos - _at
 	_front = to_hero.normalized() if to_hero.length() > 0.01 else Vector2(0, 1)  # (a tent opens toward the hero)
-	_ghost.position = Vector3(_at.x, 0.02, _at.y)
+	_ghost.position = Ground.at(_at, 0.02)
 	_ghost.rotation.y = atan2(-_front.x, -_front.y)
 	var why := world.placing.why_not(item, _at)
 	_mat.albedo_color = OK if why == "" else NO

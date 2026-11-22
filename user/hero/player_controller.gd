@@ -11,11 +11,12 @@ extends CharacterBody3D
 
 ## The view changed: true for third person. (The gun and the bicycle's handlebars move to suit.)
 signal view_changed(third_person: bool)
-## The board ran into something solid while skating.
-signal skate_bumped
+## The board ran into something solid while skating, going `speed` (Skating.bump: fast enough, you bail).
+signal skate_bumped(speed: float)
 
 const ARM_LENGTH := 3.4   # how far behind the hero's head the camera hangs in third person
 const SHOULDER := 0.55    # and how far to the right: over the shoulder
+const STEP_UP := 0.2      # the highest ledge walked (or ridden) straight up onto: a kerb (Kerbs.HEIGHT), not a wall
 
 var controls_enabled := true
 ## The view in use now, and the one the player has asked for (it is first person whatever they ask while sitting on the
@@ -137,6 +138,22 @@ func set_riding(on: bool) -> void:
 		speed_scale = 1.0
 
 
+## Walked into something low (a kerb): if the same move is clear STEP_UP higher, and there's head room, step up onto it (the
+## floor snap settles the body on top). A wall is just as much in the way higher up, so it stays a wall.
+func _step_up(motion: Vector3) -> void:
+	if motion.length() < 0.001:
+		return
+	var ahead := motion.normalized() * maxf(motion.length(), 0.06)
+	if test_move(global_transform, Vector3(0, STEP_UP, 0)):
+		return
+	var raised := global_transform
+	raised.origin.y += STEP_UP
+	if test_move(raised, ahead):
+		return
+	global_position += Vector3(ahead.x, STEP_UP, ahead.z)
+	move_and_collide(Vector3(0, -STEP_UP, 0))  # (straight down onto the ledge's top: no hitch in the view)
+
+
 ## Look straight ahead again (after being teleported somewhere new).
 func level_gaze() -> void:
 	_pitch = 0.0
@@ -196,6 +213,16 @@ func _physics_process(delta: float) -> void:
 		velocity.y -= _gravity * delta
 	if skating and skate_driver.is_valid():
 		var out: Dictionary = skate_driver.call(delta, is_on_floor())
+		if out.get("grind", false):  # on a kerb's edge: the board follows the kerb line, on top of it (Skating)
+			var at: Vector2 = out.grind_at
+			var h: Vector2 = out.grind_heading
+			global_position = Vector3(at.x, Kerbs.HEIGHT, at.y)
+			rotation.y = atan2(-h.x, -h.y)
+			velocity = Vector3(h.x, 0.0, h.y) * float(out.speed)
+			if third_person:
+				body.refresh(0.0)
+			camera.position = Vector3.ZERO
+			return
 		rotate_y(out.turn * delta)
 		var heading := -transform.basis.z
 		velocity.x = heading.x * out.speed
@@ -205,7 +232,7 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		var moving := Vector2(get_real_velocity().x, get_real_velocity().z).length()
 		if moving < out.speed * 0.5:  # ran into something: the board stops dead, as in the games
-			skate_bumped.emit()
+			skate_bumped.emit(out.speed)
 		if third_person:
 			body.refresh(0.0)  # (standing on the board)
 		_shake = maxf(0.0, _shake - delta * 1.5)
@@ -223,7 +250,10 @@ func _physics_process(delta: float) -> void:
 	var flat := Vector3(velocity.x, 0, velocity.z).lerp(dir * speed, clampf(accel * delta, 0.0, 1.0))
 	velocity.x = flat.x
 	velocity.z = flat.z
+	var was_on_floor := is_on_floor()
 	move_and_slide()
+	if was_on_floor and is_on_wall():
+		_step_up(flat * delta)
 	head.position.y = lerpf(head.position.y, 1.45 if _riding else 1.6, clampf(8.0 * delta, 0.0, 1.0))  # lower on a bike
 	var ratio := minf(flat.length() / sprint_speed, 1.2)
 	if is_on_floor() and ratio > 0.05:

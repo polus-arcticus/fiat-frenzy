@@ -210,7 +210,7 @@ func _refresh() -> void:
 		"Tile %s  ·  about %d m across" % [key, roundi(TileKey.size_m(region))],
 		"in region %s" % region,
 		"",
-		("Its map is here already." if TileSource.cached(key) else "Its streets come from OpenStreetMap when you land (one request)."),
+		("Its map is here already." if TileSource.ready(key) else "Its streets and water come from OpenStreetMap when you land."),
 		"Anyone who lands in this tile gets the same streets and the same market: your saves fit together.",
 	]
 	_info.text = "\n".join(lines)

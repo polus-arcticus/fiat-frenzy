@@ -35,6 +35,7 @@ static func _build_items() -> Dictionary[String, ItemDef]:
 		ItemDef.new("letter", "document"),  # carried for a quest, not used up
 		ItemDef.new("tent", "camping", 15.0),        # the tent keeper's, of scrap: put down in the street, it founds a tent city
 		ItemDef.new("barrel_fire", "camping", 5.0),  # and a barrel to burn scrap in: put down, it is a barrel fire
+		ItemDef.new("camp_kit", "camping", 20.0),    # a tarp, a crate and a barrel: put down in a park, a homeless camp (Camp.found)
 	]
 	for d in defs:
 		out[d.id] = d
@@ -45,7 +46,7 @@ static func _build_items() -> Dictionary[String, ItemDef]:
 	out["old_bike"].speed = 0.5
 	for g in ["bicycle", "old_bike", "skateboard", "old_skateboard", "old_coat", "coat"]:
 		out[g].gear = true
-	for g in ["tent", "barrel_fire"]:
+	for g in ["tent", "barrel_fire", "camp_kit"]:
 		out[g].placeable = true
 	out["old_coat"].insulation = 0.3
 	out["coat"].insulation = 0.6
@@ -76,7 +77,7 @@ static func _build_machines() -> Dictionary[String, MachineDef]:
 	# growing past it means building it up. The footprint is one tent's.
 	var tent := MachineDef.new("tent", "Tent city", "bed")
 	tent.rate = 0.5
-	tent.wares = {"tent": {"scrap": 4}, "barrel_fire": {"scrap": 2}}
+	tent.wares = {"tent": {"scrap": 4}, "barrel_fire": {"scrap": 2}, "camp_kit": {"scrap": 6}}
 	tent.cap = Atom.ROLES.size()
 	tent.tick = 0.0
 	tent.repair = 30.0

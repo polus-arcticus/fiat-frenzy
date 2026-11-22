@@ -45,7 +45,7 @@ Built tiers are in **bold**. Each tier says what it adds.
 ### Lodging
 1. **Tent city** (t0): a tent for each person, kept warm; it holds an atom's worth. Its keeper makes tents ($15) and barrel
    fires ($5) of scrap; a tent put down in the street founds another tent city at t0.
-2. **Hostel** (t1): twice the room. **Built of 320 scrap** the runners pool into it, not money (about day 36 in an atom: none of its first month).
+2. **Hostel** (t1): twice the room. **Built of 320 scrap** the runners pool into it, not money (about day 41 in an atom, day 47 with a park camp: none of its first month).
 3. Hotel (t2): **rooms in the block's building**. It is the first business to move in upstairs. A resident with a room has an
    address: newcomers come to a block whose rooms have space (population growth).
 4. Real estate seller (t3): buys the block's empty buildings (the map's unclaimed stock) and **sells floors to other owners**,

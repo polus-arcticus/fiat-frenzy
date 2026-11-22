@@ -12,7 +12,7 @@ var _label: Label3D
 func setup(p: ScrapPile) -> ScrapPileView:
 	pile = p
 	name = "ScrapPile"
-	position = Vector3(p.pos.x, 0, p.pos.y)
+	position = Ground.at(p.pos)
 	var dice := RandomNumberGenerator.new()
 	dice.seed = hash(p.uid)  # (its own look, the same every time: not the world's dice)
 	for k in 4:  # the old bikes it is heaped round, always there: on their sides, one on another

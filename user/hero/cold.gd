@@ -10,8 +10,14 @@ const BLOCK := 110.0        # metres: a block of the Bahnhofsviertel (MoselstraÃ
 const WALK := 4.5           # metres a second: the hero's walk (PlayerController.walk_speed)
 const DAY_BLOCKS := 2.0
 const NIGHT_BLOCKS := 0.75
+## In a park after dark there are no walls to cut the wind: the bar lasts this share as long (a fire still wins: it warms as
+## much faster as the cold bites harder). The hero only: the street's people keep their own cold.
+const PARK_NIGHT := 0.6
 
 
-## Seconds a full bar lasts in the open, without clothes: x by day, y at night (Drone.cold_spans).
-static func spans() -> Vector2:
-	return Vector2(DAY_BLOCKS, NIGHT_BLOCKS) * BLOCK / WALK
+## Seconds a full bar lasts in the open, without clothes: x by day, y at night (Drone.cold_spans); `in_park` shortens the night.
+static func spans(in_park := false) -> Vector2:
+	var s := Vector2(DAY_BLOCKS, NIGHT_BLOCKS) * BLOCK / WALK
+	if in_park:
+		s.y *= PARK_NIGHT
+	return s

@@ -11,7 +11,7 @@ var _light: OmniLight3D
 func setup(f: BarrelFire) -> FireView:
 	fire = f
 	name = "BarrelFire"
-	position = Vector3(f.pos.x, 0, f.pos.y)
+	position = Ground.at(f.pos)
 	add_child(Look.model(BARREL))
 	Look.solid_body(self, f.solid(), 1.0)
 	_light = OmniLight3D.new()

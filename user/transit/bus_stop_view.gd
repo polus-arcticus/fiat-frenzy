@@ -14,7 +14,7 @@ const SIGN := Color(0.96, 0.86, 0.28)
 ## from the kerb.
 func setup(at: Vector2, yaw: float, lane_to_kerb: float) -> BusStopView:
 	name = "BusStop"
-	position = Vector3(at.x, 0.0, at.y)
+	position = Ground.at(at)
 	rotation.y = yaw
 	var door_x := BusView.DOOR_SIDE  # which way the pavement is, in the bus's frame (-1: its right)
 	var kerb := door_x * lane_to_kerb

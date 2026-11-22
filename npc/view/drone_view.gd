@@ -78,7 +78,7 @@ func setup(d: Drone, w: World) -> DroneView:
 		red_cross.position = Vector3(0.0, 1.3, -0.19)  # on the chest of the vest
 		_pose.add_child(red_cross)
 	Look.pick_area(self, _capsule(), Vector3(0, 0.9, 0), LAYER_NPC, "drone", d)
-	position = Vector3(d.pos.x, 0, d.pos.y)
+	position = Ground.at(d.pos)
 	_last = position
 	_last_level = d.growth.level
 	for m in w.machines:
@@ -95,7 +95,7 @@ func _capsule() -> CapsuleShape3D:
 
 
 func _process(delta: float) -> void:
-	var target := Vector3(drone.pos.x, 0, drone.pos.y)
+	var target := Ground.at(drone.pos)  # (up onto the pavement and down off it: the sim walks flat)
 	global_position = global_position.lerp(target, 1.0 - exp(-14.0 * delta))
 	var moved := global_position - _last
 	_speed = lerpf(_speed, moved.length() / maxf(delta, 0.0001), 1.0 - exp(-8.0 * delta))

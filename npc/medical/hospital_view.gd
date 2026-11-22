@@ -11,7 +11,7 @@ var _clock := 0.0
 func setup(h: Hospital, facing: float) -> HospitalView:
 	hospital = h
 	name = "MedicalTent"
-	position = Vector3(h.pos.x, 0, h.pos.y)
+	position = Ground.at(h.pos)
 	rotation.y = facing
 	var white := Color(0.95, 0.95, 0.92)
 	var red := Color(0.82, 0.12, 0.14)

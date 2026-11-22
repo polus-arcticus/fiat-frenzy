@@ -38,7 +38,7 @@ notes; `tools/probe_atomic.gd` runs one):
 | collapses per atom | 0.25 (the baker, days 1–5) | **0.00** |
 | residents' money, day 0 → day 30 | $138 → ~$480 (the runner hoarding ~$8 a day) | $138 → ~$168, then flat |
 | money issued by the welfare office | ~$590 in 45 days | ~$95 in 60 days |
-| the first building (the hostel) | day 24 | **day 36** |
+| the first building (the hostel) | day 24 | **day 36** (day 41 since the camp kits: below) |
 
 What changed:
 - **A runner's delivery keeps the shop owner's reserve** (`Hauling.spendable`): cash on delivery took the baker's last dollar
@@ -53,6 +53,26 @@ The standard cluster (with its drifters, who have no income) still has 0 collaps
 their own trade (the burger bar on day 16, the bake shop on day 31, the hostel on day 36). **Open:** the lemonade stand's
 margin is too thin to build up to a coffee stop in a season now that welfare does not fill its savings. That is for the
 growth tuning (SimCity-like balanced growth), left for later.
+
+### With a park camp (2026-11-22)
+
+A tile whose park is near the market gets a homeless camp at landing (a scrap camp with its own fire, its keeper living by
+it). `tools/probe_camp.gd -- camp=0|1`, 8 atoms x 60 days in summary:
+
+| | no camp | with a camp |
+|---|---|---|
+| collapses per atom | 0.00 | **0.00** |
+| residents' money, day 0 → 30 → 60 | $138 → $169 → $169 | $163 → $212 → $212 (flat after day 30) |
+| issued by the welfare office in 60 days | ~$96 | ~$114 |
+| built | the hostel, day 41 | the bike camp day 41, the hostel day 47 |
+
+What it took:
+- **A camp near enough on foot** (`SiteFinder.CAMP_WALK`, 90 m along the streets). The first try put it in a riverside park
+  103 m away, a 300 m walk round: the runner hauling its scrap and its keeper fetching food ran dry on the way (the runner
+  went down every few hours).
+- **No scrap pile of its own.** With one, the runner hauled twice as much: the bike camp came on day 19 and the hostel on
+  day 23 (capital in the first month), and the runner held $61 of fees.
+- The tent keeper's **camp kits** (a third ware of scrap) moved the hostel from day 36 to day 41, in either case.
 
 ## The standard cluster over 30 days
 

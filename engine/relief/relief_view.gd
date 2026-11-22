@@ -10,7 +10,7 @@ var _label: Label3D
 func setup(t: ReliefTruck, facing: float) -> ReliefView:
 	truck = t
 	name = "RedCrossVan"
-	position = Vector3(t.pos.x, 0, t.pos.y)
+	position = Ground.at(t.pos)
 	rotation.y = facing
 	_body = Node3D.new()
 	add_child(_body)

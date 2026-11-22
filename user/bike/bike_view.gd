@@ -19,5 +19,5 @@ func _process(_delta: float) -> void:
 	var me := get_tree().get_first_node_in_group("player")
 	visible = world.riding.riding() and me != null and me.third_person
 	if visible:
-		global_position = Vector3(world.player.pos.x, 0.0, world.player.pos.y)
+		global_position = Vector3(world.player.pos.x, me.global_position.y, world.player.pos.y)  # (on the kerb, or off it)
 		rotation.y = me.rotation.y

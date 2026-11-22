@@ -1,62 +1,56 @@
-## Windowed screenshots of the landing street: the pavements out to the buildings, the stalls, tents, bus stop and medical bay,
-## and a street with a bike lane. Needs a real window and GPU.
-##   godot --path . --script tools/capture_street.gd -- <output dir>
-extends SceneTree
+## Windowed screenshots of a tile's street detail: furniture (StreetThings) by day and by night (the lamps lit), the roofs
+## and colours the map gives (OsmImport._looks) from above. The tile's land must be cached (tools/make_tile.gd).
+##   godot --path . --script tools/capture_street.gd -- <out dir> [key=16/34347/22195]
+extends CaptureTool
 
-var out_dir := "/tmp/ff3d_street"
-var game: Node
-
-
-func _initialize() -> void:
-	var args := OS.get_cmdline_user_args()
-	if args.size() > 0:
-		out_dir = args[0]
-	DirAccess.make_dir_recursive_absolute(out_dir)
-	root.size = Vector2i(1200, 700)
-	game = load("res://main.tscn").instantiate()
-	game.skip_intro = true
-	root.add_child(game)
-	_run()
+var key := "16/34347/22195"
+var cam: Camera3D
 
 
-func _frames(n: int) -> void:
-	for i in n:
-		await process_frame
-
-
-func _shot(name: String, from: Vector3, at: Vector3) -> void:
-	var to := Vector2(at.x - from.x, at.z - from.z)
-	game.player.teleport(Vector3(from.x, from.y - 1.6, from.z), atan2(-to.x, -to.y))
-	game.player.look_toward(at)
-	await _frames(4)
-	await RenderingServer.frame_post_draw
-	root.get_texture().get_image().save_png("%s/%s.png" % [out_dir, name])
-	print("saved ", name)
+func _configure() -> void:
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("key="):
+			key = a.trim_prefix("key=")
+	var m: Array = TileKey.middle(key)
+	game.landing = TileLanding.new(key, TileSource.district(key), m[0], m[1])
 
 
 func _run() -> void:
 	await _frames(20)
-	game.sim_paused = true
-	game.gun.set_enabled(false)
-	game.hud.visible = false
-	game.player.camera.far = 900.0
-	var sc: Scenario = game.scenario
-	var fr: Dictionary = sc._frame
-	var dir: Vector2 = fr.dir
-	var nrm := Vector2(-dir.y, dir.x)
-	var mid: Vector2 = fr.point + dir * 10.0
-	# from the middle of the street looking along it, and from above
-	var a: Vector2 = fr.point + dir * -40.0
-	var b: Vector2 = fr.point + dir * 40.0
-	await _shot("1_along_the_street", Vector3(a.x, 2.2, a.y), Vector3(b.x, 1.5, b.y))
-	await _shot("2_from_above", Vector3(mid.x, 60.0, mid.y + 0.5), Vector3(mid.x, 0.0, mid.y))
-	await _shot("3_the_market", Vector3(mid.x - dir.x * 25.0, 3.0, mid.y - dir.y * 25.0), Vector3(mid.x, 1.5, mid.y))
-	# the bus stop from the pavement, and the medical tent with its bay
-	var stop: Dictionary = sc.bus_stop
-	var bs: Vector2 = stop.pos
-	var kerb_side: Vector2 = stop.kerb_side
-	await _shot("4_the_bus_stop", Vector3(bs.x + kerb_side.x * 9.0 - (stop.dir as Vector2).x * 6.0, 2.4, bs.y + kerb_side.y * 9.0 - (stop.dir as Vector2).y * 6.0), Vector3(bs.x, 1.4, bs.y))
-	var clinic: Hospital = game.world.hospitals[0]
-	var bay: Vector2 = clinic.bay()
-	await _shot("5_the_medical_tent", Vector3(bay.x + clinic.front.x * 9.0, 3.0, bay.y + clinic.front.y * 9.0), Vector3(clinic.pos.x, 1.2, clinic.pos.y))
-	quit(0)
+	var things := StreetThings.of(game.landing.district, game.kerbs, key)
+	cam = Camera3D.new()
+	cam.far = 1500.0
+	game.add_child(cam)
+	for want in ["tram_stop", "bus_stop", "traffic_light", "bike_stand"]:
+		var t: Array = things.things.filter(func(x): return x.kind == want)
+		if t.is_empty():
+			continue
+		var at: Vector2 = t[0].at
+		var facing := Vector2(-sin(float(t[0].yaw)), -cos(float(t[0].yaw)))  # (toward the road)
+		var from := at + facing * 9.0 + facing.orthogonal() * 6.0
+		_look(Vector3(from.x, 1.7, from.y), Vector3(at.x, 1.2, at.y))
+		await _shot("1_%s_day" % want, 10)
+		game.world.clock.time = 0.65 * Clock.DAY_SECONDS
+		await _frames(20)
+		_look(Vector3(from.x, 1.7, from.y), Vector3(at.x, 1.2, at.y))
+		await _shot("2_%s_night" % want, 10)
+		game.world.clock.time = 0.15 * Clock.DAY_SECONDS
+		await _frames(10)
+		break
+	# the roofs and colours, from above
+	var roofed: Array = game.landing.district.buildings.filter(func(b): return b.has("roof"))
+	if not roofed.is_empty():
+		var pts := MapSites.pts(roofed[0].poly)
+		var c := Vector2.ZERO
+		for p in pts:
+			c += p
+		c /= pts.size()
+		_look(Vector3(c.x + 45, 55, c.y + 60), Vector3(c.x, 10, c.y))
+		await _shot("3_roofs", 10)
+	quit()
+
+
+func _look(from: Vector3, at: Vector3) -> void:
+	cam.global_position = from
+	cam.look_at(at)
+	cam.make_current()

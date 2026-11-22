@@ -12,6 +12,8 @@ var zone := "district"
 var pos := Vector2.ZERO
 var front := Vector2(0, 1)  # (where a runner stands to gather from it: see Logistics.stand_point)
 var output := Inventory.new()
+var rate := RATE   # scrap a minute here (a tile's recycling containers share the one pile's: SiteFinder.recycling)
+var source := ""   # "recycling": at a real recycling container on the map ("" made up, where the map has none near)
 var _progress := 0.0
 
 
@@ -35,7 +37,7 @@ func refresh() -> void:
 
 
 func step(dt: float) -> void:
-	_progress += RATE * dt / 60.0
+	_progress += rate * dt / 60.0
 	while _progress >= 1.0:
 		_progress -= 1.0
 		output.add("scrap", 1)

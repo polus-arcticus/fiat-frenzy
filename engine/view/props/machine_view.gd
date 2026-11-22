@@ -27,7 +27,7 @@ var _sacks: Array[MeshInstance3D] = []   # bakery: the flour in the back
 func setup(m: Machine, w: World, facing: float) -> MachineView:
 	machine = m
 	world = w
-	position = Vector3(m.pos.x, 0, m.pos.y)
+	position = Ground.at(m.pos)
 	rotation.y = facing
 	_board = Look.label3d(self, "", Vector3(0, 3.2, 0), 30, 15.0)
 	_build_prop()

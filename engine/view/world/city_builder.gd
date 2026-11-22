@@ -17,6 +17,15 @@ const GLASS := Color(0.24, 0.30, 0.38)
 const LIT := Color(1.0, 0.82, 0.45)
 const ASPHALT := Color(0.30, 0.30, 0.34)
 const SIDEWALK := Color(0.66, 0.62, 0.55)
+const KERB_STONE := Color(0.78, 0.76, 0.72)  # the kerb's edge, a lighter line along the drop
+const KERB_FACE := Color(0.56, 0.54, 0.50)
+const KERB_STONE_W := 0.24
+const WATER := Color(0.42, 0.60, 0.74)
+const WATER_Y := 0.009        # (just above the ground: under the streets and pavements)
+const QUAY := Color(0.62, 0.58, 0.52)  # the low stone wall along a bank, a bridge's parapet
+const QUAY_H := 0.85          # its height: a railing's
+const QUAY_W := 0.35
+const QUAY_BAR := 2.4         # an unseen wall above it, this high: you can't jump into the river
 const STONE := Color(0.70, 0.64, 0.56)
 const GROUND := Color(0.45, 0.5, 0.38)
 const INSIDE := Color(0.90, 0.86, 0.76)   # the walls inside a building with a shop in it
@@ -90,6 +99,14 @@ static func _tint(base: Color, seed_value: int, spread := 0.05) -> Color:
 ## width, height}}, where `edge` is the footprint's wall (by index), `t` the metres along it to the door's
 ## middle, and `width` and `height` its size.
 static func build(district: Dictionary, openings := {}) -> Node3D:
+	return assemble(bake(district, openings))
+
+
+## The long half of `build`: every wall, window, roof and street as plain triangle arrays (no nodes, no servers), so it can
+## run on a worker thread (OffThread) while the loading picture keeps moving. `assemble` makes the nodes from it.
+static func bake(district: Dictionary, openings := {}, kerbs: Kerbs = null) -> Dictionary:
+	if kerbs == null:
+		kerbs = Kerbs.of(district, openings)
 	var walls := Buf.new()
 	var windows := Buf.new()
 	var lit := Buf.new()
@@ -104,22 +121,39 @@ static func build(district: Dictionary, openings := {}) -> Node3D:
 		Vector3(b[2] + pad, 0, b[3] + pad), Vector3(b[0] - pad, 0, b[3] + pad), up, GROUND)
 
 	for r in district.roads:
-		_road(streets, _pts(r.pts), float(r.w), String(r["class"]), r.get("pave", []), r.get("bike", []))
+		_road(streets, _pts(r.pts), float(r.w), String(r["class"]), r.get("pave", []), r.get("bike", []), str(r.get("surface", "")), int(r.get("lanes", 0)))
 	for bd in district.buildings:
 		for piece in Landmarks.pieces(int(bd.id), _pts(bd.poly)):  # (usually the one: its whole footprint)
-			_building(bd, walls, windows, lit, roofs, streets, openings.get(int(bd.id), {}), piece.pts, piece.style)
+			var opening: Dictionary = openings.get(int(bd.id), {})
+			_building(bd, walls, windows, lit, roofs, streets, opening, piece.pts, _mapped_style(bd, piece.pts, piece.style, opening))
+	var raised := Buf.new()
+	_kerbs(raised, kerbs)
+	var bar := Buf.new()  # (collision only)
+	_water(streets, walls, bar, district.get("water", {}))
+	var solid_faces := walls.faces()  # walls and roofs: a bill that arcs over a building comes down on its roof, not through it
+	solid_faces.append_array(roofs.faces())
+	solid_faces.append_array(raised.faces())  # and the pavements: you step up onto them, a board stops at them
+	solid_faces.append_array(bar.faces())     # and the unseen wall over the quays
+	return {"layers": {"Ground": ground, "Streets": streets, "Pavements": raised, "Walls": walls, "Windows": windows, "Roofs": roofs},
+		"lit": lit, "solid": solid_faces, "bounds": b, "pad": pad}
 
+
+## The quick half of `build`, on the main thread: the meshes, the night windows and the collision, under a Node3D "City".
+static func assemble(baked: Dictionary) -> Node3D:
+	var b: Array = baked.bounds
+	var pad: float = baked.pad
+	var lit: Buf = baked.lit
 	var root := Node3D.new()
 	root.name = "City"
 	Landmarks.add_props(root)
 	var mat := Watercolor.surface()
-	var layers := {"Ground": ground, "Streets": streets, "Walls": walls, "Windows": windows, "Roofs": roofs}
+	var layers: Dictionary = baked.layers
 	for key in layers:
 		var mi := MeshInstance3D.new()
 		mi.name = key
 		mi.mesh = layers[key].to_mesh()
 		mi.material_override = mat
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if key in ["Ground", "Streets", "Windows"] else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if key in ["Ground", "Streets", "Pavements", "Windows"] else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 		root.add_child(mi)
 	var lit_mi := MeshInstance3D.new()
 	lit_mi.name = "LitWindows"
@@ -133,9 +167,7 @@ static func build(district: Dictionary, openings := {}) -> Node3D:
 	body.name = "Collision"
 	body.collision_layer = 1
 	var wall_shape := ConcavePolygonShape3D.new()
-	var solid_faces := walls.faces()  # walls and roofs: a bill that arcs over a building comes down on its roof, not through it
-	solid_faces.append_array(roofs.faces())
-	wall_shape.set_faces(solid_faces)
+	wall_shape.set_faces(baked.solid)
 	var wc := CollisionShape3D.new()
 	wc.shape = wall_shape
 	body.add_child(wc)
@@ -153,6 +185,41 @@ static func build(district: Dictionary, openings := {}) -> Node3D:
 	ground_body.add_child(slab)
 	root.add_child(ground_body)
 	return root
+
+
+## A building's look from what the map says of it (OsmImport._looks), where a landmark's own style doesn't already: its roof's
+## shape (a gable or hip, as pitched as its `rise`, or about 35 degrees across its width) and its walls' colour (mixed into the
+## watercolour palette, so a "white" or "red" doesn't shout). A building with a door cut into it keeps its flat roof (it has a
+## ceiling inside).
+const MAPPED_COLOUR := 0.65  # how much of a mapped colour shows through the palette's
+const ROOF_PITCH := 0.7      # a roof's rise over half its width, where the map gives no rise (about 35 degrees)
+
+
+static func _mapped_style(bd: Dictionary, pts: PackedVector2Array, style: Dictionary, opening: Dictionary) -> Dictionary:
+	if not (bd.has("roof") or bd.has("colour")) or style.has("height"):
+		return style
+	var st := style.duplicate()
+	if bd.has("roof") and not st.has("roof") and opening.is_empty() and str(bd.get("kind", "")) != "roof":
+		st["roof"] = bd.roof
+		var area := absf(_area2(pts))
+		var perimeter := 0.0
+		for k in pts.size():
+			perimeter += pts[k].distance_to(pts[(k + 1) % pts.size()])
+		var half_width := area / maxf(perimeter, 0.01)  # (half the width of a long footprint)
+		st["rise"] = float(bd.get("rise", clampf(half_width * ROOF_PITCH, 1.5, 7.0)))
+	if bd.has("colour") and not st.has("walls"):
+		var base: Color = PALETTE[absi(int(bd.id)) % PALETTE.size()]
+		st["walls"] = base.lerp(bd.colour, MAPPED_COLOUR)
+	return st
+
+
+static func _area2(pts: PackedVector2Array) -> float:
+	var s := 0.0
+	for k in pts.size():
+		var a := pts[k]
+		var b := pts[(k + 1) % pts.size()]
+		s += a.x * b.y - b.x * a.y
+	return s * 0.5
 
 
 static func _building(bd: Dictionary, walls: Buf, windows: Buf, lit: Buf, roofs: Buf, floors: Buf, opening: Dictionary, pts: PackedVector2Array, style: Dictionary) -> void:
@@ -260,10 +327,19 @@ static func _door_wall(walls: Buf, p0: Vector3, dir: Vector2, length: float, out
 ## A street as a ribbon along its centre line: the pavement out to the buildings on each side (`pave`: how far, [left,
 ## right]), with the carriageway on top and a coloured strip down the edge where the street has a bike lane or track (`bike`:
 ## ["lane" | "track" | "", ...], left and right: the way it is tagged in OpenStreetMap).
-static func _road(streets: Buf, pts: PackedVector2Array, width: float, cls: String, pave := [], bike := []) -> void:
+## What a street's paved with (its `surface`), as the colour it's drawn: asphalt where the map says nothing.
+const SURFACES := {"asphalt": ASPHALT, "concrete": Color(0.52, 0.52, 0.52), "paving_stones": Color(0.55, 0.51, 0.47),
+	"sett": Color(0.44, 0.41, 0.39), "cobblestone": Color(0.44, 0.41, 0.39), "unhewn_cobblestone": Color(0.47, 0.43, 0.38),
+	"bricks": Color(0.56, 0.38, 0.32), "gravel": Color(0.62, 0.58, 0.50), "compacted": Color(0.60, 0.55, 0.47)}
+const LANE_LINE := Color(0.86, 0.85, 0.80)
+const DASH := Vector2(3.0, 9.0)  # a lane line's dash, and how far apart they start
+
+
+static func _road(streets: Buf, pts: PackedVector2Array, width: float, cls: String, pave := [], bike := [], surface := "", lanes := 0) -> void:
 	var paved := cls == "pedestrian"
 	var side_w := width + (0.0 if paved else 3.4)
-	var side_col := STONE if paved else SIDEWALK
+	var side_col: Color = SURFACES.get(surface, STONE).lerp(STONE, 0.4) if paved else SIDEWALK
+	var road_col: Color = SURFACES.get(surface, ASPHALT)
 	var reach := [side_w * 0.5, side_w * 0.5]  # how far the pavement runs out on the left and the right
 	if pave.size() == 2:
 		reach = [maxf(float(pave[0]), side_w * 0.5), maxf(float(pave[1]), side_w * 0.5)]
@@ -276,11 +352,20 @@ static func _road(streets: Buf, pts: PackedVector2Array, width: float, cls: Stri
 		var dir := e.normalized()
 		var nrm := Vector2(-dir.y, dir.x)
 		var ext := dir * width * 0.35  # overlap the joints so corners don't gap
-		for side in 2:
-			var sgn := 1.0 if side == 1 else -1.0  # the right-hand side is along +nrm
-			_band(streets, p - ext, q + ext, nrm * sgn, 0.0, float(reach[side]), 0.015, side_col)
-		if not paved:
-			_strip(streets, p - ext, q + ext, nrm, width * 0.5, 0.03, ASPHALT)
+		if paved:  # level paving, wall to wall (a street with kerbs has its pavements raised: Kerbs, _kerbs)
+			for side in 2:
+				var sgn := 1.0 if side == 1 else -1.0  # the right-hand side is along +nrm
+				_band(streets, p - ext, q + ext, nrm * sgn, 0.0, float(reach[side]), 0.015, side_col)
+		else:
+			_strip(streets, p - ext, q + ext, nrm, width * 0.5, 0.03, road_col)
+			if lanes >= 2 and road_col == ASPHALT:  # (painted lines on asphalt: a dashed one between each lane)
+				for lane in range(1, lanes):
+					var off := -width * 0.5 + width * float(lane) / float(lanes)
+					var t := 0.0
+					while t + DASH.x <= e.length():
+						var a := p + dir * t + nrm * off
+						_strip(streets, a, a + dir * DASH.x, nrm, 0.07, 0.034, LANE_LINE)
+						t += DASH.y
 		for side in mini(bike.size(), 2):
 			var kind := String(bike[side])
 			if kind == "":
@@ -289,7 +374,61 @@ static func _road(streets: Buf, pts: PackedVector2Array, width: float, cls: Stri
 			if kind == "lane":  # inside the carriageway, along its edge
 				_band(streets, p - ext, q + ext, nrm * sgn, width * 0.5 - 1.5, width * 0.5, 0.04, BIKE_LANE)
 			else:               # a track: on the pavement, beside the kerb
-				_band(streets, p - ext, q + ext, nrm * sgn, width * 0.5, width * 0.5 + 1.8, 0.04, BIKE_TRACK)
+				_band(streets, p - ext, q + ext, nrm * sgn, width * 0.5, width * 0.5 + 1.8, Kerbs.HEIGHT + 0.01, BIKE_TRACK)
+
+
+## The water (OsmWater): its surface, and a low stone wall along every edge where it meets land (a quay along the bank, a
+## parapet along a bridge, the same rule), with an unseen wall above it in `bar` so nobody goes over.
+static func _water(surface: Buf, walls: Buf, bar: Buf, water: Dictionary) -> void:
+	for poly in water.get("pieces", []):
+		var tris := Geometry2D.triangulate_polygon(poly)
+		for t in range(0, tris.size(), 3):
+			var a: Vector2 = poly[tris[t]]
+			var b: Vector2 = poly[tris[t + 1]]
+			var c: Vector2 = poly[tris[t + 2]]
+			surface.tri(Vector3(a.x, WATER_Y, a.y), Vector3(b.x, WATER_Y, b.y), Vector3(c.x, WATER_Y, c.y), Vector3.UP, WATER)
+	for e in water.get("edges", []):
+		var a: Vector2 = e.a
+		var b: Vector2 = e.b
+		var d := (b - a).normalized()
+		var n := Vector2(-d.y, d.x) * QUAY_W * 0.5
+		var a0 := a - d * QUAY_W * 0.5  # (a little past each end, so the corners close)
+		var b0 := b + d * QUAY_W * 0.5
+		var corners := [a0 + n, b0 + n, b0 - n, a0 - n]
+		for i in 4:
+			var p: Vector2 = corners[i]
+			var q: Vector2 = corners[(i + 1) % 4]
+			var out := Vector3((p + q).x * 0.5 - (a0 + b0).x * 0.5, 0.0, (p + q).y * 0.5 - (a0 + b0).y * 0.5).normalized()
+			walls.quad(Vector3(p.x, 0.0, p.y), Vector3(q.x, 0.0, q.y), Vector3(q.x, QUAY_H, q.y), Vector3(p.x, QUAY_H, p.y), out, QUAY)
+		var top := [Vector3(corners[0].x, QUAY_H, corners[0].y), Vector3(corners[1].x, QUAY_H, corners[1].y), Vector3(corners[2].x, QUAY_H, corners[2].y), Vector3(corners[3].x, QUAY_H, corners[3].y)]
+		walls.quad(top[0], top[1], top[2], top[3], Vector3.UP, QUAY.lightened(0.08))
+		bar.quad(Vector3(a.x, QUAY_H, a.y), Vector3(b.x, QUAY_H, b.y), Vector3(b.x, QUAY_BAR, b.y), Vector3(a.x, QUAY_BAR, a.y), Vector3(n.x, 0, n.y).normalized(), QUAY)
+
+
+## The raised pavements: their tops, their sides down to the road, and a lighter kerb stone along each kerb line.
+static func _kerbs(buf: Buf, kerbs: Kerbs) -> void:
+	var h := Kerbs.HEIGHT
+	for poly in kerbs.pieces:
+		var tris := Geometry2D.triangulate_polygon(poly)
+		for t in range(0, tris.size(), 3):
+			var a := poly[tris[t]]
+			var b := poly[tris[t + 1]]
+			var c := poly[tris[t + 2]]
+			buf.tri(Vector3(a.x, h, a.y), Vector3(b.x, h, b.y), Vector3(c.x, h, c.y), Vector3.UP, SIDEWALK)
+		for i in poly.size():  # (counter-clockwise: the outside of an edge a->b is to its right)
+			var a := poly[i]
+			var b := poly[(i + 1) % poly.size()]
+			var e := b - a
+			if e.length() < 0.01:
+				continue
+			var out := Vector3(e.y, 0.0, -e.x).normalized()
+			buf.quad(Vector3(a.x, 0.0, a.y), Vector3(b.x, 0.0, b.y), Vector3(b.x, h, b.y), Vector3(a.x, h, a.y), out, KERB_FACE)
+	for e in kerbs.edges:
+		var a: Vector2 = e.a
+		var b: Vector2 = e.b
+		var n: Vector2 = e.side * KERB_STONE_W  # (on the pavement, from the drop inward)
+		var y := h + 0.004
+		buf.quad(Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(b.x + n.x, y, b.y + n.y), Vector3(a.x + n.x, y, a.y + n.y), Vector3.UP, KERB_STONE)
 
 
 ## A band along the street from `inner` to `outer` metres to one side of its centre line.

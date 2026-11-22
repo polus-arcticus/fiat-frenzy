@@ -1,12 +1,15 @@
 ## CONTROLLER. Fetches the new-game screen's map pictures (MapTiles) from tile.openstreetmap.org into the cache: only the ones
-## the screen asks for, two at a time (the tile servers' own limit), each once (a failure isn't asked again this run), with a
-## generic User-Agent and nothing about the player. `online` false (tests, tools) fetches nothing.
+## the screen asks for, two at a time (the tile servers' own limit), each once, with a generic User-Agent and nothing about
+## the player. A busy server is asked again with backoff (RetryingFetchController, fewer tries than a tile's map: a picture is
+## only a picture), holding its place in the two meanwhile, so a struggling server sees fewer requests, not more. A picture
+## that still fails isn't asked for again this run. `online` false (tests, tools) fetches nothing.
 class_name MapTileFetchController
 extends Node
 
 signal arrived(z: int, x: int, y: int)
 
 const AT_ONCE := 2
+const TRIES := 4
 
 var online := true
 var dir := MapTiles.CACHE
@@ -33,14 +36,13 @@ func _pump() -> void:
 
 func _fetch(t: Vector3i) -> void:
 	_busy[t] = true
-	var http := HTTPRequest.new()
-	http.timeout = 20
+	var http := RetryingFetchController.new()
+	http.tries = TRIES
+	http.timeout = 20.0
 	add_child(http)
-	var ok := false
-	if http.request(MapTiles.url(t.x, t.y, t.z), ["User-Agent: " + MapTiles.AGENT]) == OK:
-		var res: Array = await http.request_completed
-		ok = res[0] == HTTPRequest.RESULT_SUCCESS and res[1] == 200 and MapTiles.store(t.x, t.y, t.z, res[3], dir)
+	var got: Dictionary = await http.fetch(MapTiles.url(t.x, t.y, t.z), PackedStringArray(["User-Agent: " + MapTiles.AGENT]))
 	http.queue_free()
+	var ok: bool = got.ok and MapTiles.store(t.x, t.y, t.z, got.body, dir)
 	_busy.erase(t)
 	if ok:
 		arrived.emit(t.x, t.y, t.z)
