@@ -1,4 +1,4 @@
-## Sim tests: scrap and the homeless camps (see ScrapPile, Camp). Scrap lies in the street, free; runners gather it and pool it
+## Sim tests: scrap and the homeless camps (see WasteBin, Camp). Scrap gathers in the garbage bins, free; runners gather it and pool it
 ## into what wants it: a camp's input, or a tent city being built up into a hostel. A camp sells the hero cheap, slow boards, and
 ## built up of scrap, cheap, slow bikes.
 extends TestCase
@@ -23,15 +23,16 @@ func _camp(cash := 100.0) -> Array:
 	return [w, camp, runner]
 
 
-func test_scrap_lies_in_the_street_and_gathers() -> void:
+func test_scrap_gathers_in_the_garbage() -> void:
 	var w := World.new()
-	var pile := w.add_scrap_pile(Vector2.ZERO, 0)
+	var pile := w.add_bin("garbage", Vector2.ZERO, 0)
+	var k: Dictionary = WasteBin.KINDS.garbage
 	w.add_drifter(Vector2(5, 0)).make_needless()  # (someone about, so the zone runs)
 	Fixtures.run(w, 600)
-	check(pile.output.count("scrap") == int(ScrapPile.RATE * 10), "a pile gathers %d scrap in ten minutes" % pile.output.count("scrap"))
+	check(pile.output.count("scrap") == int(k.rate * 10), "a garbage bin gathers %d scrap in ten minutes" % pile.output.count("scrap"))
 	Fixtures.run(w, 6000)
-	check(pile.output.count("scrap") == ScrapPile.CAP, "up to %d" % ScrapPile.CAP)
-	check(Array(Catalog.scavenged_goods()) == ["scrap"] and is_equal_approx(pile.price_of("scrap"), 0.0), "it is free")
+	check(pile.output.count("scrap") == k.cap, "up to %d" % k.cap)
+	check("scrap" in Catalog.scavenged_goods() and is_equal_approx(pile.price_of("scrap"), 0.0) and Catalog.base_price("scrap") == 0.0, "it is free, and worth nothing to the fund")
 
 
 func test_a_runner_gathers_scrap_for_the_camp() -> void:
@@ -40,12 +41,12 @@ func test_a_runner_gathers_scrap_for_the_camp() -> void:
 	var camp: Machine = c[1]
 	var runner: Drone = c[2]
 	var job := w.logistics.hauling.haul_job(runner)
-	check(not job.is_empty() and job.target is ScrapPile and job.dest == camp and job.item == "scrap", "the runner plans a trip: the pile to the camp")
+	check(not job.is_empty() and job.target is WasteBin and job.dest == camp and job.item == "scrap", "the runner plans a trip: the garbage bin to the camp")
 	var keeper := w.drone(camp.owner)
 	var wallet := keeper.wallet
 	Fixtures.run(w, 300, true)
 	check(camp.input.count("scrap") > 0 or camp.crafted_total > 0, "the scrap reaches the camp (%d in hand, %d boards made)" % [camp.input.count("scrap"), camp.crafted_total])
-	check(runner.delivered_total > 0 and keeper.wallet < wallet and _accounted(w), "the keeper pays the runner the fee for it, and nothing else: the scrap is free")
+	check(runner.runner.delivered_total > 0 and keeper.wallet < wallet and _accounted(w), "the keeper pays the runner the fee for it, and nothing else: the scrap is free")
 
 
 func test_the_camp_sells_a_cheap_slow_board() -> void:

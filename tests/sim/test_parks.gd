@@ -24,7 +24,7 @@ func test_a_tile_s_park_gets_a_camp_near_its_market() -> void:
 	check(walk <= SiteFinder.CAMP_WALK, "a short walk from the market (%.0f m)" % walk)
 	var near_fire: bool = w.fires.any(func(f): return f.pos.distance_to(camp.pos) < 4.0)
 	check(near_fire and w.drone(camp.owner).bed == "", "with a fire of its own, which its keeper lives by")
-	var things: Array = w.machines + w.food_banks + w.hospitals + w.welfare_offices
+	var things: Array = w.machines + w.hospitals + w.bottle_depots
 	check(things.all(func(o): return o == camp or o.pos.distance_to(camp.pos) >= SiteFinder.CAMP_APART), "clear of the market's stalls")
 	check(landing.landmarks(w).any(func(m): return m.label == "camp"), "and on the map")
 	var again := TileLanding.new(Fixtures.tile_key(), _parked(), Fixtures.TILE_LAT, Fixtures.TILE_LON)

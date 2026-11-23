@@ -27,11 +27,13 @@ func test_the_market_is_a_zone_of_its_own_at_the_bus_stop() -> void:
 	var machines := w.zones.machines_in(Scenario.ECB_ZONE)
 	check(machines.size() == 3 and machines.map(func(m): return m.kind) .has("lemonade_stand") and machines.map(func(m): return m.kind).has("hot_dog_stand") and machines.map(func(m): return m.kind).has("bakery"), "a lemonade stand, a hot dog stand and a bakery")
 	check(machines.all(func(m): return not m.working and m.pos.distance_to(sc.ecb_stop.bus) < 40.0), "all wrecked, and within a short walk of where the bus stops")
-	check(w.zones.food_banks_in(Scenario.ECB_ZONE).size() == 1 and w.zones.drones_in(Scenario.ECB_ZONE).filter(func(d): return d.kind == "runner").size() == 1, "with a food bank to feed them and a cart runner")
+	var kinds: Array = w.zones.bins_in(Scenario.ECB_ZONE).map(func(b): return b.kind)
+	check(kinds.has("organics") and kinds.has("fountain") and w.zones.drones_in(Scenario.ECB_ZONE).filter(func(d): return d.kind == "runner").size() == 1, "with bins and a fountain to feed them, and a cart runner (%s)" % [kinds])
 	check(w.hospitals.filter(func(h): return h.zone == Scenario.ECB_ZONE).size() == 1 and w.ambulances.size() == 2, "and a medical tent with an ambulance, for anyone who collapses there")
 	var visitors := w.zones.drones_in(Scenario.ECB_ZONE).filter(func(d): return d.kind == "drifter")
 	check(visitors.size() == 3 and visitors.all(func(d): return d.pos.distance_to(sc.ecb_stop.bus) < 40.0), "and three people the stands are for")
-	check(w.drones.filter(func(d): return d.zone == Zones.HOME).size() == 17, "the first market's cast is the one it always was, the welfare office's clerk, the camp keeper and the thrift seller (17 people)")
+	check(w.drones.filter(func(d): return d.zone == Zones.HOME).size() == 16, "the first market's cast is the one it always was, the bottle depot's attendant, the camp keeper and the thrift seller (16 people)")
+	check(w.deposit.depot_in(Scenario.ECB_ZONE) != null and w.deposit.depot_in(Zones.HOME) != null, "and each market has a bottle depot of its own")
 
 
 func test_the_stands_stand_clear_of_the_buildings() -> void:
@@ -39,8 +41,8 @@ func test_the_stands_stand_clear_of_the_buildings() -> void:
 	var w := sc.build()
 	for m in w.zones.machines_in(Scenario.ECB_ZONE):
 		check(_clearance(sc, m.pos) > 1.0 and _clearance(sc, m.post()) > 1.0, "the %s and its keeper are clear of every building (%.1f m)" % [m.display_name().to_lower(), _clearance(sc, m.pos)])
-	for fb in w.zones.food_banks_in(Scenario.ECB_ZONE):
-		check(_clearance(sc, fb.pos) > 1.0, "the food bank is clear of every building (%.1f m)" % _clearance(sc, fb.pos))
+	for b in w.zones.bins_in(Scenario.ECB_ZONE):
+		check(_clearance(sc, b.pos) > 1.0, "the %s is clear of every building (%.1f m)" % [b.kind, _clearance(sc, b.pos)])
 	for h in w.hospitals:
 		check(_clearance(sc, h.pos) > 1.0, "the medical tent is clear of every building (%.1f m)" % _clearance(sc, h.pos))
 
@@ -105,7 +107,7 @@ func test_money_put_into_the_banks_stands_starts_the_economy_there() -> void:
 		w.tick(1.0)
 	check(stand.sold_total > 0 or stand.crafted_total > 0, "it makes lemonade (%d made, %d sold) from what the food bank gives it" % [stand.crafted_total, stand.sold_total])
 	check(visitors.any(func(v): return v.bars.thirst > 0.3), "and a thirsty visitor has had a drink (%s)" % [visitors.map(func(v): return snappedf(v.bars.thirst, 0.01))])
-	# (The first market's owners may have mended their stands meanwhile, on the welfare office's gifts: but nothing of the hero's.)
+	# (The first market's owners may have mended their stands meanwhile, on the deposit on their bottles: but nothing of the hero's.)
 	var first_market_untouched := w.zones.drones_in(Zones.HOME).filter(func(d): return d.kind == "vendor" and d.label != "" and not d.needless).all(func(d): return d.growth.xp == 0.0)
 	check(first_market_untouched, "and none of what the hero put in at the bank reached the first market: the zones do not mix")
 

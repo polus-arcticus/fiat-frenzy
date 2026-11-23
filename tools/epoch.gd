@@ -10,10 +10,10 @@
 ##   full   run the cluster in full detail instead (walking, queues: about 150 game days in 10 minutes)
 ##   csv    also write one row a day to this file (for charts)
 ##   noup   nobody builds up (the tier 0 cluster on its own, for comparison)
-##   nofund the hero never funds it: a block as it is found, left alone (the welfare office's gifts are all it gets)
+##   nofund the hero never funds it: a block as it is found, left alone (the deposit on its bottles is all it gets)
 ##   tents  the hero puts up this many tents in the tent city on day one, and newcomers come to live in them (see Lodging)
 ## Each row: what each trade is now, sales that day, collapses since the last row, each owner's money, the residents' money,
-## and the books: money issued by the welfare office, and money sunk into building up.
+## and the books: new money paid out as deposits (once the depot's fund ran dry), and money sunk into building up.
 extends SceneTree
 
 const ZONE := "cluster"
@@ -49,7 +49,7 @@ func _initialize() -> void:
 		w.add_drifter(Vector2(9000, 0)).make_needless()
 		w.zones.active = ["elsewhere"] as Array[String]
 	var trades: Array = Catalog.TRADES.keys().filter(func(t): return _premises(w, t) != null)
-	print("EPOCH: the standard cluster, %d days, %s (a %.0f s tick). The fountain gives $%.0f a resident a day." % [days, "in full detail" if full else "in summary", dt, Welfare.DOLLARS_A_DAY])
+	print("EPOCH: the standard cluster, %d days, %s (a %.0f s tick). A bottle is worth $%.2f at the depot." % [days, "in full detail" if full else "in summary", dt, Deposit.DEPOSIT])
 	var head := "day  " + "  ".join(trades.map(func(t): return "%-15s" % t)) + "  sales/d  down   " + "  ".join(trades.map(func(t): return "%7s$" % t.left(7))) + "  residents$   issued    built"
 	print(head)
 	var csv := FileAccess.open(csv_path, FileAccess.WRITE) if csv_path != "" else null
@@ -90,7 +90,7 @@ func _initialize() -> void:
 				+ trades.map(func(t): return str(_premises(w, t).tier)) + trades.map(func(t): return "%.2f" % _owner_money(w, t))
 				+ trades.map(func(t): return "%.2f" % (_premises(w, t).price if _premises(w, t) is Machine else 0.0))
 				+ trades.map(func(t): return str(_premises(w, t).crafted_total - int(made_before.get(t, 0)) if _premises(w, t) is Machine else 0))
-				+ [w.zones.food_banks_in(ZONE)[0].output.count("flour"), _premises(w, "bread").input.count("flour"),
+				+ [_bin_count(w, "organics"), _premises(w, "bread").input.count("leftovers"),
 					"%.2f" % w.zones.runners_in(ZONE).reduce(func(a, r): return a + r.wallet, 0.0)]))
 		if (day + 1) % every == 0 or day == days - 1:
 			print("%3d  " % (day + 1) + "  ".join(trades.map(func(t): return "%-15s" % _premises(w, t).kind.left(15))) + "  %7d  %4d   " % [sales, down_row]
@@ -106,15 +106,17 @@ func _initialize() -> void:
 	quit()
 
 
+## How much lies in the cluster's bins of `kind`.
+func _bin_count(w: World, kind: String) -> int:
+	return w.zones.bins_in(ZONE).filter(func(b): return b.kind == kind).reduce(func(a, b): return a + b.output.count(b.item), 0)
+
+
 ## The cluster's business in `trade`, or null.
 func _premises(w: World, trade: String) -> Premises:
 	for m in w.zones.machines_in(ZONE):
 		if m.trade == trade:
 			return m
-	for fb in w.zones.food_banks_in(ZONE):
-		if fb.trade == trade:
-			return fb
-	for o in w.welfare_offices:
+	for o in w.bottle_depots:
 		if o.zone == ZONE and o.trade == trade:
 			return o
 	return null

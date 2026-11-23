@@ -135,6 +135,12 @@ static func model(kind: String) -> CityBuilder.Buf:
 				var x := -1.5 + k * 1.5
 				_box(b, Vector3(x - 0.65, 0, -0.55), Vector3(x + 0.65, 1.45, 0.55), [Color(0.24, 0.50, 0.30), Color(0.22, 0.36, 0.62), Color(0.86, 0.86, 0.82)][k])
 				_box(b, Vector3(x - 0.6, 1.45, -0.5), Vector3(x + 0.6, 1.6, 0.5), METAL)
+		"organics":  # a brown wheelie bin
+			_box(b, Vector3(-0.35, 0, -0.35), Vector3(0.35, 1.0, 0.35), Color(0.40, 0.28, 0.18))
+			_box(b, Vector3(-0.37, 1.0, -0.37), Vector3(0.37, 1.06, 0.37), Color(0.30, 0.20, 0.12))
+		"fountain":  # a drinking fountain: a stone post with a bowl on top
+			_prism(b, Vector3.ZERO, 0.18, 0.95, 6, Color(0.66, 0.64, 0.60))
+			_prism(b, Vector3(0, 0.95, 0), 0.3, 0.12, 8, Color(0.60, 0.58, 0.55))
 	return b
 
 

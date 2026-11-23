@@ -14,16 +14,5 @@ func _ready() -> void:
 	add_child(_rect)
 
 
-## Fades to `alpha` (1 is black) over `seconds`; returns when it is there.
-func fade_to(alpha: float, seconds: float) -> void:
-	if seconds <= 0.0:
-		_rect.color.a = alpha
-		await get_tree().process_frame
-		return
-	var t := create_tween()
-	t.tween_property(_rect, "color:a", alpha, seconds)
-	await t.finished
-
-
 func alpha() -> float:
 	return _rect.color.a

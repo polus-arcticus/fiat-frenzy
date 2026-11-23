@@ -31,9 +31,9 @@ func run() -> void:
 	var screen: InventoryScreen = game.inventory
 	check(screen.visible and not game.player.controls_enabled, "E opens the screen and pauses the player's controls")
 	check(screen._bag.get_child_count() == Commerce.CARRY_SLOTS, "the player's bag shows %d slots" % Commerce.CARRY_SLOTS)
-	check(screen._wants.get_child_count() == 1, "and the bakery's wants (its input inventory): one row, for flour")
-	var flour_row: HBoxContainer = screen._wants.get_child(0)
-	check(flour_row.get_child(0).tooltip_text.begins_with("flour"), "that row is a flour slot")
+	check(screen._wants.get_child_count() == 1, "and the bakery's wants (its input inventory): one row, for leftovers")
+	var want_row: HBoxContainer = screen._wants.get_child(0)
+	check(want_row.get_child(0).tooltip_text.begins_with("leftovers"), "that row is a leftovers slot")
 	check(screen._sale.get_child_count() == Stacks.slots_for(bm.capacity()), "the bakery's stock shows one slot per ten loaves of shelf: %d (it has levelled up to %d)" % [Stacks.slots_for(bm.capacity()), bm.level])
 	var cash0 := w.ledger.player_cash
 	var sale_slot: SlotView = null

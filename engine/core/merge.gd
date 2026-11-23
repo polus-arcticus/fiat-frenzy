@@ -89,7 +89,8 @@ static func settle(w: World) -> void:
 		if d.sheltered_in != null:
 			d.sheltered_in.release(d)
 		_relevel(d.growth)
-		_cap(w, d.equity, d, d.equity.value(Drone.CART_VALUE, d.growth.xp), d.label + "'s cart")
+		if d.runner != null:
+			_cap(w, d.runner.equity, d, d.runner.equity.value(Runner.CART_VALUE, d.growth.xp), d.label + "'s cart")
 	for m in w.machines:
 		var ladder: Array = Catalog.TRADES.get(m.trade, [])
 		if m.tier < ladder.size() and ladder[m.tier] != "":
@@ -105,8 +106,8 @@ static func settle(w: World) -> void:
 		_clamp(m.input)
 		_clamp(m.output)
 		_cap_stakes(w, m)
-	for fb in w.food_banks:
-		_clamp(fb.output)
+	for b in w.bins:
+		_clamp(b.output)
 	for f in w.fires:
 		f.shelter.berths.clear()
 	w.reindex()

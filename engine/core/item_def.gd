@@ -11,8 +11,7 @@ var cls := "material"
 var restores := 0.0     # how much of a survival bar one unit refills (a bed instead shelters the drone)
 var price := 0.0        # what a unit costs before anything has been bought: a raw good's cost, a product's floor,
                         # or the fixed price of something sold at a flat rate (the bicycle)
-var relief := false     # comes on the Red Cross van
-var scavenged := false  # lies in the street (ScrapPile), costs nothing, and runners gather it (scrap)
+var scavenged := false  # salvaged from the town's bins (WasteBin), costs nothing, and runners gather it (scrap, leftovers, ...)
 var speed := 1.0        # a vehicle or board: how much of the full one's speed it gives (a scrap-built one is slower)
 var gear := false       # can be equipped: ridden or worn, in a loadout slot (bikes, boards, clothes)
 var insulation := 0.0   # clothes: how much it keeps the cold out (Needs.decay reads it: see Drone.insulation)

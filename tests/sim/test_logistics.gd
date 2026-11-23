@@ -47,45 +47,59 @@ func test_nobody_shares_coordinates() -> void:
 	check(a.job.stand.distance_to(b.job.stand) >= 0.4, "two drifters after one bill don't aim for the same spot")
 
 
-func test_food_bank_trickles_stock() -> void:
-	note("food bank: base materials trickle in slowly, and are sold at cost")
+func test_the_bins_fill_slowly() -> void:
+	note("bins: the town's base inputs gather in them slowly, free to take")
 	var w := World.new()
-	var keeper := w.add_food_bank(Vector2(0, 0))
-	var fb := w.food_bank_of(keeper)
-	check(keeper.kind == "keeper" and keeper.bank == fb.uid and w.food_bank_of(keeper) == fb, "it has a keeper, one to one")
-	check(["flour", "bottled_water", "sugar", "protein"].all(func(g): return fb.output.count(g) == 10 and fb.offers(g)), "it opens with ten of each good on the shelves")
-	check(keeper.pos.distance_to(fb.pos) >= 1.0, "the keeper stands behind the counter")
-	Fixtures.run(w, 300)
-	note("    after five minutes: flour %d, water %d, sugar %d, protein %d" % [fb.output.count("flour"), fb.output.count("bottled_water"), fb.output.count("sugar"), fb.output.count("protein")])
-	var made := func(g: String) -> int: return fb.output.count(g) - 10
-	var expect := func(g: String) -> int: return int(Catalog.food_bank.goods[g].rate * 5.0)  # (its rates are a minute's)
-	check(["flour", "bottled_water", "sugar", "protein"].all(func(g): return absi(made.call(g) - expect.call(g)) <= 1), "five minutes later it has made a few more of each, at its own slow rates (%s)" % [["flour", "bottled_water", "sugar", "protein"].map(func(g): return "%s +%d" % [g, made.call(g)])])
-	Fixtures.run(w, 3000)
-	check(fb.output.count("flour") == 30 and fb.output.count("protein") == 30, "and it stops at its cap of 30")
-	check(is_equal_approx(fb.price_of("flour"), Catalog.base_price("flour")) and is_equal_approx(fb.price_of("bottled_water"), 0.5), "it sells at cost")
+	var bins: Array = w.add_bin_station(Vector2.ZERO)
+	bins.append(w.add_bin("fountain", Vector2(8, 0)))
+	var kinds: Array = bins.map(func(b): return b.kind)
+	check(kinds == ["garbage", "recycling", "organics", "fountain"], "a station of three, and a fountain")
+	check(bins.map(func(b): return b.item) == ["scrap", "recyclables", "leftovers", "water"], "scrap, bottles, leftovers, water")
+	check(bins.all(func(b): return b.output.count(b.item) == WasteBin.KINDS[b.kind].start and b.price_of(b.item) == 0.0), "each opens with its kind's start, and it is free to take")
+	for i in 2:  # (two people about: the recycling fills with what they throw away, and there is no depot to take it to)
+		w.add_drifter(Vector2(4 + i, 6), 50.0)
+	var heads := w.zones.heads_in(bins[0].zone)
+	var start: Array = bins.map(func(b): return b.output.count(b.item))
+	Fixtures.run(w, 300, true)
+	var made: Array = []
+	for i in bins.size():
+		made.append(bins[i].output.count(bins[i].item) - start[i])
+	var expect: Array = bins.map(func(b): return mini(int(b.per_minute(heads) * 5.0), int(WasteBin.KINDS[b.kind].cap) - int(WasteBin.KINDS[b.kind].start)))  # (rates are a minute's)
+	var close := true
+	for i in bins.size():
+		close = close and absi(made[i] - expect[i]) <= 1
+	check(close, "five minutes later each has gathered more, at its own rate, up to its cap (%s)" % str(made))
+	Fixtures.run(w, 6000, true)
+	check(bins.all(func(b): return b.output.count(b.item) == WasteBin.KINDS[b.kind].cap), "and stops at its cap")
 
 
 func test_a_runner_delivers_for_a_fee() -> void:
-	note("cart runner: buys a load at the food bank, wheels it to a short shop, and is paid the cost plus a fee")
+	note("cart runner: salvages a load from a bin, wheels it to a short shop; the shop pays the goods' worth to the town's fund, and the runner a fee")
 	var rw := Fixtures.runner_world()
 	var w: World = rw[0]
-	var keeper: Drone = rw[1]
+	var bin: WasteBin = rw[1]
 	var baker: Drone = rw[2]
 	var bakery: Machine = rw[3]
 	var runner: Drone = rw[4]
-	check(w.needs.demands(runner) == ["haul"], "a runner's demand, with nothing else to want, is deliveries")
+	var clerk: Drone = rw[5]
+	var room := bakery.input.room("leftovers")
+	check(w.needs.demands(runner) == ["haul", "collect"], "a runner's demand, with nothing else to want, is deliveries (and, short of cash, bottles after: Collecting)")
 	var job := w.logistics.plan(runner)
-	check(job["for"] == "haul" and job.stage == "pickup" and job.dest == bakery and job.item == "flour" and job.qty == 10, "it plans a trip: ten flour, the food bank's whole stock, to the bakery")
-	var t := Fixtures.until(w, func(): return bakery.input.count("flour") >= 10, 200)
-	note("    delivered after %d s; runner now has $%.2f (earned $%.2f in fees); baker $%.2f; keeper $%.2f" % [t, runner.wallet, runner.fees_earned, baker.wallet, keeper.wallet])
-	check(t >= 0 and bakery.input.count("flour") == 10 and runner.cart.count("flour") == 0, "the flour went from the food bank, through the cart, into the bakery's input inventory")
-	check(is_equal_approx(keeper.wallet, 10.0) and w.food_bank_of(keeper).sold_total == 10, "the food bank took its price: $10 for ten flour at cost")
+	check(job["for"] == "haul" and job.stage == "pickup" and job.target == bin and job.dest == bakery and job.item == "leftovers" and job.qty == room, "it plans a trip: as many leftovers as the bakery has room for (%d), from the organics bin" % room)
+	var t := Fixtures.until(w, func(): return bakery.input.count("leftovers") >= room, 200)
+	var worth := Catalog.base_price("leftovers") * room
 	var fee := Hauling.DELIVERY_FEE
-	check(is_equal_approx(baker.wallet, 40.0 - 10.0 - fee), "cash on delivery: the baker paid the $10 the flour cost and the $%.2f flat fee" % fee)
-	check(is_equal_approx(runner.wallet, 20.0 + fee) and is_equal_approx(runner.fees_earned, fee) and runner.delivered_total == 10 and runner.deliveries == 1, "and the runner kept the fee: that is its revenue")
-	check(is_equal_approx(bakery.input_cost["flour"], 1.0 + fee / 10.0) and is_equal_approx(bakery.floor_price(), 2.0 + fee / 5.0), "the fee is part of what the shop's flour costs it, so its floor price is $%.2f" % (2.0 + fee / 5.0))
+	var cart := runner.runner
+	note("    delivered after %d s; runner now has $%.2f (earned $%.2f in fees); baker $%.2f; the fund $%.2f" % [t, runner.wallet, cart.fees_earned, baker.wallet, clerk.wallet])
+	check(t >= 0 and bakery.input.count("leftovers") == room and cart.cart.count("leftovers") == 0, "the leftovers went from the bin, through the cart, into the bakery's input inventory")
+	check(is_equal_approx(baker.wallet, 40.0 - worth - fee), "cash on delivery: the baker paid their worth ($%.2f) and the $%.2f flat fee" % [worth, fee])
+	check(is_equal_approx(clerk.wallet, worth), "their worth went into the town's fund, the bottle depot's (Deposit.fund)")
+	check(is_equal_approx(runner.wallet, 20.0 + fee) and is_equal_approx(cart.fees_earned, fee) and cart.delivered_total == room and cart.deliveries == 1, "and the runner kept the fee: that is its revenue")
+	var unit := Catalog.base_price("leftovers") + fee / room
+	check(is_equal_approx(bakery.input_cost["leftovers"], unit), "the worth and the fee are what the shop's leftovers cost it ($%.3f each)" % unit)
 	check(is_equal_approx(w.total_money(), w.ledger.printed), "no money went missing")
-	w.food_banks[0].working = false  # (nothing more to fetch: the food bank's trickle would soon have another load for it)
+	w.bins.erase(bin)  # (nothing more to fetch: the bin's trickle would soon have another load for it)
+	w.zones.invalidate()
 	var back := Fixtures.until(w, func(): return runner.pos.distance_to(runner.home) < 1.0, 40)
 	check(back >= 0, "and with nothing more to fetch, the runner wheels the empty cart back home (%d s)" % back)
 
@@ -98,32 +112,32 @@ func test_runners_only_go_where_a_trip_makes_sense() -> void:
 	rw = Fixtures.runner_world(0.0)
 	check(rw[0].logistics.plan(rw[4]).is_empty(), "nor does a shop whose owner can't pay for it")
 	rw = Fixtures.runner_world()
-	rw[3].input.add("flour", 12)  # full...
-	rw[3].input.take("flour", 2)  # ...but for two
-	check(rw[3].input.room("flour") == 2 and rw[0].logistics.plan(rw[4]).is_empty(), "a shop only 2 short isn't worth the walk (a trip needs 4)")
+	rw[3].input.add("leftovers", 99)  # full...
+	rw[3].input.take("leftovers", 2)  # ...but for two
+	check(rw[3].input.room("leftovers") == 2 and rw[0].logistics.plan(rw[4]).is_empty(), "a shop only 2 short isn't worth the walk (a trip needs %d)" % Hauling.MIN_LOAD)
 	rw = Fixtures.runner_world()
-	rw[0].food_bank_of(rw[1]).output.take("flour", 99)
-	rw[0].food_bank_of(rw[1]).refresh()
-	check(rw[0].logistics.plan(rw[4]).is_empty(), "and an empty food bank gives them nothing to carry")
-	rw = Fixtures.runner_world(40.0, 4.0)
+	rw[1].output.take("leftovers", 99)
+	rw[1].refresh()
+	check(rw[0].logistics.plan(rw[4]).is_empty(), "and an empty bin gives them nothing to carry")
+	rw = Fixtures.runner_world(Drone.RESERVE + Hauling.DELIVERY_FEE + Catalog.base_price("leftovers") * 7.5)
 	var job: Dictionary = rw[0].logistics.plan(rw[4])
-	check(job.qty == 4, "a broke runner only buys what they can afford: four units at $1 with $4")
+	check(job.qty == 7, "a shop is only brought what its owner can pay for: seven, with $%.2f to spare" % (Catalog.base_price("leftovers") * 7.5))
 	rw = Fixtures.runner_world()
 	var hungry: Drone = rw[4]
 	hungry.bars = Fixtures.bars(0.2, 1.0, 1.0)
-	check(rw[0].needs.demands(hungry) == ["food", "haul"], "a hungry runner still wants food before deliveries")
+	check(rw[0].needs.demands(hungry).slice(0, 2) == ["food", "haul"], "a hungry runner still wants food before deliveries")
 	rw = Fixtures.runner_world()
 	var r: Drone = rw[4]
-	r.cart.add("flour", 6)
-	rw[3].input.add("flour", 12)  # the bakery is full of flour now (12 of 12)
+	r.runner.cart.add("leftovers", 6)
+	rw[3].input.add("leftovers", 99)  # the bakery is full of leftovers now
 	check(rw[0].logistics.plan(r).is_empty(), "a runner holding a load nobody wants holds on to it")
-	rw[3].input.take("flour", 8)
+	rw[3].input.take("leftovers", 8)
 	var drop: Dictionary = rw[0].logistics.plan(r)
 	check(drop.stage == "drop" and drop.target == rw[3] and drop.qty == 6, "until a shop runs short: then it takes the load over")
 
 
 func test_runners_share_the_work() -> void:
-	note("cart runners: two of them don't both bring the same flour")
+	note("cart runners: two of them don't both bring the same leftovers")
 	var rw := Fixtures.runner_world()
 	var w: World = rw[0]
 	var bakery: Machine = rw[3]
@@ -133,8 +147,10 @@ func test_runners_share_the_work() -> void:
 	first.job = w.logistics.plan(first)
 	check(not first.job.is_empty(), "the first plans the trip")
 	check(w.logistics.plan(second).is_empty(), "the second sees the first is already bringing it, and stays put")
-	Fixtures.run(w, int(2.0 / Catalog.food_bank.goods["flour"].rate * 60.0) - 1)  # long enough for the delivery, short of the food bank making the 2 flour a second load needs
-	check(first.delivered_total + second.delivered_total == 10 and w.food_banks[0].sold_total == 10, "the bakery was brought its ten units once, not twice")
+	var room := bakery.input.room("leftovers")
+	bakery.rate_per_min = 0.0  # (not baking: no new room opens while they're at it)
+	Fixtures.run(w, 90)
+	check(first.runner.delivered_total + second.runner.delivered_total == room and bakery.input.count("leftovers") == room, "the bakery was brought its %d leftovers once, not twice" % room)
 	check(is_equal_approx(w.total_money(), w.ledger.printed), "and the money adds up")
 
 
@@ -201,7 +217,7 @@ func test_hot_dog_stand_buys_bread_from_the_bakery() -> void:
 	var seller := w.add_vendor("hot_dog_stand", Vector2(15, 0), 30.0)
 	var stand := w.machine_of(seller)
 	stand.input.take("bread", 2)
-	stand.input.take("protein", 2)
+	stand.input.take("leftovers", 2)
 	var stock0 := bakery.stock()
 	var t := Fixtures.until(w, func(): return stand.input.count("bread") > 0, 100)
 	note("    after %d s the stand holds %d bread, paid %.2f" % [t, stand.input.count("bread"), seller.wallet])

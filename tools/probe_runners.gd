@@ -1,4 +1,4 @@
-## Headless probe: do the food bank's cart runners (and everyone else) keep making progress? Runs the real town for a while
+## Headless probe: do the cart runners (and everyone else) keep making progress? Runs the real town for a while
 ## with the stands open and reports anyone who has a job and has not moved for a long time.
 ##   godot --headless --path . --script tools/probe_runners.gd
 extends SceneTree

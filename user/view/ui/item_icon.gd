@@ -76,21 +76,22 @@ func _draw() -> void:
 			for wx in [0.3, 0.7]:
 				draw_circle(o + Vector2(wx, 0.68) * s, 0.07 * s, Color(0.95, 0.95, 0.9))
 				draw_arc(o + Vector2(wx, 0.68) * s, 0.07 * s, 0, TAU, 12, INK, 1.6)
-		"flour":
-			_blob(o, s, Vector2(0.5, 0.6), Vector2(0.3, 0.3), Color(0.96, 0.94, 0.88))
-			draw_rect(Rect2(o + Vector2(0.4, 0.18) * s, Vector2(0.2, 0.14) * s), Color(0.96, 0.94, 0.88))
-			_line(o, s, Vector2(0.38, 0.32), Vector2(0.62, 0.32), Color(0.75, 0.3, 0.3), 3.0)
-		"protein":
-			_blob(o, s, Vector2(0.5, 0.55), Vector2(0.38, 0.26), Color(0.92, 0.55, 0.55))
-			_blob(o, s, Vector2(0.4, 0.5), Vector2(0.1, 0.08), Color(0.98, 0.78, 0.76))
+		"leftovers":  # a crust, an apple core, a heel of something
+			_blob(o, s, Vector2(0.38, 0.58), Vector2(0.22, 0.14), Color(0.85, 0.62, 0.32))
+			_blob(o, s, Vector2(0.64, 0.52), Vector2(0.12, 0.18), Color(0.72, 0.82, 0.4))
+			_blob(o, s, Vector2(0.52, 0.34), Vector2(0.14, 0.1), Color(0.62, 0.42, 0.26))
+		"water":
+			_blob(o, s, Vector2(0.5, 0.6), Vector2(0.24, 0.24), Color(0.55, 0.78, 0.95))
+			var drop := PackedVector2Array([o + Vector2(0.5, 0.18) * s, o + Vector2(0.66, 0.5) * s, o + Vector2(0.34, 0.5) * s])
+			draw_colored_polygon(drop, Color(0.55, 0.78, 0.95))
+		"recyclables":  # two bottles
+			for x in [0.32, 0.56]:
+				draw_rect(Rect2(o + Vector2(x, 0.38) * s, Vector2(0.16, 0.46) * s), Color(0.3, 0.6, 0.35))
+				draw_rect(Rect2(o + Vector2(x + 0.04, 0.2) * s, Vector2(0.08, 0.2) * s), Color(0.3, 0.6, 0.35))
 		"bottled_water":
 			draw_rect(Rect2(o + Vector2(0.34, 0.3) * s, Vector2(0.32, 0.56) * s), Color(0.6, 0.82, 0.96))
 			draw_rect(Rect2(o + Vector2(0.43, 0.14) * s, Vector2(0.14, 0.18) * s), Color(0.6, 0.82, 0.96))
 			draw_rect(Rect2(o + Vector2(0.42, 0.1) * s, Vector2(0.16, 0.06) * s), Color(0.2, 0.4, 0.8))
-		"sugar":
-			for c in [Vector2(0.28, 0.5), Vector2(0.52, 0.5), Vector2(0.4, 0.28)]:
-				draw_rect(Rect2(o + c * s, Vector2(0.22, 0.22) * s), Color(0.98, 0.98, 0.96))
-				draw_rect(Rect2(o + c * s, Vector2(0.22, 0.22) * s), INK, false, 1.5)
 		"letter":
 			draw_rect(Rect2(o + Vector2(0.14, 0.28) * s, Vector2(0.72, 0.46) * s), Color(0.97, 0.94, 0.86))
 			draw_rect(Rect2(o + Vector2(0.14, 0.28) * s, Vector2(0.72, 0.46) * s), INK, false, 2.0)

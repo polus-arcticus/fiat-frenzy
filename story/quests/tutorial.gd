@@ -38,15 +38,15 @@ func _init(world: World, cast: Dictionary, with_pickup := false) -> void:
 	var fund_baker := _goal("bakery", "Fund the baker", "Hot dogs need buns. The baker's stand is wrecked too: gift him about $50 so he can bake.",
 		func(): return baker.pos, func(): return _w.machine_of(baker).working,
 		"The bakery is running: bread to eat, and buns for the hot dogs.", [walk])
-	var tents_at_start: int = _w.machine_of(tent).tents
+	var tents_at_start: int = _w.machine_of(tent).residence.tents
 	_goal("tent", "Put up a tent", "Everyone here sleeps in the tent city, a tent each. Press E at it and put up another (the gun pays): someone new will come to live in it.",
-		func(): return tent.pos, func(): return _w.machine_of(tent).tents > tents_at_start,
+		func(): return tent.pos, func(): return _w.machine_of(tent).residence.tents > tents_at_start,
 		"A new tent is up: someone will come to live in it.", [walk])
 	var lemonade: Drone = cast.get("lemonade")
 	if lemonade != null:
 		_goal("lemonade", "Fund the lemonade seller", "Something to drink: the lemonade stand is wrecked too.",
 			func(): return lemonade.pos, func(): return _w.machine_of(lemonade).working,
-			"The lemonade stand is running: water and sugar from the food bank become drinks.", [walk])
+			"The lemonade stand is running: water from the fountain and leftovers from the bins become drinks.", [walk])
 	_goal("eat", "Get someone fed", "The Red Cross van brings a few free supplies twice a day. Now the drifters need money to buy food. Gift them until someone eats. Bills that miss land in the street: anyone can pick them up, and so can you.",
 		func(): return _nearest_drifter(), func(): return _sold() >= 3,
 		"Customers are buying: the money you printed is moving through the town.", [fund_hot, fund_baker])

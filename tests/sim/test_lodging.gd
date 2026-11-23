@@ -30,12 +30,14 @@ func test_everyone_in_a_cluster_has_a_tent_of_their_own() -> void:
 	var city := _city(w)
 	var people := w.zones.drones_in("town")
 	check(city.working, "as a cluster is found, its tent city is standing (everything else is wrecked)")
-	check(people.all(func(d): return d.bed == city.uid) and city.tents == people.size(), "a tent each for its %d people" % people.size())
-	check(people.any(func(d): return d.kind == "clerk" and d.bed == city.uid), "the welfare office's clerk too")
-	check(city.shelter.capacity == city.tents and people.all(func(d): return w.lodging.is_housed(d)), "each is housed, and so kept warm")
+	var home := city.residence
+	check(people.all(func(d): return d.bed == city.uid) and home.tents == people.size(), "a tent each for its %d people" % people.size())
+	check(people.any(func(d): return d.kind == "attendant" and d.bed == city.uid), "the bottle depot's attendant too")
+	check(city.shelter.capacity == home.tents and people.all(func(d): return w.lodging.is_housed(d)), "each is housed, and so kept warm")
 	var spots := people.map(func(d): return w.lodging.bed_of(city, d))
-	check(Fixtures.spread(spots) >= Machine.TENT_WIDTH - 0.01, "each sleeps in their own tent, side by side (%.1f m apart)" % Fixtures.spread(spots))
-	check(city.solid().enclosure.half.x > (city.tents - 1) * Machine.TENT_WIDTH * 0.5, "and the row's ground takes in every tent")
+	check(Fixtures.spread(spots) >= Residence.TENT_WIDTH - 0.01, "each sleeps in their own tent, side by side (%.1f m apart)" % Fixtures.spread(spots))
+	check(city.solid().enclosure.half.x > (home.tents - 1) * Residence.TENT_WIDTH * 0.5, "and the row's ground takes in every tent")
+	check(w.machines.all(func(m): return (m.residence != null) == (m == city)), "the tent city is the one machine with homes (a Residence); the stalls have none")
 
 
 func test_a_new_tent_brings_someone_new() -> void:
@@ -69,13 +71,13 @@ func test_a_tent_city_holds_an_atoms_worth_until_it_is_built_up() -> void:
 	var w := World.new()
 	var city := Atom.seed(w, "atom", Vector2.ZERO)
 	w.begin_play()
-	check(city.tents == Atom.ROLES.size() and w.lodging.room_for(city) == 0, "an atom's tent city is full at its first tier: %d tents, one per role" % city.tents)
+	check(city.residence.tents == Atom.ROLES.size() and w.lodging.room_for(city) == 0, "an atom's tent city is full at its first tier: %d tents, one per role" % city.residence.tents)
 	var printed := w.ledger.printed
-	check(is_equal_approx(w.lodging.add_tent(city), 0.0) and city.tents == Atom.ROLES.size() and is_equal_approx(w.ledger.printed, printed), "so no tent can be put up, and nothing is printed")
+	check(is_equal_approx(w.lodging.add_tent(city), 0.0) and city.residence.tents == Atom.ROLES.size() and is_equal_approx(w.ledger.printed, printed), "so no tent can be put up, and nothing is printed")
 	city.retier("hostel")
 	check(w.lodging.room_for(city) == Atom.ROLES.size(), "built up into a hostel, it has room for an atom's worth more")
 	var cost := w.lodging.add_tent(city)
-	check(is_equal_approx(cost, Catalog.base_price("tent")) and city.tents == Atom.ROLES.size() + 1, "a tent costs $%.0f" % cost)
+	check(is_equal_approx(cost, Catalog.base_price("tent")) and city.residence.tents == Atom.ROLES.size() + 1, "a tent costs $%.0f" % cost)
 	check(is_equal_approx(w.ledger.printed - printed, cost) and is_equal_approx(w.ledger.sunk, cost) and _accounted(w), "the gun prints it, and it is spent (sunk)")
 
 
@@ -84,7 +86,7 @@ func test_the_atom_keeps_itself_going() -> void:
 	var city := Atom.seed(w, "atom", Vector2.ZERO)
 	var people := w.zones.drones_in("atom")
 	var kinds := people.map(func(d): return d.kind)
-	check(people.size() == Atom.ROLES.size() and kinds.count("vendor") == 3 and kinds.has("keeper") and kinds.has("runner") and kinds.has("clerk") and kinds.has("medic"), "the atom: one of each role (%s)" % [kinds])
+	check(people.size() == Atom.ROLES.size() and kinds.count("vendor") == 3 and kinds.count("runner") == 2 and kinds.has("attendant") and kinds.has("medic"), "the atom: one of each role, and two runners for the bins (%s)" % [kinds])
 	check(w.relief_trucks.is_empty() and not kinds.has("drifter"), "no van, and no drifters: they are each other's customers")
 	check(w.hospitals.size() == 1 and w.hospitals[0].kind == "first_aid" and w.hospitals[0].beds() == 1 and w.ambulances.is_empty(), "its care is a medic's first aid post: one bed, no ambulance")
 	check(city.working and w.zones.machines_in("atom").filter(func(m): return m.shelter == null).all(func(m): return not m.working), "found with the tent city standing and the stands wrecked")
@@ -135,7 +137,8 @@ func test_tents_and_homes_are_saved_and_merged() -> void:
 	fresh.add_player(Vector2.ZERO, 0.0)
 	Snapshot.new(fresh).apply(data)
 	var city := _city(fresh, tile)
-	check(city.tents == _city(a, tile).tents and fresh.lodging.housed(city).size() == a.lodging.housed(_city(a, tile)).size(), "a loaded save has the tent city's tents and who lives in them (%d tents)" % city.tents)
+	check(city.residence.tents == _city(a, tile).residence.tents and fresh.lodging.housed(city).size() == a.lodging.housed(_city(a, tile)).size(), "a loaded save has the tent city's tents and who lives in them (%d tents)" % city.residence.tents)
 	var m := Merge.combine(Snapshot.new(a).capture(), Snapshot.new(b).capture(), build)
-	check(_city(m, tile).tents == _city(a, tile).tents and _city(m, tile).shelter.capacity == _city(m, tile).tents, "merged, the tent city has the tents the save that put them up had")
+	var merged := _city(m, tile)
+	check(merged.residence.tents == _city(a, tile).residence.tents and merged.shelter.capacity == merged.residence.tents, "merged, the tent city has the tents the save that put them up had (Residence's MERGE: the most)")
 	check(_accounted(m), "and the money is accounted for")

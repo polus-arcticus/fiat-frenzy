@@ -6,10 +6,11 @@ func test_price_rule_per_craft() -> void:
 	note("price rule, one craft at a time, with real inputs")
 	var m := Machine.new("bakery", "", Vector2.ZERO, true, false)
 	m.output.caps["bread"] = 20  # (a buffer of 2: a tenth of it)
-	m.input.caps["flour"] = 100
-	m.input.add("flour", 100)
+	m.input.caps["leftovers"] = 100
+	m.input.add("leftovers", 100)
 	var p0 := m.price
-	check(is_equal_approx(m.floor_price(), 2.0) and is_equal_approx(p0, 2.0), "bread's floor is its inputs: 2 flour at $1")
+	var floor := 2.0 * Catalog.base_price("leftovers")
+	check(is_equal_approx(m.floor_price(), floor) and is_equal_approx(p0, floor), "bread's floor is its inputs: 2 leftovers at $%.2f" % Catalog.base_price("leftovers"))
 	m.craft()
 	check(is_equal_approx(m.price, p0 + m.tick) and m.stock() == 1, "empty output: price up one tick, unit made")
 	m.craft()
@@ -21,16 +22,16 @@ func test_price_rule_per_craft() -> void:
 	check(is_equal_approx(m.price, p0) and m.stock() == 20, "output full: no unit made, and the price stays at its floor")
 	m.craft()
 	check(is_equal_approx(m.price, p0), "never below the input cost")
-	var before := m.input.count("flour")
+	var before := m.input.count("leftovers")
 	m.output.take("bread", 3)
 	m.craft()
-	check(m.input.count("flour") == before - 2, "a craft consumes the recipe's inputs")
-	m.input.take("flour", 1000)
+	check(m.input.count("leftovers") == before - 2, "a craft consumes the recipe's inputs")
+	m.input.take("leftovers", 1000)
 	var made := m.crafted_total
 	m.craft()
 	check(m.crafted_total == made, "with an input missing nothing is made")
-	m.receive("flour", 4, 12.0)
-	check(is_equal_approx(m.floor_price(), 24.0), "a dear delivery raises the floor: 2 flour at $12 is $24")
+	m.receive("leftovers", 4, 12.0)
+	check(is_equal_approx(m.floor_price(), 24.0), "a dear delivery raises the floor: 2 leftovers at $12 is $24")
 	m.output.take("bread", 3)
 	m.craft()
 	check(m.price >= 24.0, "and the next craft lifts the price to it")
@@ -61,13 +62,13 @@ func test_truck_fills_input_inventories_twice_a_day() -> void:
 	check(seen.size() == 3 and is_equal_approx(seen[0].start, 90.0) and is_equal_approx(seen[1].start, 300.0) and is_equal_approx(seen[2].start, 690.0), "visits at 15% and 50% of each day")
 	check(is_equal_approx(seen[0].end - seen[0].start, 100.0), "it stays 100 seconds")
 	var m := w.machine_of(baker)
-	check(seen[0].delivered == {"flour": 12, "protein": 6, "bottled_water": 15, "sugar": 15}, "the first visit filled what the three working shops had room for, as far as its 15 of each went (%s)" % [seen[0].delivered])
-	check(w.machine_of(broken).input.count("flour") == 0, "the broken bakery got nothing")
-	check(not seen[1].delivered.has("protein"), "and the second visit brought no protein: the hot dog stand was already full of it")
+	check(seen[0].delivered == {"leftovers": 15, "water": 15}, "the first visit filled what the three working shops had room for, as far as its 15 of each went (%s)" % [seen[0].delivered])
+	check(w.machine_of(broken).input.count("leftovers") == 0, "the broken bakery got nothing")
 	check(w.machine_of(hot).input.count("bread") == 0, "and bread is not on the truck: the hot dog stand has to buy it")
 	check(is_equal_approx(w.total_money(), w.ledger.printed) and w.ledger.sunk == 0.0, "no money changed hands")
-	check(is_equal_approx(m.input_cost["flour"], 1.0) and is_equal_approx(m.floor_price(), 2.0), "delivered goods cost their base price")
-	check(seen[0].delivered["sugar"] == mini(truck.load_per_good, w.machine_of(lem).input.caps["sugar"]), "the lemonade stand's sugar was filled, as far as the load went")
+	var price := Catalog.base_price("leftovers")
+	check(is_equal_approx(m.input_cost["leftovers"], price) and is_equal_approx(m.floor_price(), 2.0 * price), "delivered goods cost their base price")
+	check(seen[0].delivered["water"] == mini(truck.load_per_good, w.machine_of(lem).input.caps["water"]), "the lemonade stand's water was filled, as far as the load went")
 
 
 func test_truck_shares_a_short_load() -> void:
@@ -80,31 +81,32 @@ func test_truck_shares_a_short_load() -> void:
 	truck.load_per_good = 9
 	Fixtures.empty_shops(w)
 	var given := truck.deliver(w.machines)
-	var counts := [w.machine_of(a).input.count("flour"), w.machine_of(b).input.count("flour"), w.machine_of(c).input.count("flour")]
-	check(given["flour"] == 9 and counts == [3, 3, 3], "nine flour, three bakeries, three each: %s" % [counts])
+	var counts := [w.machine_of(a).input.count("leftovers"), w.machine_of(b).input.count("leftovers"), w.machine_of(c).input.count("leftovers")]
+	check(given["leftovers"] == 9 and counts == [3, 3, 3], "nine leftovers, three bakeries, three each: %s" % [counts])
 	truck.load_per_good = 100
 	given = truck.deliver(w.machines)
-	check(given["flour"] == 3 * (12 - 3) and w.machine_of(a).input.count("flour") == 12, "a big load stops once everyone is full")
+	check(given["leftovers"] == 3 * (12 - 3) and w.machine_of(a).input.count("leftovers") == 12, "a big load stops once everyone is full")
 
 
-func test_lemonade_needs_water_and_sugar() -> void:
-	note("lemonade: a bottle of water and a spoon of sugar")
+func test_lemonade_needs_water_and_leftovers() -> void:
+	note("lemonade: water from the fountain, and leftovers (the fruit) from the bins")
 	var m := Machine.new("lemonade_stand", "", Vector2.ZERO, true, false)
-	check(m.recipe == {"bottled_water": 1, "sugar": 1} and is_equal_approx(m.floor_price(), 1.0), "the recipe, and a floor of 50c of each")
-	m.input.take("sugar", 99)
+	var floor := Catalog.base_price("water") + Catalog.base_price("leftovers")
+	check(m.recipe == {"water": 1, "leftovers": 1} and is_equal_approx(m.floor_price(), floor), "the recipe, and a floor of their worth ($%.2f)" % floor)
+	m.input.take("leftovers", 99)
 	var made := m.crafted_total
 	m.craft()
-	check(m.crafted_total == made, "no sugar, no lemonade")
-	m.receive("sugar", 2, 0.5)
-	var water_before := m.input.count("bottled_water")
-	var sugar_before := m.input.count("sugar")
+	check(m.crafted_total == made, "no leftovers, no lemonade")
+	m.receive("leftovers", 2, 0.75)
+	var water_before := m.input.count("water")
+	var left_before := m.input.count("leftovers")
 	m.craft()
 	check(m.crafted_total == made + 1, "with both it makes a glass")
-	check(m.input.count("bottled_water") == water_before - 1 and m.input.count("sugar") == sugar_before - 1, "using one of each")
+	check(m.input.count("water") == water_before - 1 and m.input.count("leftovers") == left_before - 1, "using one of each")
 
 
-## The standard cluster's stands and people, with no food bank (so nothing but the truck brings flour and the like), and money
-## enough for three days.
+## The standard cluster's stands and people, with no runners or bins but the garbage (so nothing but the truck brings leftovers
+## and water), and money enough for three days.
 func _stands_only(with_truck: bool) -> World:
 	var w := World.new()
 	Cluster.build(w, "t", Vector2.ZERO, Cluster.DRIFTERS, false, 200.0, false)
@@ -121,7 +123,7 @@ func test_the_truck_keeps_shops_running() -> void:
 	Fixtures.run(without, int(Clock.DAY_SECONDS) * 3)
 	note("    things made over three days: with the truck %d, without %d" % [Fixtures.made(with_truck), Fixtures.made(without)])
 	check(Fixtures.made(with_truck) > 2 * Fixtures.made(without), "with deliveries the town makes more than twice as much")
-	check(with_truck.machines[0].crafted_total > without.machines[0].crafted_total + 20, "the bakery most of all: it can't bake without flour")
+	check(with_truck.machines[0].crafted_total > 4 * maxi(without.machines[0].crafted_total, 1), "the bakery most of all: it can't bake without leftovers (%d loaves against %d)" % [with_truck.machines[0].crafted_total, without.machines[0].crafted_total])
 	check(is_equal_approx(with_truck.total_money(), with_truck.ledger.printed) and is_equal_approx(without.total_money(), without.ledger.printed), "money is conserved in both")
 
 

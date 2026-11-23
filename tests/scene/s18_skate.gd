@@ -47,7 +47,7 @@ func run() -> void:
 		up = up or not p.is_on_floor()
 	check(up and peak > floor_y + 0.4, "letting go is an ollie: the board leaves the ground (%.2f m up)" % (peak - floor_y))
 	# tap again in the air: a kickflip, its cash strewn on the ground
-	var printed := w.ledger.printed - w.ledger.issued  # (what the gun and the board print: the welfare office's fountain goes on meanwhile)
+	var printed := w.ledger.printed - w.ledger.issued  # (what the gun and the board print: the deposit on bottles goes on meanwhile)
 	var bills_before := w.bills.size()
 	Input.action_press("jump")
 	await tree.physics_frame

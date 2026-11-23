@@ -53,7 +53,7 @@ func test_a_tent_put_down_founds_a_tent_city() -> void:
 	var r := w.placing.place("tent", Vector2(4, 0), Vector2(-1, 0))
 	var city: Machine = w.machines.back()
 	var keeper := w.drone(city.owner)
-	check(r.ok and city.kind == "tent" and city.tier == 0 and city.working and city.tents == 1, "a tent city of its own, tier 0, standing, one tent (%s)" % r.text)
+	check(r.ok and city.kind == "tent" and city.tier == 0 and city.working and city.residence.tents == 1, "a tent city of its own, tier 0, standing, one tent (%s)" % r.text)
 	check(keeper != null and keeper.bed == city.uid and keeper.label != "" and keeper.arrived_at >= 0.0 and w.lodging.is_housed(keeper), "kept by a newcomer, %s, who lives in it" % (keeper.label if keeper else "?"))
 	check(city.front == Vector2(-1, 0) and w.arrivals.has(city) and w.arrivals.has(keeper), "its open end toward the hero, and the views are told")
 	check(is_equal_approx(w.ledger.printed - printed, Lodging.NEWCOMER_PURSE) and is_equal_approx(w.total_money(), w.ledger.printed), "nothing printed but the purse its keeper brought")

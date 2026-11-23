@@ -1,21 +1,22 @@
-## The cart runners' trade: buy a load of base materials at the food bank (or gather scrap from a pile in the street, free) and
-## wheel it to whatever is most short of it (a shop's inputs, or the scrap a tent city is being built up of). Cash on delivery:
-## the shop pays back what the goods cost and a flat DELIVERY_FEE for the trip, however big the load, and the fee goes into what
-## its inputs cost it (so into its floor price: a baker's bread carries its share of the runner's walk). A trip is only planned
-## when it is worth the walk.
+## The cart runners' trade: salvage a load of the town's base inputs from its bins (WasteBin: scrap from the garbage, leftovers
+## from the organics, water from a fountain: free to gather) and wheel it to whatever is most short of it (a shop's inputs, or
+## the scrap a tent city is being built up of). Cash on delivery: the shop pays the goods' price into the town's fund
+## (Deposit.fund: the bottle depot's, paid back out as deposits) and a flat DELIVERY_FEE to the runner for the trip, however big the load; both go into
+## what its inputs cost it (so into its floor price: a baker's bread carries its share of the runner's walk). A trip is only
+## planned when it is worth the walk.
 ##
-## A runner is a business too (a cart, Drone.equity): the hero can invest in one (see Gun), and then takes their share of every
+## A runner is a business too (its cart, Drone.runner: Runner): the hero can invest in one (see Gun), and then takes their share of every
 ## fee.
 class_name Hauling
 extends RefCounted
 
 const CART_CAPACITY := 16    # units a cart holds
-const DELIVERY_FEE := 0.4    # what the shop pays the runner for a delivery, flat, on top of the goods' cost
-const MIN_DELIVERY := 4      # a shop must be this many units short before a runner makes the trip
-const MIN_LOAD := 2          # and a load smaller than this is not worth wheeling
-## Scrap is free, so all a load costs is the fee: a trip waits for this much (at $2 for two, a tent city's keeper went hungry
-## paying for it), unless it is the last of what a build needs.
-const MIN_SCRAP_LOAD := 6
+const DELIVERY_FEE := 0.4    # what the shop pays the runner for a delivery, flat
+## The goods are free, so all a load costs the shop is the fee: a trip waits for this much (at $2 for two, a tent city's keeper
+## went hungry paying for it), or a store smaller than that filled. Only scrap goes as the last few of what a store has room for:
+## a build waits on them (MachineDef.build_scrap). (Topping every stall up a unit or two at a time, the runners made three
+## times the trips the town needed, each paying a fee: they banked $6 a day each, and the welfare office of the day printed it.)
+const MIN_LOAD := 6
 
 var _w: World
 
@@ -24,15 +25,16 @@ func _init(world: World) -> void:
 	_w = world
 
 
-## What a runner should do next. Carrying a load: take it to the shop that wants it most. Otherwise find
-## the shop most short of something the food bank has, and plan a trip: buy a load there, wheel it over.
-## A shop is only worth a trip if it is at least MIN_DELIVERY short (counting what other runners are
-## already bringing), its owner can pay for the goods and the fee, and the runner can afford the load.
-## The food banks are looked for in `from_zone` and the shops in `to_zone` (both the runner's own unless given: Borders
-## gives them to plan a load across the border between two tiles).
+## What a runner should do next. Carrying a load: take it to the shop that wants it most. Otherwise find the shop most short of
+## something a bin has, and plan a trip: salvage a load there, wheel it over. A shop is only worth a trip if it is short a load
+## (MIN_LOAD, or all the room it has left, counting what other runners are already bringing) and its owner can pay the fee.
+## The bins are looked for in `from_zone` and the shops in `to_zone` (both the runner's own unless given: Borders gives them to
+## plan a load across the border between two tiles).
 func haul_job(d: Drone, from_zone := "", to_zone := "") -> Dictionary:
-	for item in d.cart.counts:
-		var carried: int = d.cart.count(item)
+	if d.runner == null:
+		return {}
+	for item in d.runner.cart.counts:
+		var carried: int = d.runner.cart.count(item)
 		if carried <= 0:
 			continue
 		var dest: Machine = best_destination(d, item)
@@ -42,45 +44,31 @@ func haul_job(d: Drone, from_zone := "", to_zone := "") -> Dictionary:
 	var best := {}
 	var best_value := -INF
 	var here := from_zone if from_zone != "" else d.zone
-	var sources: Array = []  # [where, item]: the food banks' relief goods, and the scrap lying in the street
-	for fb in _w.zones.food_banks_in(here):
-		for item in Catalog.relief_goods():
-			sources.append([fb, item])
-	for p in _w.scrap_piles:
-		if p.zone == here:
-			sources.append([p, "scrap"])
-	for s in sources:
-		var fb = s[0]
-		var item: String = s[1]
-		if not fb.offers(item):
+	for bin in _w.zones.bins_in(here):
+		var item: String = bin.item
+		if not bin.offers(item):
 			continue
-		var price: float = fb.price_of(item)
 		for dest in _w.zones.machines_in(to_zone if to_zone != "" else d.zone):
 			if not dest.working or not dest.input.caps.has(item) or dest.owner == "":
 				continue
 			var short: int = dest.input.room(item) - inbound(dest, item, d)
-			var least := MIN_DELIVERY  # (the smallest shortfall worth a trip, and the smallest load)
-			var least_load := MIN_LOAD
-			if price <= 0.0:  # (free scrap: the last few are worth it, a build waits on them)
-				least = mini(MIN_SCRAP_LOAD, dest.input.room(item))
-				least_load = least
+			var least := mini(MIN_LOAD, int(dest.input.caps[item]))
+			if item == "scrap":
+				least = mini(MIN_LOAD, dest.input.room(item))  # (the last few are worth it: a build waits on them)
 			if short < maxi(least, 1):
 				continue
-			var owner: Drone = _w.drone(dest.owner)
-			var qty := mini(mini(short, CART_CAPACITY), fb.output.count(item))
-			if price > 0.0:
-				qty = mini(qty, int(d.wallet / price))
-				qty = mini(qty, int((spendable(owner) - DELIVERY_FEE) / price))
-			elif spendable(owner) < DELIVERY_FEE:
-				continue
-			if qty < maxi(least_load, 1):
+			var qty := mini(mini(short, CART_CAPACITY), bin.output.count(item))
+			qty = mini(qty, affordable(_w.drone(dest.owner), item))
+			if qty < maxi(least, 1):
 				continue
 			var need: float = float(short) / float(dest.input.caps[item])
-			var trip: float = d.pos.distance_to(fb.pos) + fb.pos.distance_to(dest.pos)
+			var trip: float = d.pos.distance_to(bin.pos) + bin.pos.distance_to(dest.pos)
+			if to_zone == "" and not _w.needs.would_last(d, trip):
+				continue  # (not half empty, that far: eat and drink first. A load over the border is Borders' to judge.)
 			var value := need * 10.0 - Logistics.DISTANCE_COST * trip
 			if value > best_value:
 				best_value = value
-				best = {"for": "haul", "stage": "pickup", "target": fb, "dest": dest, "item": item, "qty": qty}
+				best = {"for": "haul", "stage": "pickup", "target": bin, "dest": dest, "item": item, "qty": qty}
 	return best
 
 
@@ -88,11 +76,10 @@ func haul_job(d: Drone, from_zone := "", to_zone := "") -> Dictionary:
 func best_destination(d: Drone, item: String) -> Machine:
 	var best: Machine = null
 	var best_value := -INF
-	var least: float = Catalog.base_price(item) + DELIVERY_FEE  # (a delivery of one)
 	for dest in _w.zones.machines_in(d.zone):
 		if not dest.working or not dest.input.caps.has(item) or dest.owner == "" or dest.input.room(item) < 1:
 			continue
-		if spendable(_w.drone(dest.owner)) < least:
+		if affordable(_w.drone(dest.owner), item) < 1:
 			continue
 		var need: float = float(dest.input.room(item)) / float(dest.input.caps[item])
 		var value := need * 10.0 - Logistics.DISTANCE_COST * d.pos.distance_to(dest.pos)
@@ -103,9 +90,18 @@ func best_destination(d: Drone, item: String) -> Machine:
 
 
 ## What a shop's owner can spend on a delivery: their wallet less the reserve every agent keeps back for food and drink
-## (Drone.RESERVE). (Cash on delivery once took the baker's last dollar for flour, and the baker went thirsty.)
+## (Drone.RESERVE). (Cash on delivery once took the baker's last dollar, and the baker went thirsty.)
 static func spendable(owner: Drone) -> float:
 	return owner.wallet - (0.0 if owner.needless else Drone.RESERVE)
+
+
+## How many of `item` the shop's owner can pay for, with the fee (a great many, for free scrap, if they can pay the fee).
+func affordable(owner: Drone, item: String) -> int:
+	var left := spendable(owner) - DELIVERY_FEE
+	if left < 0.0:
+		return 0
+	var price := Catalog.base_price(item)
+	return CART_CAPACITY if price <= 0.0 else int(left / price)
 
 
 ## Units of `item` other runners are already bringing to `dest`.
@@ -120,47 +116,40 @@ func inbound(dest: Machine, item: String, except: Drone) -> int:
 	return n
 
 
-## At the food bank: buy the load. At the shop: hand it over, and get paid, cash on delivery: the goods' cost and the flat fee,
-## less the heroes' shares of the fee (see Equity: each into their own pocket).
+## At the bin: take the load (free). At the shop: hand it over; the shop pays the goods' price into the town's fund and the
+## flat fee to the runner, cash on delivery, less the heroes' shares of the fee (see Equity: each into their own pocket).
 func complete(d: Drone, job: Dictionary) -> void:
 	var item: String = job.item
 	if job.stage == "pickup":
-		var fb = job.target  # (a food bank, or a pile of scrap in the street: free)
-		var price: float = fb.price_of(item)
-		var qty := mini(job.qty, fb.output.count(item))
-		if price > 0.0:
-			qty = mini(qty, int(d.wallet / price))
+		var bin = job.target
+		var qty := mini(job.qty, bin.output.count(item))
 		if qty <= 0:
 			return
-		fb.output.take(item, qty)
-		if fb is FoodBank:
-			d.wallet -= price * qty
-			_w.drone(fb.owner).wallet += price * qty
-			fb.sold_total += qty
-			fb.revenue_total += price * qty
-		fb.refresh()
-		d.cart.add(item, qty)
+		bin.output.take(item, qty)
+		bin.refresh()
+		d.runner.cart.add(item, qty)
 		var drop := {"for": "haul", "stage": "drop", "target": job.dest, "item": item, "qty": qty}
 		drop["stand"] = _w.logistics.stand_point(d, drop)
 		d.job = drop  # and now wheel it over
 		return
 	var dest: Machine = job.target
-	var cost: float = Catalog.base_price(item)
 	var owner: Drone = _w.drone(dest.owner)
-	var n := mini(d.cart.count(item), dest.input.room(item))
-	if cost > 0.0:
-		n = mini(n, int((spendable(owner) - DELIVERY_FEE) / cost))
-	if n <= 0 or spendable(owner) < cost * n + DELIVERY_FEE:
+	var fund: Drone = _w.deposit.fund(dest.zone)
+	var price := Catalog.base_price(item) if fund != null else 0.0  # (no fund to pay into: the goods are free)
+	var r := d.runner
+	var n := mini(mini(r.cart.count(item), dest.input.room(item)), affordable(owner, item))
+	if n <= 0:
 		return
-	d.cart.take(item, n)
-	dest.receive(item, n, cost + DELIVERY_FEE / n)  # the fee becomes part of what the shop's input costs it
-	owner.wallet -= cost * n + DELIVERY_FEE
-	d.wallet += cost * n
-	d.delivered_total += n
-	d.deliveries += 1
-	d.fees_earned += DELIVERY_FEE
+	r.cart.take(item, n)
+	dest.receive(item, n, price + DELIVERY_FEE / n)  # what they cost, and the fee, become what the shop's input costs it
+	owner.wallet -= price * n + DELIVERY_FEE
+	if fund != null:
+		fund.wallet += price * n
+	r.delivered_total += n
+	r.deliveries += 1
+	r.fees_earned += DELIVERY_FEE
 	var paid := 0.0
-	var cuts := d.equity.cuts(DELIVERY_FEE)
+	var cuts := r.equity.cuts(DELIVERY_FEE)
 	for hero in cuts:
 		_w.ledger.pay(hero, cuts[hero])
 		paid += cuts[hero]

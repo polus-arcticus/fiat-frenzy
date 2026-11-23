@@ -74,21 +74,26 @@ New Game opens the landing picker, as in Planet Crafter.
     **cobbles slow a skateboard** to 60% of its top speed (`Kerbs.rough_at`, `Skating.ROUGH`).
   - **Furniture** (`engine/map/street_things.gd`): street lamps (the mapped ones, and one every 30 m along the streets the map
     says are lit; in the story's Frankfurt along its main streets), bus and tram stops (a shelter and a sign, on the
-    pavement facing the road), stop and give-way signs, traffic lights, zebra crossings, bike stands, benches, bins, recycling
-    containers, and hedges, walls and fences (hedges and walls are solid). Each kind is one small model, instanced
+    pavement facing the road), stop and give-way signs, traffic lights, zebra crossings, bike stands, benches, waste baskets,
+    recycling containers, organics bins, drinking fountains, and hedges, walls and fences (hedges and walls are solid). Each kind is one small model, instanced
     (`StreetThingsBuilder`: 18 to 90 triangles each; about 7,000 for a whole tile). At night the lamps glow and throw a soft
     pool of light (group `night_lights`, switched by `DayNight`).
-  - **Recycling is where the scrap is:** a tile's real recycling containers within 220 m of the market on foot (up to 3)
-    are its scrap piles, sharing the one pile's rate, so the town has as much scrap as ever (`SiteFinder.recycling`). With
-    none near, the atom lays out its own pile as before.
+  - **The town's bins are the map's** (`SiteFinder.bins`): what the town runs on gathers in its real bins near the market, up
+    to 3 of each kind, sharing the one bin's rate. The waste baskets give the scrap and the organics bins the leftovers (within
+    220 m on foot: the runners wheel them on carts), the drinking fountains the water, and the recycling containers the bottles
+    (within 90 m: people walk there for their next meal). A kind with none near enough is the atom's own, in its station by
+    the market. On the map's bins you see what has gathered in front of each: scrap and an old bike, bottles, leftovers.
 - **Parks** (the map's green, `World.parks`) are where the homeless camps go:
   - **A camp at landing:** the park nearest the market gets one, at most 90 m from it on foot (`SiteFinder.camp`; a park
     further round gets none: its people would spend their day on the road). The same spot for everyone. It has its own
-    barrel fire, and its keeper lives by it. It shares the market's scrap pile.
+    barrel fire, and its keeper lives by it. It shares the market's garbage bin.
   - **Camps of your own:** the tent keeper makes **camp kits** ($20, of scrap). Put one down in a park (only in a park) and
     a newcomer comes to keep it, by its own fire (`Camp.found`).
   - **The night wind:** after dark a park has no walls to cut it: your warmth lasts 60% as long there (`Cold.PARK_NIGHT`),
     unless you're by a fire. The feed says so as you come in. (Only you: the street's people keep their own cold.)
+- **The story's Frankfurt has its land too** (`Scenario.load_district`): its water (the Main, solid), parks and trees, and street
+  furniture, from one Overpass answer kept in `data/raw/story_land.json` (`tools/story_land.gd` fetches it again), brought into
+  the story map's own metres (`MapFrame`).
 - **The dressing comes in after you land** (`DressingController`): a tile's parks, pitches, woods and trees
   (`OsmDressing`, `DressingBuilder`; each tree's crown one of seven solids at random, the same for everyone in the tile:
   the five Platonic ones, the cuboctahedron and the icosidodecahedron, `Solids`), fetched in the background a few seconds in, baked off the main thread and laid under
@@ -181,6 +186,14 @@ of walking by day (`Cold.DAY_BLOCKS`, a block being 110 m: about 49 s) and **thr
 - **Chat bubbles** (`npc/agents/chatter.gd`, `npc/agents/lines.gd`). A few lines per kind of person, said now and then.
 - **The sky** (`assets/shaders/sky.gdshader`, `DayNight`). A watercolour wash, toon clouds, a sun; stars at night.
 - **Warmth indoors** (`engine/systems/heating.gd`). The shops, Mr. Nobody's house, the bus and the shuttle warm whoever is inside.
+- **The bottle depot** (`engine/deposit/`): a kiosk under a green PFAND board, its attendant behind the counter and crates of
+  empties by the side, one at each market. Its board says what a bottle is worth ($1) and what it has paid out. Whoever is
+  short of cash (under $25) walks to the recycling, takes what brings them back up to $25 (a bag holds 20; a runner's cart
+  16) and hands it in there: that is how money
+  comes into the town, apart from you. The depot pays out of what the stalls paid for their leftovers and water first, and prints
+  only when that is empty.
+- **Getting about after the letter**: the bus runs between its stop on Kaiserstraße and the bank whenever you get on, and the
+  shuttle between the bank's gate and its door, each turning round where its way starts behind it.
 
 ## The inspector (F3, `user/inspector/`)
 

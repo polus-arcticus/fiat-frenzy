@@ -101,7 +101,7 @@ func test_he_walks_over_and_goes_home_again() -> void:
 	for i in 3:
 		w.tick(1.0)
 	check(w.sage.approaching and not w.sage.arrived, "he notices and starts to walk over")
-	check(sage.speech != "" and sage.speech_ttl > 0.0, "and says something as he goes: \"%s\"" % sage.speech)
+	check(w.chatter.of(sage).line != "" and w.chatter.of(sage).ttl > 0.0, "and says something as he goes: \"%s\"" % w.chatter.of(sage).line)
 	for i in 40:
 		w.tick(1.0)
 	check(w.sage.arrived and not w.sage.approaching, "he arrives")
@@ -135,11 +135,11 @@ func test_he_gives_up_on_a_hero_who_runs_off_and_calls_out_to_a_rider() -> void:
 	w.riding.mount()
 	for i in 20:
 		w.tick(1.0)
-	var calls := sage.speech_seq
-	check(sage.speech.contains("contraption") and not w.sage.approaching, "to a rider he calls out instead of walking over: \"%s\"" % sage.speech)
+	var calls := w.chatter.of(sage).seq
+	check(w.chatter.of(sage).line.contains("contraption") and not w.sage.approaching, "to a rider he calls out instead of walking over: \"%s\"" % w.chatter.of(sage).line)
 	for i in 5:
 		w.tick(1.0)
-	check(sage.speech_seq == calls, "and not every second")
+	check(w.chatter.of(sage).seq == calls, "and not every second")
 
 
 func test_he_does_not_go_for_loose_money() -> void:
@@ -169,14 +169,14 @@ func test_he_invites_the_hero_into_his_house_and_talks_there() -> void:
 	w.player.pos = Vector2(-2, 0)
 	for i in 3:
 		w.tick(1.0)
-	check(w.sage.approaching and sage.speech.contains("Come in"), "he notices and asks the hero in: \"%s\"" % sage.speech)
+	check(w.sage.approaching and w.chatter.of(sage).line.contains("Come in"), "he notices and asks the hero in: \"%s\"" % w.chatter.of(sage).line)
 	for i in 20:
 		w.tick(1.0)
 	check(Geometry2D.is_point_in_polygon(sage.pos, square) and sage.pos.distance_to(Vector2(15, 0)) < 0.5, "he goes inside to his place")
 	check(w.sage.approaching and not w.sage.arrived, "and waits there while the hero stays out in the street")
 	for i in 20:
 		w.tick(1.0)
-	check(sage.speech_seq >= 2, "inviting again from time to time")
+	check(w.chatter.of(sage).seq >= 2, "inviting again from time to time")
 	w.player.pos = Vector2(11.5, 0)
 	w.tick(1.0)
 	check(w.sage.arrived and not w.sage.approaching, "once the hero has stepped in, the talk begins")

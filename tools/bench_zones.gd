@@ -1,5 +1,5 @@
 ## Headless benchmark: how the sim's cost grows with the number of towns (each a market with its supply chain:
-## 4 stands, a food bank, 2 cart runners, 6 drifters), all in one zone, one zone each, and one zone each with only one
+## 4 stands, their bins, 2 cart runners, 6 drifters), all in one zone, one zone each, and one zone each with only one
 ## running.   godot --headless --path . --script tools/bench_zones.gd
 extends SceneTree
 
@@ -10,7 +10,8 @@ func _town(w: World, zone: String, ox: float) -> void:
 		var kind: String = ["bakery", "hot_dog_stand", "lemonade_stand", "tent"][i]
 		var v := w.add_vendor(kind, Vector2(ox + i * 5.0, 0), 30.0, true, true)
 		v.label = "v"
-	var fb := w.add_food_bank(Vector2(ox - 8.0, 0))
+	w.add_bin_station(Vector2(ox - 8.0, 0))
+	w.add_bin("fountain", Vector2(ox - 12.0, 0))
 	for i in 2:
 		w.add_runner(Vector2(ox - 4.0 + i, 3), 20.0)
 	for i in 6:

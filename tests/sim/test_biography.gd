@@ -23,7 +23,7 @@ func test_a_newcomer_has_a_date() -> void:
 	var city := Atom.seed(w, "atom", Vector2.ZERO)
 	w.begin_play()
 	check(w.zones.drones_in("atom").all(func(d): return d.arrived_at < 0.0), "the atom's people were there from the start")
-	city.tents_cap = city.tents + 1  # (an atom's tent city is full for its tier: room for one more)
+	city.residence.tents_cap = city.residence.tents + 1  # (an atom's tent city is full for its tier: room for one more)
 	w.lodging.add_tent(city)
 	Fixtures.run(w, int(Lodging.ARRIVE_EVERY) + 2)
 	var new: Array = w.lodging.housed(city).filter(func(d): return d.arrived_at >= 0.0)

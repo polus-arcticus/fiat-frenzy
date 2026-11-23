@@ -10,8 +10,8 @@ func _row(w: World) -> Array:
 	var out := []
 	for m in w.zones.machines_in("a"):
 		out.append("%-15s sold %3d crafted %3d out %2d price %5.2f working %s inputs %s" % [m.kind, m.sold_total, m.crafted_total, m.stock(), m.price, m.working, m.input.counts])
-	for fb in w.zones.food_banks_in("a"):
-		out.append("%-15s sold %3d" % ["food bank", fb.sold_total])
+	for b in w.zones.bins_in("a"):
+		out.append("%-15s holds %3d" % [b.kind, b.output.count(b.item)])
 	return out
 
 
@@ -29,9 +29,9 @@ func _people(w: World) -> String:
 
 func _initialize() -> void:
 	var full := World.new()
-	Fixtures.market_town(full, "a", Vector2.ZERO, 6, true, PURSE)
+	Cluster.build(full, "a", Vector2.ZERO, 6, true, PURSE, false)
 	var summed := World.new()
-	Fixtures.market_town(summed, "a", Vector2.ZERO, 6, true, PURSE)
+	Cluster.build(summed, "a", Vector2.ZERO, 6, true, PURSE, false)
 	summed.build_zone = "hero's"
 	summed.add_drifter(Vector2(5000, 0))
 	summed.zones.active = ["hero's"] as Array[String]
@@ -39,10 +39,10 @@ func _initialize() -> void:
 		if minute % 5 == 0:
 			for pair in [["F", full], ["S", summed]]:
 				var w: World = pair[1]
-				var fb: FoodBank = w.zones.food_banks_in("a")[0]
+				var bins: Array = w.zones.bins_in("a").map(func(b): return "%s %d" % [b.kind, b.output.count(b.item)])
 				var lem: Machine = w.zones.machines_in("a")[2]
-				var runners: Array = w.zones.runners_in("a").map(func(r): return "$%.0f %s %s %s" % [r.wallet, r.cart.counts, r.care, r.job.get("for", "-")])
-				print("%s m%02d fb sold %3d out %s | lemonade crafted %2d sold %2d out %2d in %s | runners %s" % [pair[0], minute, fb.sold_total, fb.output.counts, lem.crafted_total, lem.sold_total, lem.stock(), lem.input.counts, runners])
+				var runners: Array = w.zones.runners_in("a").map(func(r): return "$%.0f %s %s %s" % [r.wallet, r.runner.cart.counts, r.care, r.job.get("for", "-")])
+				print("%s m%02d bins %s | lemonade crafted %2d sold %2d out %2d in %s | runners %s" % [pair[0], minute, bins, lem.crafted_total, lem.sold_total, lem.stock(), lem.input.counts, runners])
 		if minute % 15 == 0:
 			print("--- minute %d" % minute)
 			print("FULL    ", _people(full))

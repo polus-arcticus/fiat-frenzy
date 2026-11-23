@@ -15,7 +15,8 @@ func run() -> void:
 	game.gun.apply(talker, 5.0)
 	await tree.process_frame
 	await tree.process_frame
-	check(talker.speech in Lines.for_event(talker, Lines.GIFT) and talker_view._bubble.visible and talker_view._bubble.text == talker.speech, "a gift makes them say a line, and the bubble over their head shows it: \"%s\"%s" % [talker.speech, "" if talker.care == "" else " (but they are %s)" % talker.care])
+	var said: String = game.world.chatter.of(talker).line
+	check(said in Lines.for_event(talker, Lines.GIFT) and talker_view._bubble.visible and talker_view._bubble.text == said, "a gift makes them say a line, and the bubble over their head shows it: \"%s\"%s" % [said, "" if talker.care == "" else " (but they are %s)" % talker.care])
 
 	# (back at the market after the trip to Battonnstraße)
 	game.player.teleport(Vector3(game.scenario.start.x, 0.1, game.scenario.start.y), game.scenario.start_yaw)

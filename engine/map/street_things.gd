@@ -2,8 +2,9 @@
 ## and lines from TileSource's "land" layer: `points`), placed where they would stand, and street lamps along the streets
 ## that are lit where it hasn't mapped each lamp. Only looked at (StreetThingsBuilder), but for what a skateboard or a walker
 ## bumps into (hedges and walls are solid). Each thing belongs to the tile it stands in, as its buildings do.
-##   lamp  bus_stop  tram_stop  stop_sign  give_way  traffic_light  crossing (a zebra across the road)  bike_stand  bench  bin
-##   recycling (also the tile's scrap: SiteFinder.recycling)        and lines: hedge  wall  fence
+##   lamp  bus_stop  tram_stop  stop_sign  give_way  traffic_light  crossing (a zebra across the road)  bike_stand  bench
+##   bin  recycling  organics  fountain (the town's bins and fountains too, near the market: SiteFinder.bins)
+##   and lines: hedge  wall  fence
 class_name StreetThings
 extends RefCounted
 
@@ -11,7 +12,7 @@ extends RefCounted
 const NODES := [
 	"[\"highway\"~\"^(street_lamp|bus_stop|stop|give_way|traffic_signals|crossing)$\"]",
 	"[\"railway\"=\"tram_stop\"]",
-	"[\"amenity\"~\"^(bicycle_parking|bench|waste_basket|recycling)$\"]",
+	"[\"amenity\"~\"^(bicycle_parking|bench|waste_basket|recycling|drinking_water)$\"]",
 ]
 const LINES := ["[\"barrier\"~\"^(hedge|wall|fence|retaining_wall)$\"]"]
 const LAMP_EVERY := 30.0     # metres between the lamps put up along a lit street
@@ -27,7 +28,11 @@ const LIT_KINDS := ["primary", "secondary", "tertiary", "residential", "pedestri
 ## The points and lines of a raw answer, by kind, in region metres: {points: [{kind, at, tags}], lines: [{kind, pts}]}. (What
 ## TileSource keeps in the district, as "street".)
 static func points(overpass: Dictionary, tile_key: String) -> Dictionary:
-	var region := TileKey.region_of(tile_key)
+	return points_in(overpass, MapFrame.tile(tile_key))
+
+
+## The same in any frame (MapFrame: the story's Frankfurt is one of its own).
+static func points_in(overpass: Dictionary, frame: MapFrame) -> Dictionary:
 	var pts: Array = []
 	var lines: Array = []
 	for e in overpass.get("elements", []):
@@ -35,10 +40,10 @@ static func points(overpass: Dictionary, tile_key: String) -> Dictionary:
 		if e.get("type", "") == "node" and e.has("lat"):
 			var kind := kind_of(tags)
 			if kind != "":
-				pts.append({"kind": kind, "at": TileKey.local(float(e.lat), float(e.lon), region), "tags": tags})
+				pts.append({"kind": kind, "at": frame.local(float(e.lat), float(e.lon)), "tags": tags})
 		elif e.get("type", "") == "way" and tags.has("barrier"):
 			var kind: String = {"hedge": "hedge", "wall": "wall", "retaining_wall": "wall", "fence": "fence"}.get(str(tags.barrier), "")
-			var line := OsmDressing.points(e.get("geometry", []), region)
+			var line := OsmDressing.points(e.get("geometry", []), frame)
 			if kind != "" and line.size() >= 2:
 				lines.append({"kind": kind, "pts": line})
 	return {"points": pts, "lines": lines}
@@ -69,8 +74,14 @@ static func kind_of(tags: Dictionary) -> String:
 		"waste_basket":
 			return "bin"
 		"recycling":
-			return "recycling"
+			return "organics" if ORGANIC.any(func(k): return str(tags.get(k, "no")) == "yes") else "recycling"
+		"drinking_water":
+			return "fountain"
 	return ""
+
+
+## A recycling point that takes food or garden waste: the town's organics (WasteBin), not its bottles.
+const ORGANIC := ["recycling:organic", "recycling:food_waste", "recycling:compost", "recycling:green_waste"]
 
 
 ## Where each thing stands: {things: [{kind, at, yaw, width}], lines: [{kind, pts}]}, those of `tile_key` only ("" for a map

@@ -87,6 +87,6 @@ func test_on_a_tile_nobody_walks_into_the_river() -> void:
 			break
 		wet += Vector2(13.0, 0.0)
 	check(OsmWater.wet(district.water, wet) and w.nav.unreachable(Fixtures.tile_key(), wet), "the river is solid to the town: nobody can stand in it (Navigation)")
-	var things: Array = w.machines + w.food_banks + w.hospitals + w.welfare_offices + w.fires
+	var things: Array = w.machines + w.bins + w.hospitals + w.bottle_depots + w.fires
 	check(things.all(func(o): return not OsmWater.wet(district.water, o.pos)), "nothing of the atom stands in it")
 	check(not OsmWater.wet(district.water, landing.start), "nor does the hero land in it")

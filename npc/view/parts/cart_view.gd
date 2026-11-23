@@ -4,7 +4,7 @@
 class_name CartView
 extends Node3D
 
-const CARGO_COLORS := {"flour": Color(0.95, 0.93, 0.86), "bottled_water": Color(0.55, 0.78, 0.95), "sugar": Color(0.98, 0.98, 0.96), "protein": Color(0.92, 0.55, 0.55)}
+const CARGO_COLORS := {"leftovers": Color(0.62, 0.52, 0.3), "water": Color(0.55, 0.78, 0.95), "scrap": Color(0.5, 0.5, 0.54), "recyclables": Color(0.3, 0.55, 0.35)}
 
 var _cargo: Array[MeshInstance3D] = []
 
@@ -34,10 +34,11 @@ func slots() -> int:
 func refresh(drone: Drone) -> void:
 	var item := ""
 	var units := 0
-	for it in drone.cart.counts:
-		if drone.cart.count(it) > units:
+	var cart: Inventory = drone.runner.cart if drone.runner != null else Inventory.new()
+	for it in cart.counts:
+		if cart.count(it) > units:
 			item = it
-			units = drone.cart.count(it)
+			units = cart.count(it)
 	for k in _cargo.size():
 		_cargo[k].visible = units > 0 and k < ceili(units / 3.0)
 		if _cargo[k].visible:

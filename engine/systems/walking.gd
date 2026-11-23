@@ -67,14 +67,27 @@ func _walk(d: Drone, goal: Vector2, dt: float) -> void:
 			budget = 0.0
 
 
-## If something solid is in the way of the leg from here to the next waypoint, replace the waypoint with a way round.
+## If something solid is in the way of the leg from here to the next waypoint, replace the waypoint with a way round. Someone
+## inside a tent (the medic at the first aid post) goes out by its open front first: the way round is planned from outside.
 func _plan_leg(d: Drone) -> void:
+	var tent := _tent_around(d.zone, d.pos)
+	if tent != null and not tent.enclosure.contains(d.route[0]) and d.pos.distance_to(tent.door) > 0.3:
+		d.route.insert(0, tent.door)
+		return
 	var around := _w.nav.path(d.zone, d.pos, d.route[0])
 	if around.is_empty():
 		return  # no way (it should not happen): go straight, and the guard in step() keeps them out of the wall
 	d.route.remove_at(0)
 	for k in range(around.size() - 1, -1, -1):
 		d.route.insert(0, around[k])
+
+
+## The tent whose inside `p` is in, or null.
+func _tent_around(zone: String, p: Vector2) -> Footprint:
+	for s in _w.zones.solids_in(zone):
+		if s.enclosure != null and s.enclosure.contains(p):
+			return s
+	return null
 
 
 ## A vehicle on the streets: along the route, nothing else.

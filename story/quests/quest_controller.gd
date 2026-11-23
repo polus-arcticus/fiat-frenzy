@@ -142,23 +142,28 @@ func can_board() -> bool:
 	return boardable() != ""
 
 
-## What the hero could get on now, "bus" or "shuttle", or "". Not while out cold or on the bike, and only on the letter quest.
-## The bus: first at its stop, before the first ride; later where it stands in the cleared street, once Mr. Nobody has said
-## farewell. The shuttle: inside the bank's gate, once the doorman has opened it.
+## What the hero could get on now, "bus" or "shuttle", or "". Not while out cold or on the bike.
+## The bus, on the letter quest: first at its stop, before the first ride; later where it stands in the cleared street, once
+## Mr. Nobody has said farewell. Once it has been all the way to the bank it runs back and forth between there and its stop on
+## Kaiserstraße, whenever the hero gets on (so nobody is left stranded at the bank). The shuttle: inside the bank's gate, once
+## the doorman has opened it, and from then on back and forth between the gate and the bank's door.
 func boardable() -> String:
-	if world.quests.active() != QuestBook.LETTER or riding_the_bus:
+	if riding_the_bus or not world.hero.is_on_foot() or world.player.unconscious() or not player.controls_enabled:
 		return ""
-	if not world.hero.is_on_foot() or world.player.unconscious() or not player.controls_enabled:
-		return ""
-	if world.bus != null:
-		if not world.quests.done("rode_bus"):
+	var q := world.quests
+	var letter := q.active() == QuestBook.LETTER
+	if world.bus != null and world.bus.state != Bus.State.DRIVING:
+		var at_door := player.global_position.distance_to(bus.kerb_point()) <= BOARD_REACH
+		if letter and not q.done("rode_bus"):
 			if world.bus.state == Bus.State.AT_STOP and player.ground_pos().distance_to(world.bus_stop) <= BOARD_REACH:
 				return "bus"
-		elif world.quests.done("jam_cleared") and not world.quests.done("rode_on") and world.bus.state == Bus.State.ARRIVED:
-			if player.global_position.distance_to(bus.kerb_point()) <= BOARD_REACH:
+		elif letter and q.done("jam_cleared") and not q.done("rode_on"):
+			if world.bus.state == Bus.State.ARRIVED and at_door:
 				return "bus"
-	if shuttle != null and world.shuttle != null and world.quests.done("cleared_gate") and not world.quests.done("rode_shuttle"):
-		if world.shuttle.state == Bus.State.AT_STOP and player.global_position.distance_to(shuttle.kerb_point()) <= BOARD_REACH:
+		elif q.done("rode_on") and at_door:
+			return "bus"
+	if shuttle != null and world.shuttle != null and q.done("cleared_gate") and world.shuttle.state != Bus.State.DRIVING:
+		if player.global_position.distance_to(shuttle.kerb_point()) <= BOARD_REACH:
 			return "shuttle"
 	return ""
 
@@ -178,10 +183,69 @@ func board() -> void:
 		"bus":
 			if not world.quests.done("rode_bus"):
 				ride()
-			else:
+			elif not world.quests.done("rode_on"):
 				ride_on()
+			else:
+				bus_service()
 		"shuttle":
-			ride_shuttle()
+			if not world.quests.done("rode_shuttle"):
+				ride_shuttle()
+			else:
+				shuttle_service()
+
+
+## How near the far end a vehicle has to be to count as being there (the service runs to whichever end it is not at).
+const AT_END := 25.0
+const SHUTTLE_UTURN := 9.0  # metres across the shuttle swings round in (the plaza, the lawn inside the gate)
+
+
+## The bus after the letter quest's rides: from the bank back to its stop on Kaiserstraße, or from anywhere else to the bank.
+func bus_service() -> void:
+	if scenario.ecb_stop.is_empty():
+		return
+	var uturn: float = float(scenario.bus_stop.get("width", 12.0)) * 0.5  # (lane to lane)
+	if world.bus.pos.distance_to(scenario.ecb_stop.bus) <= AT_END:
+		await _ride({
+			"dest": town_stop(), "via": [], "flag": "", "uturn": uturn,
+			"board": "Back to Kaiserstraße. The bankers aboard look relieved to be leaving.",
+			"arrive": "Kaiserstraße. The driver opens the doors: \"Bahnhofsviertel. Mind your wallets.\"",
+		})
+	else:
+		await _ride({
+			"dest": scenario.ecb_stop.bus, "via": scenario.ecb_stop.via, "flag": "", "uturn": uturn,
+			"board": "To the European Central Bank. The bankers aboard are checking their watches.",
+			"arrive": "Sonnemannstraße. The driver opens the doors: \"European Central Bank. Mind the step, and the interest rates.\"",
+		})
+
+
+## Where the bus pulls up on Kaiserstraße: its stop, in the lane it comes in by (so its door, on its right, is at the kerb).
+func town_stop() -> Vector2:
+	var stop: Vector2 = scenario.bus_stop.pos
+	var route := world.roads.route(world.bus.pos, stop) if world.roads != null else PackedVector2Array()
+	if route.size() >= 2 and (stop - route[route.size() - 2]).dot(scenario.bus_stop.dir) < 0.0:
+		return stop - (scenario.bus_stop.kerb_side as Vector2) * float(scenario.bus_stop.get("width", 12.0)) * 0.5
+	return stop
+
+
+## The shuttle after its first ride: from the bank's door back to the gate, or from the gate to the door, the same way round.
+func shuttle_service() -> void:
+	var gate: Dictionary = scenario.ecb_gate
+	if gate.is_empty() or shuttle == null:
+		return
+	var via: Array = Array(gate.route)
+	if world.shuttle.pos.distance_to(gate.entrance) <= AT_END:
+		via.reverse()
+		await _ride({
+			"dest": gate.pad, "via": via, "flag": "", "direct": true, "walk": 1.8, "walk_off": 1.6, "uturn": SHUTTLE_UTURN,
+			"board": "The shuttle sets off on its own. \"Leaving so soon? The exit is this way.\"",
+			"arrive": "The gate. The doorman nods you through.",
+		}, shuttle, world.shuttle)
+	else:
+		await _ride({
+			"dest": gate.entrance, "via": via, "flag": "", "direct": true, "walk": 1.8, "walk_off": 1.6, "uturn": SHUTTLE_UTURN,
+			"board": "The shuttle sets off on its own. \"Please keep your hands inside the vehicle. The Bank is that way.\"",
+			"arrive": "The main entrance. The receptionist looks up, and down again.",
+		}, shuttle, world.shuttle)
 
 
 ## The shuttle: from inside the gate, round the market hall and along the plaza to the bank's door. It is a golf cart and it
@@ -247,7 +311,7 @@ func _ride(leg: Dictionary, vehicle: VehicleView = null, model: Bus = null) -> v
 	vehicle.close_door()
 	hud.show_caption(leg.board, 0.0 if fast else 3.0)
 	await _wait(0.8)
-	world.transit.board(leg.dest, leg.flag, leg.via, model, leg.get("direct", false))
+	world.transit.board(leg.dest, leg.flag, leg.via, model, leg.get("direct", false), leg.get("uturn", 0.0))
 	while model.state == Bus.State.DRIVING:
 		if fast:  # tests and tools: no frames to wait for, so run the world here
 			_follow_model(vehicle, model)
@@ -358,8 +422,8 @@ func _walk_step(t: float, points: Array, total: float) -> void:
 		at -= leg
 
 
-## What a save needs of this controller (the quests themselves are in the model): whether the traffic jam has been laid out
-## and whether it has driven off.
+## What a save needs of this controller (the quests themselves are in the model, and so are the bus and the shuttle, where they
+## were left: Snapshot.SINGLES): whether the traffic jam has been laid out and whether it has driven off.
 func save_state() -> Dictionary:
 	return {"jam_built": _jam_built, "jam_cleared": _jam_cleared}
 

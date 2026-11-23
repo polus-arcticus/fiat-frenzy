@@ -9,7 +9,7 @@ static var _district := {}
 ## their time). Treat it as read-only.
 static func district() -> Dictionary:
 	if _district.is_empty():
-		_district = JSON.parse_string(FileAccess.get_file_as_string("res://data/bahnhofsviertel.json"))
+		_district = Scenario.load_district()  # (with its land: water, green, street furniture)
 	return _district
 
 
@@ -67,14 +67,6 @@ static func bars(h: float, t: float, wm: float) -> Dictionary:
 # ---------------------------------------------------------------- the foundation
 
 
-## A little market town in `zone`, around `at`: the standard cluster (see Cluster) without the van and the welfare office,
-## every stand working, with `drifters` customers of `purse` dollars each (with $15, the town of tools/bench_zones.gd: it goes
-## broke within the hour, as an unfunded town does; with a few hundred it is a town the hero has funded). `food_bank` false
-## leaves the food bank out, so the stands run short of flour and the like.
-static func market_town(w: World, zone: String, at: Vector2, drifters := 6, food_bank := true, purse := 15.0) -> void:
-	Cluster.build(w, zone, at, drifters, food_bank, purse, false)
-
-
 static func sold(w: World, zone: String) -> int:
 	var n := 0
 	for m in w.zones.machines_in(zone):
@@ -98,16 +90,19 @@ static func spread(points: Array) -> float:
 	return low
 
 
+## A bakery short of what its bread is made of, an organics bin full of it, and a runner between, and a bottle depot (whose
+## fund the leftovers' worth is paid into): [w, bin, baker, bakery, runner, attendant].
 static func runner_world(owner_wallet := 40.0, runner_wallet := 20.0) -> Array:
 	var w := World.new()
-	var keeper := w.add_food_bank(Vector2(0, 0), 0.0)
+	var clerk := w.add_bottle_depot(Vector2(-20, 0))
+	var bin := w.add_bin("organics", Vector2(0, 0), 40)
 	var baker := w.add_vendor("bakery", Vector2(30, 0), owner_wallet)
 	var bakery := w.machine_of(baker)
-	bakery.input.take("flour", 4)  # its flour is out: 12 short
+	bakery.input.take("leftovers", bakery.input.count("leftovers"))  # its leftovers are out
 	var runner := w.add_runner(Vector2(2, 3), runner_wallet)
 	for d in w.drones:
 		d.bars = Fixtures.bars(1.0, 1.0, 1.0)
-	return [w, keeper, baker, bakery, runner]
+	return [w, bin, baker, bakery, runner, clerk]
 
 
 static func l_road() -> RoadGraph:

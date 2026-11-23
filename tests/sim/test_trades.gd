@@ -29,7 +29,7 @@ func test_every_trade_is_a_ladder_of_known_tiers() -> void:
 		var ladder: Array = Catalog.TRADES[trade]
 		for tier in ladder.size():
 			var id: String = ladder[tier]
-			if id == "" or id in ["food_bank", "welfare_office", "first_aid", "medical_tent"]:
+			if id == "" or id in ["bottle_depot", "first_aid", "medical_tent"]:
 				continue
 			var d := Catalog.machine(id)
 			check(d.trade == trade and d.tier == tier, "%s is the %s trade's tier %d" % [id, trade, tier])
@@ -41,16 +41,16 @@ func test_every_trade_is_a_ladder_of_known_tiers() -> void:
 			continue  # (no tier 0 yet, or a premises)
 		var d := Catalog.machine(bottom)
 		if not d.inputs.is_empty():
-			var food: bool = Catalog.class_of(d.item) in ["food", "drink"]
-			check(food or d.inputs.has("scrap"), "%s: a tier-0 trade that makes no food or drink makes it from scrap (%s)" % [bottom, d.inputs])
+			var salvaged := Catalog.scavenged_goods()
+			var made := Catalog.TRADES.keys().map(func(t): return Catalog.machine(Catalog.TRADES[t][0]).item if Catalog.has_machine(Catalog.TRADES[t][0]) else "")
+			check(d.inputs.keys().all(func(i): return i in salvaged or i in made), "%s: a tier-0 trade makes its wares of what is salvaged from the bins, or of another tier 0's (%s)" % [bottom, d.inputs])
 		for ware in d.wares:  # (and what else it sells: the tent city's tents and barrel fires)
 			check(Catalog.class_of(ware) in ["food", "drink"] or d.wares[ware].has("scrap"), "%s: its %s is made from scrap (%s)" % [bottom, ware, d.wares[ware]])
 	check(Catalog.next_tier("hot_dog_stand") == "burger_bar" and Catalog.next_tier("burger_bar") == "", "a hot dog stand builds up into a burger bar, and that is as far as it goes for now")
 	check(Catalog.next_tier("bike_shop") == "" and Catalog.machine("bike_shop").tier == 1, "the bike shop is tier 1, with nothing above it")
 	var w := World.new()
-	w.add_food_bank(Vector2(10, 0))
-	w.add_welfare_office(Vector2(20, 0))
-	check(w.food_banks[0].trade == "supply" and w.welfare_offices[0].trade == "money" and w.welfare_offices[0].display_name() == "Welfare office", "the food bank and the welfare office are premises too, each the bottom of its trade")
+	w.add_bottle_depot(Vector2(20, 0))
+	check(w.bottle_depots[0].trade == "money" and w.bottle_depots[0].display_name() == "Bottle depot", "the bottle depot is premises too, the bottom of its trade")
 
 
 func test_a_business_built_up_keeps_what_it_had() -> void:
@@ -71,7 +71,7 @@ func test_a_business_built_up_keeps_what_it_had() -> void:
 	var dogs: Machine = t[2]
 	dogs.retier("burger_bar")
 	check(dogs.item == "burger" and dogs.stock() == 1 and dogs.output.count("hot_dog") == 0, "the hot dog stand's hot dogs go with it: the burger bar opens with one burger")
-	check(dogs.input.counts.has("bread") and dogs.input.counts.has("protein") and dogs.floor_price() > 0.0, "and it keeps the bread and protein it had, for the burgers")
+	check(dogs.input.counts.has("bread") and dogs.input.counts.has("leftovers") and dogs.floor_price() > 0.0, "and it keeps the bread and leftovers it had, for the burgers")
 
 
 func test_an_owner_builds_up_at_dawn_with_their_own_savings() -> void:
@@ -144,7 +144,7 @@ func test_the_standard_cluster_as_it_is_found_and_funded() -> void:
 	Cluster.found(w, "block", Vector2.ZERO)
 	var vendors := w.zones.drones_in("block").filter(func(d): return d.kind == "vendor")
 	check(vendors.size() == Cluster.STANDS.size() and vendors.all(func(d): return d.wallet == 0.0 and w.machine_of(d).working == (w.machine_of(d).shelter != null)), "as it is found: every stand wrecked but the tent city, every owner broke")
-	check(w.food_banks.size() == 1 and w.welfare_offices.size() == 1 and w.relief_trucks.size() == 1 and w.zones.runners_in("block").size() == Cluster.RUNNERS, "with its food bank, runners, the van's stop and the welfare office")
+	check(w.zones.bins_in("block").size() == 5 and w.bottle_depots.size() == 1 and w.relief_trucks.size() == 1 and w.zones.runners_in("block").size() == Cluster.RUNNERS, "with its bins and fountain, runners, the van's stop and the bottle depot")
 	check(_accounted(w), "the books balance")
 	w.begin_play()
 	Cluster.fund(w, "block")
@@ -175,7 +175,10 @@ func test_a_season_of_the_standard_cluster() -> void:
 	var down := w.events.filter(func(e): return "collapsed" in e).size()
 	check(down <= 1, "120 days on its own and nobody goes to the medical tent, near enough (%d collapses)" % down)
 	# (Every trade got there while the welfare office topped everyone up; with it a net only, a stand builds up out of its own
-	# trade, and the lemonade stand's thin margin does not get it there in a season: growth is to be tuned, see docs/balance.md.)
-	check(built.size() >= 2, "trades build up out of their own takings (on days %s)" % [built])
+	# trade. Since the stalls' inputs are salvaged from the bins (2026-11-22) their margins are thinner still: the tent city is
+	# built up of scrap, and the lemonade stand is about halfway to its coffee stop by the end of the season. With the bottle
+	# depot in the welfare office's place (2026-11-23) it is the same: the deposit keeps everyone fed, at about the line where
+	# they stop collecting, and the stalls' margins stay thin. Growth is for the hero to hurry: see docs/balance.md.)
+	check(built.size() >= 1, "the tent city builds up of the scrap pooled into it (on days %s)" % [built])
 	check(built.values().all(func(d): return d >= 10), "but none of them in the first ten days")
 	check(leaks == 0, "and the money is accounted for every day")

@@ -53,7 +53,7 @@ func test_the_world_keeps_running_during_the_ride() -> void:
 	var s := _stop()
 	var w: World = s[0]
 	var baker := w.add_vendor("bakery", Vector2(20, 5), 0.0, true, true)
-	w.machine_of(baker).input.add("flour", 20)
+	w.machine_of(baker).input.add("leftovers", 20)
 	var before := w.machine_of(baker).crafted_total
 	w.transit.board(Vector2(50, 50))
 	for i in 100:

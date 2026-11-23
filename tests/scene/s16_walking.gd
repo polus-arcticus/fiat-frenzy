@@ -28,11 +28,11 @@ func run() -> void:
 	w.zones.invalidate()
 	check(trips == 9 and arrived == trips, "every banker landing spot has a way to the three stands, round the medical tent (%d of %d arrived)" % [arrived, trips])
 
-	# ...and people who have drifted right beside the market's barrel fire still get past it to the food bank. (Two cart
+	# ...and people who have drifted right beside the market's barrel fire still get past it to the bins. (Two cart
 	# runners once circled it for ever: the corner they steered for was only just beside it, so the line from where they
 	# stood grazed its padding, was blocked, and the same corner was chosen again.)
 	var fire: BarrelFire = w.fires[0]
-	var bank: FoodBank = w.food_banks[0]
+	var bank: WasteBin = w.bins.filter(func(b): return b.kind == "organics" and b.zone == Zones.HOME)[0]
 	var goal: Vector2 = bank.pos + bank.front * 1.6
 	var passed := 0
 	var from_fire := [Vector2(0.6, 0.4), Vector2(0.9, 0.2), Vector2(0.4, 0.7), Vector2(1.3, -0.3), Vector2(0.7, -0.5)]
@@ -46,4 +46,4 @@ func run() -> void:
 			passed += 1
 		w.drones.erase(d)
 	w.zones.invalidate()
-	check(passed == from_fire.size(), "walkers right beside the market's barrel fire get past it to the food bank (%d of %d)" % [passed, from_fire.size()])
+	check(passed == from_fire.size(), "walkers right beside the market's barrel fire get past it to the bins (%d of %d)" % [passed, from_fire.size()])

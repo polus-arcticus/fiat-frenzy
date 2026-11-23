@@ -5,8 +5,8 @@
 ## The price follows Pricing.after_craft, and its floor is what the inputs last cost, so a dear
 ## purchase raises the floor. A craft with an input missing doesn't happen at all.
 ## A machine that isn't `working` is broken or boarded up: it offers nothing until its owner repairs it.
-## It composes an Equity (the player's share) and, for a tent, a Shelter. Where it is, who owns it and what it is (a trade at a
-## tier) are its Premises; `retier` turns it into the next tier of its trade.
+## It composes an Equity (the player's share) and, for a tent city, a Residence (its homes). Where it is, who owns it and what
+## it is (a trade at a tier) are its Premises; `retier` turns it into the next tier of its trade.
 class_name Machine
 extends Premises
 
@@ -14,9 +14,7 @@ var item: String
 ## How two saves of the same business combine (see Merge): sales add up, it is working if either save repaired it, and it is
 ## at the higher tier if either save built it up (Merge.settle then makes the rest of it agree: see retier).
 const MERGE := {"sold_total": "sum", "crafted_total": "sum", "revenue_total": "sum", "working": "any", "price_peak": "max",
-	"tier": "max", "built_total": "sum", "tents": "max"}
-## The tent city's tents stand side by side, each this wide (see Lodging).
-const TENT_WIDTH := 2.0
+	"tier": "max", "built_total": "sum"}
 
 var working := false
 var input := Inventory.new()
@@ -32,13 +30,12 @@ var repair_cost := 0.0
 var equity := Equity.new()
 var growth := Growth.new()  # shared with its owner once it has one (World.add_vendor)
 var level := 1              # how far it has expanded; follows the growth level (set_level)
-var shelter: Shelter = null  # tents only
-## The tent city (the "tent" kind, see Lodging): how many tents it has, one person to each, so how many people the cluster
-## holds (at most `Catalog.machine(kind).cap` at its tier). The row goes on to its side `wing` (+1 or -1 along its own x: down
-## the street, away from the market).
-var tents := 0
-var tents_cap := 0  # more room than its tier gives, if a scenario laid it out bigger (0: just the tier's)
-var wing := 1.0
+var residence: Residence = null  # a tent city's homes (see Lodging); null for any other machine
+## Its residence's shelter, or null: what warms and beds people, as a barrel fire's does (so whatever treats the two alike asks
+## either for its `shelter`). Read only; Snapshot.DERIVED.
+var shelter: Shelter:
+	get:
+		return residence.shelter if residence != null else null
 
 var price_peak := 0.0
 var built_total := 0.0  # what its owners have paid to build it up the tiers, all told (sunk, like a repair)
@@ -56,7 +53,7 @@ func _init(machine_kind := "bakery", owner_uid := "", at := Vector2.ZERO, is_wor
 	working = is_working
 	_take_def(machine_kind)
 	output.caps[item] = Catalog.machine(kind).cap
-	if stocked and shelter == null:  # (a tent city's beds are homes: nothing on its shelf but its wares)
+	if stocked and residence == null:  # (a tent city's beds are homes: nothing on its shelf but its wares)
 		output.add(item, maxi(capacity() / 2, 1))
 	for raw in recipe:
 		input_cost[raw] = Catalog.base_price(raw)
@@ -108,11 +105,10 @@ func _take_def(machine_kind: String) -> void:
 	tick = d.tick
 	repair_cost = d.repair
 	_solid = null
-	if d.warm > 0.0:
-		if shelter == null:
-			shelter = Shelter.new(d.cap, d.warm, pos)
-			shelter.berth_radius = 0.45  # a tent holds its sleepers inside its walls
-		shelter.warm_rate = d.warm
+	if d.warm > 0.0:  # a tent city: its homes
+		if residence == null:
+			residence = Residence.new(d.cap, d.warm, pos)
+		residence.shelter.warm_rate = d.warm
 	for raw in input_cost.keys():
 		if not recipe.has(raw):
 			input_cost.erase(raw)
@@ -137,7 +133,7 @@ func capacity() -> int:
 func offers(wanted: String) -> bool:
 	if wares.has(wanted):
 		return working and output.count(wanted) >= 1
-	return working and shelter == null and wanted == item and stock() >= 1  # (a tent city's beds are homes, not for sale)
+	return working and residence == null and wanted == item and stock() >= 1  # (a tent city's beds are homes, not for sale)
 
 
 ## Units of `raw` one round of crafting takes: one of its item and one of each ware (what its input store is sized by).
@@ -148,22 +144,12 @@ func per_craft(raw: String) -> int:
 	return n
 
 
-## The middle of the `index`th tent in the row, where its person sleeps: the tents side by side down `wing`. (Well clear of the
-## walls: Navigation holds a margin round every wall, and someone who woke up in it could not find a way out.)
-func bed_pos(index: int) -> Vector2:
-	return pos + Vector2(-front.y, front.x) * index * TENT_WIDTH * wing - front * 0.3
-
-
-## The tent city takes up the ground of its whole row (one long tent, open along the front); anything else, its kind's shape.
+## The tent city takes up the ground of its whole row (Residence.footprint); anything else, its kind's shape.
 func solid() -> Footprint:
-	if shelter == null:
+	if residence == null:
 		return super()
 	if _solid == null:
-		var shape: Array = Catalog.footprint_of(kind).tent
-		var k := maxi(1, tents)
-		var centre := pos + Vector2(-front.y, front.x) * wing * (k - 1) * TENT_WIDTH * 0.5
-		_solid = Footprint.new(centre, front)
-		_solid.tent(float(shape[0]) + (k - 1) * TENT_WIDTH * 0.5, shape[1], shape[2])
+		_solid = residence.footprint(self)
 	return _solid
 
 
@@ -188,8 +174,8 @@ func set_level(new_level: int) -> void:
 	var d := Catalog.machine(kind)
 	rate_per_min = d.rate * pow(1.25, level - 1)
 	output.caps[item] = d.cap + Stacks.SIZE * (level - 1)
-	if shelter != null:
-		shelter.capacity = tents  # (a tent city's tents are built, not grown: see Lodging)
+	if residence != null:
+		residence.shelter.capacity = residence.tents  # (a tent city's tents are built, not grown: see Lodging)
 		_solid = null
 	var raws := recipe.keys()
 	for ware in wares:
@@ -207,7 +193,7 @@ func set_level(new_level: int) -> void:
 
 ## Keeps the logistics flags honest: what this machine wants delivered and what it offers.
 func refresh() -> void:
-	output.offer = {item: stock()} if working and shelter == null else {}
+	output.offer = {item: stock()} if working and residence == null else {}
 	if working:
 		for ware in wares:
 			output.offer[ware] = output.count(ware)
@@ -216,10 +202,13 @@ func refresh() -> void:
 		input.want[raw] = input.room(raw)
 
 
-## Takes delivery of an input and remembers what it cost.
+## Takes delivery of an input and remembers what it cost. A dearer load lifts the price to the new floor at once (a small
+## load carries the runner's flat fee over fewer units), so the shop never sells below what its inputs cost it.
 func receive(raw: String, n: int, unit_price: float) -> void:
 	input.add(raw, n)
 	input_cost[raw] = unit_price
+	if not Catalog.machine(kind).flat_price:
+		price = maxf(price, floor_price())
 
 
 func step(dt: float) -> void:
@@ -233,7 +222,7 @@ func step(dt: float) -> void:
 
 func craft() -> void:
 	_craft_ware()
-	if shelter != null:
+	if residence != null:
 		return  # (a tent city's own item is its beds: nothing to make)
 	for raw in recipe:
 		if input.count(raw) < recipe[raw]:

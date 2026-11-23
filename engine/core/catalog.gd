@@ -1,10 +1,11 @@
 ## The data: every kind of item and business, each defined once, with everything about it in one place
 ## (see ItemDef and MachineDef), so a fact like a price can only be set in one spot.
 ##
-## Raw goods arrive on the Red Cross van (flour, protein, bottled water, sugar), free of charge, except
-## scrap, which is found lying around and spawns free. Machines turn inputs into one output item. A
-## machine's floor price is what its inputs cost it: an item's price for delivered goods, and whatever
-## the seller charged for things bought from another business, like bread.
+## The town's raw goods are what it throws away, salvaged from its bins (WasteBin): scrap from the garbage, recyclables from
+## the recycling (worth a deposit at the bottle depot), leftovers from the organics, and water from the fountains. Free to
+## gather; a stall pays their price on delivery into the town's fund (Deposit.fund), and the runner's fee. Machines turn inputs
+## into one output item. A machine's floor price is what its inputs cost it: the salvaged goods' price and the runner's fee,
+## and whatever the seller charged for things bought from another business, like bread.
 class_name Catalog
 extends RefCounted
 
@@ -15,16 +16,19 @@ static var _machines: Dictionary[String, MachineDef] = _build_machines()
 static func _build_items() -> Dictionary[String, ItemDef]:
 	var out: Dictionary[String, ItemDef] = {}
 	var defs: Array[ItemDef] = [
-		ItemDef.new("flour", "material", 1.0),
-		ItemDef.new("protein", "material", 1.5),
-		ItemDef.new("bottled_water", "drink", 0.5, 0.5),  # a raw input for lemonade, and fine to drink as it is
-		ItemDef.new("sugar", "material", 0.5),
-		ItemDef.new("scrap", "material", 0.0),  # lies in the street: free, but someone has to gather it (runners: see ScrapPile)
+		ItemDef.new("bottled_water", "drink", 0.5, 0.5),  # the hero's own to drink (Commerce.START_KIT): no stand sells it
+		# Salvaged from the town's bins (WasteBin). Free to gather; what a stall pays for them on delivery (their price, about
+		# what the food bank's flour and bottled water cost) goes into the town's fund, the bottle depot's (Deposit.fund): the
+		# town's waste is sold to its stalls, and the takings come back out as the deposit on its bottles.
+		ItemDef.new("scrap", "material", 0.0),  # from the garbage bins: free, but someone has to gather it (runners: see WasteBin)
+		ItemDef.new("leftovers", "material", 0.75),  # from the organics bins: what the food stalls make bread, hot dogs and lemonade of
+		ItemDef.new("water", "material", 0.5),  # from the fountains: the lemonade stand's
+		ItemDef.new("recyclables", "material", 0.0),  # bottles, from the recycling bins: worth Deposit.DEPOSIT each at the bottle depot
 		ItemDef.new("bread", "food", 2.0, 0.5),  # its price is the bakery's own floor
-		ItemDef.new("hot_dog", "food", 0.0, 0.9),  # a loaf and some protein: more filling for the money than bread, or no one buys it
-		ItemDef.new("burger", "food", 0.0, 1.0),  # the burger bar's: the same loaf and protein as a hot dog, done better
+		ItemDef.new("hot_dog", "food", 0.0, 0.9),  # a loaf and some leftovers: more filling for the money than bread, or no one buys it
+		ItemDef.new("burger", "food", 0.0, 1.0),  # the burger bar's: the same loaf and leftovers as a hot dog, done better
 		ItemDef.new("lemonade", "drink", 0.0, 0.6),
-		ItemDef.new("coffee", "drink", 0.0, 0.75),  # the coffee stop's: the same water and sugar as lemonade, and it goes further
+		ItemDef.new("coffee", "drink", 0.0, 0.75),  # the coffee stop's: the same water and leftovers as lemonade, and it goes further
 		ItemDef.new("bed", "warmth"),
 		ItemDef.new("bicycle", "vehicle", 3000.0),  # not food: bought once, and ridden. THE price of a bicycle
 		ItemDef.new("skateboard", "board", 120.0),  # a complete board (deck, trucks, wheels), at about what one costs in a shop today
@@ -39,9 +43,8 @@ static func _build_items() -> Dictionary[String, ItemDef]:
 	]
 	for d in defs:
 		out[d.id] = d
-	for g in ["flour", "protein", "sugar", "bottled_water"]:
-		out[g].relief = true
-	out["scrap"].scavenged = true
+	for g in ["scrap", "leftovers", "water", "recyclables"]:
+		out[g].scavenged = true
 	out["old_skateboard"].speed = 0.6
 	out["old_bike"].speed = 0.5
 	for g in ["bicycle", "old_bike", "skateboard", "old_skateboard", "old_coat", "coat"]:
@@ -56,21 +59,21 @@ static func _build_items() -> Dictionary[String, ItemDef]:
 static func _build_machines() -> Dictionary[String, MachineDef]:
 	var out: Dictionary[String, MachineDef] = {}
 	var bakery := MachineDef.new("bakery", "Bakery", "bread")
-	bakery.inputs = {"flour": 2}
+	bakery.inputs = {"leftovers": 2}
 	bakery.cap = 50
 	bakery.tick = 0.10
 	bakery.repair = 40.0
 	var dogs := MachineDef.new("hot_dog_stand", "Hot dog stand", "hot_dog")
-	dogs.inputs = {"bread": 1, "protein": 1}
+	dogs.inputs = {"bread": 1, "leftovers": 1}
 	dogs.cap = 20
 	dogs.tick = 0.08
 	dogs.repair = 40.0
 	var lemonade := MachineDef.new("lemonade_stand", "Lemonade stand", "lemonade")
-	lemonade.inputs = {"bottled_water": 1, "sugar": 1}
+	lemonade.inputs = {"water": 1, "leftovers": 1}
 	lemonade.cap = 20
 	lemonade.tick = 0.03
 	lemonade.repair = 25.0
-	lemonade.stock_crafts = 16  # a runner's cartload of each (water and sugar come on two trips: at six of each it sold out all day)
+	lemonade.stock_crafts = 16  # a runner's cartload of each (water and leftovers come on two trips: at six of each it sold out all day)
 	# The cluster's home and spawn factory, like Planet Crafter's drone bay: tents for one person each, warm and free (see
 	# Lodging). Its beds are not for sale (its `item` is only what it is for); its keeper makes and sells tents and barrel fires,
 	# of scrap (its wares, at `rate` a minute). `cap` is the most tents it holds at this tier: the atom's worth (see Atom), so
@@ -109,19 +112,19 @@ static func _build_machines() -> Dictionary[String, MachineDef]:
 	# value for the money. Each stands where its stand stood, on the same ground, for now (a shopfront in the block's wall is
 	# to come). What it is worth (`repair`) is the stand plus what it cost to build.
 	var bake_shop := MachineDef.new("bake_shop", "Bake shop", "bread")
-	bake_shop.inputs = {"flour": 2}
+	bake_shop.inputs = bakery.inputs
 	bake_shop.rate = 9.0
 	bake_shop.cap = 80
 	bake_shop.tick = 0.10
 	bake_shop.build = 250.0
 	var burgers := MachineDef.new("burger_bar", "Burger bar", "burger")
-	burgers.inputs = {"bread": 1, "protein": 1}
+	burgers.inputs = dogs.inputs
 	burgers.rate = 9.0
 	burgers.cap = 30
 	burgers.tick = 0.08
 	burgers.build = 250.0
 	var coffee := MachineDef.new("coffee_stop", "Coffee stop", "coffee")
-	coffee.inputs = {"bottled_water": 1, "sugar": 1}
+	coffee.inputs = lemonade.inputs
 	coffee.rate = 9.0
 	coffee.cap = 30
 	coffee.tick = 0.03
@@ -133,7 +136,7 @@ static func _build_machines() -> Dictionary[String, MachineDef]:
 	hostel.cap = Atom.ROLES.size() * 2
 	hostel.tick = 0.0
 	hostel.warm = 0.03
-	# (Built of scrap the runners pool into the tent city, not of money: about 35 days of a pile's scrap, ScrapPile.RATE, with its
+	# (Built of scrap the runners pool into the tent city, not of money: about 35 days of a garbage bin's scrap, WasteBin.KINDS, with its
 	# tents' and barrels' share. At 200 an atom had it on day 24: the user wants no capital formed in an atom's first month.)
 	hostel.build_scrap = 320
 	# The salvage trade: a homeless camp among the bike scrap, where someone puts together old boards from scrap the runners bring
@@ -186,8 +189,9 @@ static func _build_machines() -> Dictionary[String, MachineDef]:
 ## Every trade and its tiers, bottom up, by Catalog id: the one place that says what climbs to what. "" is a tier not built
 ## yet (the bike and skate shops are tier 1: a stall that rebuilds bikes from scrap would be their tier 0). The tiers above
 ## these, and what each would add, are in docs/upgrade_trees.md.
-## The rule for tier 0: a trade whose product is not food or drink makes it from scrap (what the street has: boards, coats).
-## Food and drink come from the relief goods. Higher tiers may take other inputs as supply chains grow (test_trades checks it).
+## The rule for tier 0: everything is made of what the town throws away (salvaged from its bins: WasteBin). A trade whose
+## product is not food or drink makes it from scrap (boards, coats, tents); food and drink are made of leftovers (and water,
+## from the fountains). Higher tiers may take other inputs as supply chains grow (test_trades checks it).
 const TRADES := {
 	"bread": ["bakery", "bake_shop"],
 	"salvage": ["scrap_camp", "bike_camp"],
@@ -197,8 +201,7 @@ const TRADES := {
 	"lodging": ["tent", "hostel"],
 	"bikes": ["", "bike_shop"],
 	"skates": ["", "skate_shop"],
-	"supply": ["food_bank"],
-	"money": ["welfare_office"],
+	"money": ["bottle_depot"],
 	"medical": ["first_aid", "medical_tent"],
 }
 ## What the keeper of each kind of stand is called (World.profession_of).
@@ -207,7 +210,7 @@ const KEEPERS := {"bakery": "Baker", "bake_shop": "Baker", "hot_dog_stand": "Hot
 	"bike_shop": "Bike shop owner", "skate_shop": "Skate shop owner", "scrap_camp": "Board maker", "bike_camp": "Bike mender",
 	"thrift_stall": "Thrift seller", "clothing_shop": "Tailor"}
 ## The names of the premises that are not machines (see Premises.display_name).
-const PREMISES_NAMES := {"welfare_office": "Welfare office", "first_aid": "First aid post", "medical_tent": "Medical tent"}
+const PREMISES_NAMES := {"bottle_depot": "Bottle depot", "first_aid": "First aid post", "medical_tent": "Medical tent"}
 
 
 ## The Catalog id of the tier above `kind` in its trade, or "" at the top (of what is built).
@@ -223,8 +226,6 @@ static func next_tier(kind: String) -> String:
 static func name_of(kind: String) -> String:
 	if _machines.has(kind):
 		return _machines[kind].name
-	if kind == "food_bank":
-		return food_bank.name
 	return PREMISES_NAMES.get(kind, kind)
 
 
@@ -236,21 +237,6 @@ const FIXTURE_FOOTPRINTS := {
 	"first_aid": {"tent": [0.92, -1.12, 1.85]},  # (a tent's size: one bed)
 }
 
-static var food_bank: FoodBankDef = _build_food_bank()
-
-
-static func _build_food_bank() -> FoodBankDef:
-	var fb := FoodBankDef.new()
-	# Two flour a loaf: a dozen people eat about 24 loaves' worth a day, 48 flour, and the van brings 30 of it.
-	fb.add("flour", 3.6)
-	# Water and sugar are what lemonade is made of, one each, and thirst is the quickest need: a town of a dozen drinks about
-	# 30 lemonades a day (a day is 10 minutes). Less than this left the stand's shelf empty half the day (bench_economy).
-	fb.add("bottled_water", 3.0)
-	fb.add("sugar", 3.0)  # (at 2.4 a dormant town's lemonade was capped at about 35 a day, against about 31 drunk: no margin)
-	fb.add("protein", 0.8)
-	return fb
-
-
 static func item(id: String) -> ItemDef:
 	return _items[id]
 
@@ -259,7 +245,7 @@ static func machine(id: String) -> MachineDef:
 	return _machines[id]
 
 
-## Whether `id` is a machine (rather than a premises, like the food bank).
+## Whether `id` is a machine (rather than a premises, like the bottle depot).
 static func has_machine(id: String) -> bool:
 	return _machines.has(id)
 
@@ -286,7 +272,7 @@ static func is_consumable(id: String) -> bool:
 	return _items.has(id) and item(id).consumable()
 
 
-## Raw goods that lie in the street, free, for runners to gather (scrap).
+## Raw goods salvaged from the town's bins, free, for runners to gather (scrap, leftovers, water, recyclables: WasteBin).
 static func scavenged_goods() -> Array[String]:
 	var out: Array[String] = []
 	for d in _items.values():
@@ -295,19 +281,8 @@ static func scavenged_goods() -> Array[String]:
 	return out
 
 
-## Raw goods the Red Cross van brings.
-static func relief_goods() -> Array[String]:
-	var out: Array[String] = []
-	for d in _items.values():
-		if d.relief:
-			out.append(d.id)
-	return out
-
-
 ## The ground shape of a business or fixture, by kind.
 static func footprint_of(kind: String) -> Dictionary:
 	if _machines.has(kind):
 		return _machines[kind].footprint
-	if kind == "food_bank":
-		return food_bank.footprint
 	return FIXTURE_FOOTPRINTS.get(kind, {})

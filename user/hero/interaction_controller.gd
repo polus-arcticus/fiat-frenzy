@@ -109,7 +109,7 @@ func open_player() -> void:
 func _process(delta: float) -> void:
 	if screen.visible:
 		var m := screen.machine
-		var reach := CLOSE_AT + (m.tents * Machine.TENT_WIDTH if m != null and m.shelter != null else 0.0)  # (a tent city's whole row)
+		var reach := CLOSE_AT + (m.residence.tents * Residence.TENT_WIDTH if m != null and m.residence != null else 0.0)  # (a tent city's whole row)
 		if m != null and player.ground_pos().distance_to(m.pos) > reach:
 			screen.close()
 			return

@@ -150,7 +150,7 @@ func test_no_space_reaches_up() -> void:
 
 func test_the_end_of_tick_systems_each_take_their_turn_in_order() -> void:
 	var w := World.new()
-	check(w._end_of_tick.size() == 11, "eleven systems take a turn after the drones (%d)" % w._end_of_tick.size())
+	check(w._end_of_tick.size() == 10, "ten systems take a turn after the drones (%d: the deposit has no turn of its own, it pays when bottles are handed in)" % w._end_of_tick.size())
 	check(w._end_of_tick.all(func(s): return s.has_method("step")), "each one has a step")
 	check(w._end_of_tick[0] is Hero and w._end_of_tick[1] is Transit and w._end_of_tick[w._end_of_tick.size() - 1] is Attention, "the hero first (their needs, where they are), then the bus; the gold glow last")
 	w.add_player(Vector2(5, 5), 10.0)

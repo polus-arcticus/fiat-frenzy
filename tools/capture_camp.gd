@@ -9,7 +9,7 @@ func _run() -> void:
 	var w: World = game.world
 	var camp: Machine = w.machine_of(game.scenario.cast.camp)
 	game.advance(5.0)
-	var pile: ScrapPile = w.scrap_piles[0]
+	var pile: WasteBin = w.bins.filter(func(b): return b.kind == "garbage")[0]
 	print("the camp: %s, %d boards, %d scrap; the pile %d" % [camp.display_name(), camp.stock(), camp.input.count("scrap"), pile.output.count("scrap")])
 	print("pile %.1f m from the camp; camp front %s" % [pile.pos.distance_to(camp.pos), camp.front])
 	var mid := (camp.pos + pile.pos) * 0.5

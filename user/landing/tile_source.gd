@@ -22,7 +22,7 @@ const AGENT := "FiatFrenzy/0.1 (game; tile import)"
 
 ## Which version of a layer's query the cache holds: when a layer asks for more (the land's street furniture, say), its number
 ## goes up, and a tile cached with the older answer fetches it once more, the next time anyone lands there.
-const VERSIONS := {"land": 2}
+const VERSIONS := {"land": 3}  # (3: drinking fountains, for the town's water)
 
 
 ## The cached raw answer's file for `key` and `layer` ("osm" or "land").
@@ -98,16 +98,21 @@ static func raw_of(key: String, dir := CACHE, layer := "osm") -> Dictionary:
 static func query(key: String, layer := "osm") -> String:
 	var box := _box(key)
 	if layer == "land":
-		var areas := _areas(OsmWater.AREAS + OsmDressing.AREAS, box)
-		for f in StreetThings.NODES:  # (the street's furniture: points, and a few lines)
-			areas += "node%s(%s);" % [f, box]
-		for f in StreetThings.LINES:
-			areas += "way%s(%s);" % [f, box]
-		var ways := "way[\"waterway\"~\"^(%s)$\"](%s);" % ["|".join(OsmWater.RIVER_WIDTH.keys()), box]
-		# (the areas cut to the box; a waterway's centre line whole, so its band reaches the tile's edge: a way is a few km)
-		return "[out:json][timeout:%d];(%s);out geom(%s);%sout geom;" % [TIMEOUT, areas, box, ways]
+		return land_query(box)
 	var kinds := "|".join(OsmImport.ROAD_WIDTH.keys())
 	return "[out:json][timeout:%d];(way[\"building\"](%s);way[\"highway\"~\"^(%s)$\"](%s););out geom;" % [TIMEOUT, box, kinds, box]
+
+
+## The "land" query for an Overpass box ("south,west,north,east"): a tile's, or the story's whole map (tools/story_land.gd).
+static func land_query(box: String, timeout := TIMEOUT) -> String:
+	var areas := _areas(OsmWater.AREAS + OsmDressing.AREAS, box)
+	for f in StreetThings.NODES:  # (the street's furniture: points, and a few lines)
+		areas += "node%s(%s);" % [f, box]
+	for f in StreetThings.LINES:
+		areas += "way%s(%s);" % [f, box]
+	var ways := "way[\"waterway\"~\"^(%s)$\"](%s);" % ["|".join(OsmWater.RIVER_WIDTH.keys()), box]
+	# (the areas cut to the box; a waterway's centre line whole, so its band reaches the tile's edge: a way is a few km)
+	return "[out:json][timeout:%d];(%s);out geom(%s);%sout geom;" % [timeout, areas, box, ways]
 
 
 static func _areas(filters: Array, box: String) -> String:

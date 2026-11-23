@@ -13,7 +13,7 @@ func _run() -> void:
 	for m in w.machines:
 		m.working = true
 	game.advance(240.0)
-	print("runner: %d trips, $%.2f in fees, hero's pocket $%.2f" % [runner.deliveries, runner.fees_earned, w.ledger.player_cash])
+	print("runner: %d trips, $%.2f in fees, hero's pocket $%.2f" % [runner.runner.deliveries, runner.runner.fees_earned, w.ledger.player_cash])
 	runner.job = {}
 	runner.route = PackedVector2Array()
 	runner.aloof = true  # (stands still for the picture)

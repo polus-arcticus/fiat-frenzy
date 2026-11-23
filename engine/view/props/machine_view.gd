@@ -49,8 +49,9 @@ func _build_prop() -> void:
 			remove_child(n)
 			n.queue_free()
 	_body = Look.solid_body(self, machine.solid())  # (a tent's ground grows with its modules)
-	if machine.shelter != null:
-		_board.position = Vector3((maxi(1, machine.tents) - 1) * Machine.TENT_WIDTH * machine.wing * 0.5, 3.2, 0)
+	var home := machine.residence
+	if home != null:
+		_board.position = Vector3((maxi(1, home.tents) - 1) * Residence.TENT_WIDTH * home.wing * 0.5, 3.2, 0)
 	_loaves.clear()
 	_sacks.clear()
 	_light = null
@@ -86,7 +87,7 @@ func _build_prop() -> void:
 			_stall(Color(0.3, 0.4, 0.5), Color(0.5, 0.55, 0.58), Color(0.42, 0.36, 0.3))
 			if _kind == "bike_camp":
 				for side in [-1.0, 1.0]:  # an old bike stood up at either end of the trestle, ready to go
-					ScrapPileView.old_bike(_prop, Vector3(side * 1.7, 0.33, 0.2), Vector3(PI / 2.0, PI / 2.0, 0.1 * side))
+					WasteBinView.old_bike(_prop, Vector3(side * 1.7, 0.33, 0.2), Vector3(PI / 2.0, PI / 2.0, 0.1 * side))
 		"bakery":
 			_stall(Color(0.72, 0.38, 0.28), Color(0.96, 0.9, 0.78), Color(0.85, 0.65, 0.35), false)
 			_bakery_goods()
@@ -102,23 +103,24 @@ func _build_prop() -> void:
 ## The tent city: a tent for each person, side by side down its wing, with a cot in each, and by the first one the tent keeper's
 ## own barrel (barrels are what the keeper will sell, for the hero to place: see Lodging).
 func _tent_modules() -> void:
-	var n := maxi(1, machine.tents)
-	var step := Machine.TENT_WIDTH * machine.wing
+	var home := machine.residence
+	var n := maxi(1, home.tents)
+	var step := Residence.TENT_WIDTH * home.wing
 	for k in n:
 		var section := Look.model(TENT)
 		section.position = Vector3(k * step, 0, 0)
 		_prop.add_child(section)
 		Look.box(_prop, Vector3(0.42, 0.14, 0.7), Vector3(k * step, 0.12, 0.3), Color(0.42, 0.36, 0.3))  # a cot
 	var barrel := Look.model(BARREL)
-	barrel.position = Vector3(-0.9 * machine.wing, 0, -1.75)
+	barrel.position = Vector3(-0.9 * home.wing, 0, -1.75)
 	_extras.add_child(barrel)
 	_light = OmniLight3D.new()
 	_light.position = Vector3((n - 1) * step * 0.5, 1.2, -1.6)
-	_light.omni_range = 8.0 + n * Machine.TENT_WIDTH * 0.6
+	_light.omni_range = 8.0 + n * Residence.TENT_WIDTH * 0.6
 	_light.light_color = Color(1.0, 0.6, 0.3)
 	_light.light_energy = 0.0
 	_extras.add_child(_light)
-	_tents_drawn = machine.tents
+	_tents_drawn = home.tents
 
 
 ## A tier 1 shop, for now on the stand's own ground: a kiosk, walled on three sides and roofed, its counter open to the street
@@ -181,9 +183,9 @@ func _update_goods() -> void:
 		return
 	for k in _loaves.size():
 		_loaves[k].visible = k < ceili(machine.stock() / 5.0)  # a full 50-loaf shelf fills the counter
-	var flour: int = machine.input.count("flour")
+	var leftovers: int = machine.input.count("leftovers")  # (the sacks by the counter: what the bread is made of)
 	for k in _sacks.size():
-		_sacks[k].visible = k < ceili(flour / 2.0)
+		_sacks[k].visible = k < ceili(leftovers / 2.0)
 
 
 ## A stall gets 8% bigger for every level above the first, up to 60% bigger.
@@ -192,7 +194,7 @@ func _size_for(level: int) -> float:
 
 
 func _process(delta: float) -> void:
-	if machine.kind != _kind or (machine.shelter != null and machine.tents != _tents_drawn):
+	if machine.kind != _kind or (machine.residence != null and machine.residence.tents != _tents_drawn):
 		_build_prop()
 	_grown = move_toward(_grown, _size_for(machine.level), delta * 0.4)
 	var goal := 1.0 if machine.working else 0.0
@@ -226,9 +228,9 @@ func _refresh_board() -> void:
 		return
 	_board.modulate = Color(1, 0.98, 0.92)
 	var line := "%s  ·  Lv %d\n$%.2f  ·  %d left" % [title, machine.level, machine.price, machine.stock()]
-	if machine.shelter != null:  # (a home: what it holds, not what it sells)
+	if machine.residence != null:  # (a home: what it holds, not what it sells)
 		var free := world.lodging.free_tents(machine)
-		line = "%s\n%d tents  ·  %s" % [title, machine.tents, "%d empty: someone's coming" % free if free > 0 else "all lived in"]
+		line = "%s\n%d tents  ·  %s" % [title, machine.residence.tents, "%d empty: someone's coming" % free if free > 0 else "all lived in"]
 	var mine := machine.equity.share(world.ledger.local)
 	if mine > 0.0:
 		line += "\nyou own %d%%" % roundi(mine * 100.0)

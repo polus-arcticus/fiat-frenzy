@@ -60,7 +60,8 @@ func run() -> void:
 	await game.quest_controller.ride_on()
 	var gate: Dictionary = game.scenario.ecb_stop
 	check(w.quests.done("rode_on") and w.bus.state == Bus.State.ARRIVED and w.bus.pos.distance_to(gate.bus) < 0.5 and not w.bus.aboard, "it drives on to the European Central Bank and stops at the gate")
-	check(game.player.controls_enabled and not game.player.is_seated() and not game.sim_paused and not game.quest_controller.can_board(), "the hero is out and free, and the bus does not take them again")
+	check(game.player.controls_enabled and not game.player.is_seated() and not game.sim_paused, "the hero is out and free")
+	check(game.quest_controller.boardable() == "bus", "and from now on the bus will take them back to town whenever they get on")
 
 
 	# The last leg: the doorman at the bank's gate, the shuttle, and the receptionist at the door. A long way east of Mr. Nobody's house.
@@ -70,7 +71,7 @@ func run() -> void:
 	w.sage.tell(Stories.FIRST)
 	await game.get_tree().process_frame
 	check(not w.quests.can_deliver() and w.quests.can_clear_gate() and not SecurityGate.is_open(w), "at the bank the gate is shut, and the doorman is the first to see (the desk can't take the letter yet)")
-	check(not game.quest_controller.can_board(), "and the shuttle is not yours to board yet")
+	check(game.quest_controller.boardable() != "shuttle", "and the shuttle is not yours to board yet")
 	var toward: Vector2 = (doorman.face_to - doorman.pos).normalized()  # the way he faces: from the street
 	game.player.teleport(Vector3(doorman.pos.x + toward.x * 2.0, 0.1, doorman.pos.y + toward.y * 2.0), 0.0)
 	w.player.pos = game.player.ground_pos()
@@ -116,3 +117,4 @@ func run() -> void:
 		game.dialogue.advance()
 		guard += 1
 	check(w.quests.state[QuestBook.LETTER] == "done" and w.player.carry.count("letter") == 0 and game.player.controls_enabled and not game.sim_paused, "reading it through delivers the letter, completes the quest and returns the controls")
+	# (and home again: s24_service, last, for the rides take the clock on into the night)

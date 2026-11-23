@@ -21,12 +21,12 @@ const HOPES := ["They want a room with a lock and a window.", "They are saving f
 	"They dream of a stall of their own.", "They'd settle for a winter without the cold in their bones.",
 	"They keep a list of every euro they owe, and mean to pay it.", "They want to learn to fix bikes properly."]
 ## What their work here is, by role (a vendor by what their stand is).
-const HERE := {"drifter": "Gets by on what the street gives.", "runner": "Pushes a cart between the food bank and the stands.",
-	"keeper": "Minds the food bank's shelves.", "clerk": "Hands out the welfare office's money, a few dollars at a time.",
+const HERE := {"drifter": "Gets by on what the street gives.", "runner": "Pushes a cart between the bins and the stands.",
+	"attendant": "Takes in the town's empties at the bottle depot, and pays a dollar on each.",
 	"medic": "Patches people up at the first aid post.", "tent": "Keeps the tent city, and makes tents and barrels from scrap.",
 	"hostel": "Keeps the hostel, and makes tents and barrels from scrap.", "bakery": "Bakes the town's bread.",
-	"bake_shop": "Runs the bake shop.", "lemonade_stand": "Mixes lemonade from water and sugar.",
-	"coffee_stop": "Runs the coffee stop.", "hot_dog_stand": "Sells hot dogs from a bun and a sausage.",
+	"bake_shop": "Runs the bake shop.", "lemonade_stand": "Mixes lemonade from fountain water and what fruit the bins give up.",
+	"coffee_stop": "Runs the coffee stop.", "hot_dog_stand": "Sells hot dogs: a bun, and whatever the bins gave up.",
 	"burger_bar": "Runs the burger bar.", "scrap_camp": "Builds old skateboards out of scrap.",
 	"bike_camp": "Builds old bikes out of scrap.", "thrift_stall": "Stitches old coats from scrap.",
 	"clothing_shop": "Runs the clothing shop."}

@@ -11,10 +11,9 @@ var machines: Array[Machine] = []
 var build_zone := "district"
 var relief_trucks: Array[ReliefTruck] = []
 var fires: Array[BarrelFire] = []
-var food_banks: Array[FoodBank] = []
-var scrap_piles: Array[ScrapPile] = []
+var bins: Array[WasteBin] = []  # the town's base inputs: its garbage, recycling and organics bins, and its fountains
 var hospitals: Array[Hospital] = []
-var welfare_offices: Array[WelfareOffice] = []  # the town's purse (see Welfare)
+var bottle_depots: Array[BottleDepot] = []  # where bottles are worth their deposit, and the town's fund (see Deposit)
 var ambulances: Array[Ambulance] = []
 var bills: Array[Bill] = []  # printed money, in flight or lying about
 var roads: RoadGraph = null  # optional: with one, drones walk the streets
@@ -42,7 +41,7 @@ var author := ""
 var seeding := true
 var _seeded := {}  # zone -> how many things have been named in it while seeding
 var _made := 0     # how many things have been named during play
-var _lookup := {}  # uid -> Drone, Machine or FoodBank (the things others refer to by uid)
+var _lookup := {}  # uid -> Drone or Machine (the things others refer to by uid)
 
 ## The model's only dice. Nothing in the sim calls the global randf: so a world run twice from the same state does the same
 ## thing, and a tile seeded twice comes out the same (see random()).
@@ -62,7 +61,7 @@ var arrivals: Array = []
 # The engine's systems (engine/)
 var zones: Zones
 var summary: TileSummary
-var welfare: Welfare
+var deposit: Deposit
 var trades: Trades
 var lodging: Lodging
 var walking: Walking
@@ -99,7 +98,7 @@ var _end_of_tick: Array = []
 ## if it has one, else takes the host's). Summary, Walking, Navigation and Heating hold nothing a save needs (the scenario
 ## rebuilds them). This is the one list: a new system with state is added here, beside its field.
 const SAVED := ["clock", "ledger", "needs", "logistics", "relief", "gun", "gun_tree", "commerce", "cash", "levels", "rescue", "chatter",
-	"hero", "riding", "sage", "portals", "transit", "skating", "quests", "attention", "zones", "borders", "welfare", "trades",
+	"hero", "riding", "sage", "portals", "transit", "skating", "quests", "attention", "zones", "borders", "deposit", "trades",
 	"lodging"]
 
 
@@ -123,10 +122,10 @@ func _init(game := true) -> void:
 	zones = Zones.new(self)
 	summary = TileSummary.new(self)
 	borders = Borders.new(self)
-	welfare = Welfare.new(self)
+	deposit = Deposit.new(self)
 	trades = Trades.new(self)
 	lodging = Lodging.new(self)
-	_end_of_tick = [rescue, borders, welfare, trades, lodging, chatter]
+	_end_of_tick = [rescue, borders, trades, lodging, chatter]
 	if game:
 		_attach_game()
 
@@ -161,7 +160,7 @@ func mint(thing: Object) -> Object:
 	else:
 		thing.uid = "%s/%d" % [author, _made]
 		_made += 1
-	if thing is Drone or thing is Machine or thing is FoodBank:
+	if thing is Drone or thing is Machine:
 		_lookup[thing.uid] = thing
 	return thing
 
@@ -192,7 +191,7 @@ func begin_play() -> void:
 	seeding = false
 
 
-## The drone, machine or food bank called `uid`, or null.
+## The drone or machine called `uid`, or null.
 func thing(uid: String) -> Object:
 	return _lookup.get(uid)
 
@@ -200,7 +199,7 @@ func thing(uid: String) -> Object:
 ## The lookup is rebuilt from the lists (after a load or a merge has replaced them).
 func reindex() -> void:
 	_lookup.clear()
-	for list in [drones, machines, food_banks, heroes]:
+	for list in [drones, machines, heroes]:
 		for t in list:
 			_lookup[t.uid] = t
 	if player != null:
@@ -241,47 +240,30 @@ func add_vendor(machine_kind: String, at: Vector2, wallet := 0.0, working := tru
 	return d
 
 
-## The food bank, and its keeper standing behind the counter. Returns the keeper.
-func add_food_bank(at: Vector2, keeper_wallet := 8.0) -> Drone:
-	var keeper := add_drifter(at, keeper_wallet)
-	keeper.kind = "keeper"
-	var fb := FoodBank.new(at, keeper.uid)
-	fb.zone = build_zone
-	mint(fb)
-	keeper.bank = fb.uid
-	food_banks.append(fb)
-	zones.invalidate()
-	keeper.pos = fb.post()
-	return keeper
+## The bottle depot, its kiosk at `at` facing `toward`, with its attendant behind the counter. The fund (the attendant's wallet)
+## starts with `fund` dollars. Returns the attendant.
+func add_bottle_depot(at: Vector2, toward := Vector2(0, 1), fund := 0.0) -> Drone:
+	var depot := BottleDepot.new(at, toward)
+	depot.zone = build_zone
+	mint(depot)
+	var attendant := add_drifter(depot.post(), fund)
+	attendant.kind = "attendant"
+	attendant.look = "keeper"  # (an apron, not a suit)
+	attendant.make_needless()
+	attendant.aloof = true
+	depot.owner = attendant.uid
+	bottle_depots.append(depot)
+	return attendant
 
 
-## The welfare office, its desk at `at` facing `toward`, with its clerk behind it. The purse (the clerk's wallet) starts
-## with `purse` dollars. Returns the clerk.
-func add_welfare_office(at: Vector2, toward := Vector2(0, 1), purse := 0.0) -> Drone:
-	var office := WelfareOffice.new(at, toward)
-	office.zone = build_zone
-	mint(office)
-	var clerk := add_drifter(office.post(), purse)
-	clerk.kind = "clerk"
-	clerk.look = "clerk"
-	clerk.make_needless()
-	clerk.aloof = true
-	office.owner = clerk.uid
-	welfare_offices.append(office)
-	return clerk
-
-
-## A cart runner: waits at `at`, and wheels base materials from the food bank to storefronts for a fee.
+## A cart runner: waits at `at`, and salvages the town's base inputs from its bins (WasteBin) to whatever wants them, for a fee.
 func add_runner(at: Vector2, wallet := 15.0) -> Drone:
 	var d := add_drifter(at, wallet)
 	d.kind = "runner"
+	d.runner = Runner.new()
 	d.home = at
 	d.speed = Walking.RUNNER_SPEED
 	return d
-
-
-func food_bank_of(d: Drone) -> FoodBank:
-	return _lookup.get(d.bank) if d.bank != "" else null
 
 
 ## The player's body: survival bars and a bag. They start with a little cash and some bread and water; after
@@ -342,13 +324,27 @@ func add_hospital(at: Vector2, toward_street: Vector2) -> Hospital:
 	return h
 
 
-## A pile of scrap in the street (see ScrapPile), starting with `start`.
-func add_scrap_pile(at: Vector2, start := 10) -> ScrapPile:
-	var p := ScrapPile.new(at, start)
-	p.zone = build_zone
-	mint(p)
-	scrap_piles.append(p)
-	return p
+## A bin of `kind` in the street (WasteBin: "garbage", "recycling", "organics" or "fountain"), starting with `start` of its
+## item (-1: its kind's usual).
+func add_bin(kind: String, at: Vector2, start := -1) -> WasteBin:
+	var b := WasteBin.new(kind, at, start)
+	b.zone = build_zone
+	mint(b)
+	bins.append(b)
+	zones.invalidate()
+	return b
+
+
+## The bins of every kind side by side: the atom's own, where the map has none near (Atom.LAYOUT "bins"), along `along` from
+## `at` (garbage, recycling, organics). Returns them.
+func add_bin_station(at: Vector2, along := Vector2(1, 0), kinds := ["garbage", "recycling", "organics"]) -> Array[WasteBin]:
+	var out: Array[WasteBin] = []
+	for k in kinds.size():
+		out.append(add_bin(kinds[k], at + along * (float(k) - (kinds.size() - 1) * 0.5) * BIN_APART))
+	return out
+
+
+const BIN_APART := 2.2  # metres between the bins of a station
 
 
 func add_fire(at: Vector2) -> BarrelFire:
@@ -376,7 +372,7 @@ func profession_of(d: Drone) -> String:
 	var m := machine_of(d)
 	if m != null:
 		return Catalog.KEEPERS.get(m.kind, m.display_name() + " keeper")
-	return {"runner": "Cart runner", "keeper": "Food bank keeper", "clerk": "Welfare clerk", "medic": "Medic",
+	return {"runner": "Cart runner", "attendant": "Depot attendant", "medic": "Medic",
 		"drifter": "Out of work", "player": ""}.get(d.kind, d.kind.capitalize())
 
 
@@ -394,8 +390,6 @@ func solids() -> Array[Footprint]:
 	var out: Array[Footprint] = []
 	for m in machines:
 		out.append(m.solid())
-	for fb in food_banks:
-		out.append(fb.solid())
 	for f in fires:
 		out.append(f.solid())
 	for h in hospitals:
@@ -422,11 +416,9 @@ func tick(dt := 1.0) -> void:
 	for z in running:
 		for m in zones.machines_in(z):
 			m.step(dt)
-		for fb in zones.food_banks_in(z):
-			fb.step(dt)
-		for p in scrap_piles:
-			if p.zone == z:
-				p.step(dt)
+		var heads := zones.heads_in(z)
+		for b in zones.bins_in(z):
+			b.step(dt, heads)
 	needs.wake_sleepers()
 	for z in running:
 		var here: Array = zones.drones_in(z).duplicate()

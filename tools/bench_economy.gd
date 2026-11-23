@@ -1,9 +1,9 @@
 ## Bench: does a town keep itself going once the hero has got it started? The standard cluster (see Cluster) as a block is
 ## found, every stall wrecked and every vendor broke. The "hero" pays each vendor what their repair costs (and a little over)
 ## once, and leaves. Then the town runs on its own for DAYS game days (a day is 600 s), and each day prints what happened.
-##   godot --headless --path . --script tools/bench_economy.gd [-- summary] [nowelfare] [gift] [<days>]
-## With `summary` the town is dormant (TileSummary) instead of in full detail; with `nowelfare` it has no welfare office (the
-## economy as it was before the town's purse); with `gift` the hero gives the baker $100 on day 5 (do they keep it?). Each
+##   godot --headless --path . --script tools/bench_economy.gd [-- summary] [nodeposit] [gift] [<days>]
+## With `summary` the town is dormant (TileSummary) instead of in full detail; with `nodeposit` it has no bottle depot (no new
+## money comes in at all, and its stalls' payments for their goods are not taken: they are free); with `gift` the hero gives the baker $100 on day 5 (do they keep it?). Each
 ## day's row ends with who collapsed and what ran out ("had money": they had $3 or more on them).
 extends SceneTree
 
@@ -11,11 +11,11 @@ const DAYS := 30
 const ZONE := "town"
 
 
-func _build(welfare: bool) -> World:
+func _build(depot: bool) -> World:
 	var w := World.new(false)  # (the engine alone: no hero, no story)
 	Cluster.found(w, ZONE, Vector2.ZERO)
-	if not welfare:
-		w.welfare_offices.clear()  # (its clerk stays, a needless bystander)
+	if not depot:
+		w.bottle_depots.clear()  # (its attendant stays, a needless bystander)
 	w.begin_play()
 	return w
 
@@ -29,7 +29,7 @@ func _roles(w: World) -> Dictionary:
 
 func _initialize() -> void:
 	var summary := "summary" in OS.get_cmdline_user_args()
-	var w := _build(not "nowelfare" in OS.get_cmdline_user_args())
+	var w := _build(not "nodeposit" in OS.get_cmdline_user_args())
 	Cluster.fund(w, ZONE)  # the hero funds the repairs, once
 	if summary:
 		w.build_zone = "elsewhere"

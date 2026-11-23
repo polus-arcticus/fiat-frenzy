@@ -47,9 +47,9 @@ func _run(dir: String) -> void:
 	await _shot("1_from_the_bus", dir)
 	_stand(mid.pos + (mid.front as Vector2) * 4.0, Vector3(mid.pos.x, 1.2, mid.pos.y))
 	await _shot("2_the_stands", dir)
-	var fb: FoodBank = w.food_banks[1]
+	var fb: WasteBin = w.bins.filter(func(b): return b.kind == "organics" and b.zone == Scenario.ECB_ZONE)[0]
 	_stand(fb.pos + (fb.front as Vector2) * 5.0, Vector3(fb.pos.x, 1.2, fb.pos.y))
-	await _shot("3_the_food_bank", dir)
+	await _shot("3_the_bins", dir)
 	var h: Hospital = w.hospitals[1]
 	_stand(h.pos + (h.toward_street as Vector2) * 5.0 if "toward_street" in h else h.pos + Vector2(5, 0), Vector3(h.pos.x, 1.2, h.pos.y))
 	await _shot("4_the_clinic", dir)

@@ -1,6 +1,6 @@
-## Bench: two saves on neighbouring tiles are merged, and the joined towns settle. Save A is a market town with no food bank (its
-## stands run short of flour, water and the like, so it gets dear and hungry); save B, the tile to the east, has a food bank and
-## cart runners. After the merge the hero stands in A (full detail) and B runs in summary. Prints, every hour, each tile's
+## Bench: two saves on neighbouring tiles are merged, and the joined towns settle. Save A is a market town with no bins but its
+## garbage, and no runners (its stands run short of leftovers and water, so it gets dear and hungry); save B, the tile to the
+## east, has its bins and cart runners. After the merge the hero stands in A (full detail) and B runs in summary. Prints, every hour, each tile's
 ## people, mean price of food and drink, stock on the shelves and money, and what has crossed the border.
 ##   godot --headless --path . --script tools/bench_equilibrium.gd
 extends SceneTree
@@ -18,8 +18,8 @@ func build(tiles: Array) -> World:
 	var w := World.new()
 	for t in tiles:
 		w.zones.add_tile(t)
-		Fixtures.market_town(w, t, TileKey.rect(t).get_center(), 6, t == _tile(1), 60.0)  # only B's tile has a food bank
-		w.add_welfare_office(TileKey.rect(t).get_center() + Vector2(-14.0, -10.0))  # each save had its own town's purse
+		Cluster.build(w, t, TileKey.rect(t).get_center(), 6, t == _tile(1), 60.0, false)  # only B's tile has its bins and runners
+		w.add_bottle_depot(TileKey.rect(t).get_center() + Vector2(-14.0, -10.0))  # each save had its own town's depot
 	return w
 
 
@@ -79,6 +79,6 @@ func _initialize() -> void:
 			print("   %-8s x%d  wallets $%.2f  %s" % [k, by[k][0], by[k][1], by[k][2]])
 		for m in w.zones.machines_in(pair[1]):
 			print("   %-15s stock %2d price %5.2f working %s inputs %s" % [m.kind, m.stock(), m.price, m.working, m.input.counts])
-		for fb in w.zones.food_banks_in(pair[1]):
-			print("   food bank       %s" % fb.output.counts)
+		for bin in w.zones.bins_in(pair[1]):
+			print("   %-15s %s" % [bin.kind, bin.output.counts])
 	quit()

@@ -1,7 +1,7 @@
 ## A homeless camp among the bike scrap: the salvage trade (Catalog.TRADES "salvage"). Its keeper puts together old skateboards
 ## from the scrap the runners bring (tier 0), and once enough scrap is pooled into it, it is built up into a bike camp that puts
 ## together old bikes (tier 1: Trades, MachineDef.build_scrap). Both sell to the hero at their flat price, cheap and slow
-## (ItemDef.speed). The scrap lies in a pile beside it (ScrapPile).
+## (ItemDef.speed). Its scrap gathers in a garbage bin beside it (WasteBin).
 class_name Camp
 extends RefCounted
 
@@ -41,10 +41,10 @@ static func pitch(w: World, at: Vector2, toward_street: Vector2, wallet := KEEPE
 	if with_fire:  # (a park camp shares the town's scrap: a pile of its own doubled what the runner hauls, and the fees he earns)
 		w.add_fire(at + along * FIRE_AT.x + toward_street * FIRE_AT.y)
 		return camp
-	w.add_scrap_pile(at + along * PILE_AT.x + toward_street * PILE_AT.y)
+	w.add_bin("garbage", at + along * PILE_AT.x + toward_street * PILE_AT.y).front = toward_street
 	for m in w.zones.machines_in(keeper.zone):
-		if m.shelter != null and m.working and w.lodging.room_for(m) > 0:
+		if m.residence != null and m.working and w.lodging.room_for(m) > 0:
 			keeper.bed = m.uid
-			w.lodging.set_tents(m, maxi(m.tents, w.lodging.housed(m).size()))
+			w.lodging.set_tents(m, maxi(m.residence.tents, w.lodging.housed(m).size()))
 			break
 	return camp

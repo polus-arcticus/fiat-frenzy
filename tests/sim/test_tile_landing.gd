@@ -15,7 +15,7 @@ func test_the_atom_stands_on_open_ground() -> void:
 	var w := landing.build()
 	var key := Fixtures.tile_key()
 	var polys: Array = landing.district.buildings.map(func(b): return MapSites.pts(b.poly))
-	var things: Array = w.machines + w.food_banks + w.hospitals + w.welfare_offices + w.fires + w.scrap_piles
+	var things: Array = w.machines + w.hospitals + w.bottle_depots + w.fires + w.bins
 	var inside := things.filter(func(o): return polys.any(func(p): return Geometry2D.is_point_in_polygon(o.pos, p)))
 	check(things.size() >= 8 and inside.is_empty(), "the atom's %d things stand in the street, none in a building" % things.size())
 	check(w.zones.drones_in(key).size() == Atom.ROLES.size() and w.zones.tiles.has(key), "its people are the tile's zone (%s)" % key)

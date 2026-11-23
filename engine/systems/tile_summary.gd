@@ -1,5 +1,6 @@
-## A dormant zone, in summary. Nobody in it walks, queues or talks, but the town still lives: its businesses and food bank
-## produce, its people get hungry and thirsty and buy what answers it, vendors repair and restock, and runners haul. Each
+## A dormant zone, in summary. Nobody in it walks, queues or talks, but the town still lives: its businesses and bins
+## produce, its people get hungry and thirsty and buy what answers it, vendors repair and restock, runners haul, and whoever
+## is short of cash takes the bottles to the depot. Each
 ## errand is planned and carried out by the same rules as in full detail (Logistics.plan and Logistics.complete), only
 ## without the walk: so prices, takings, stakes and the books move exactly as they would, a little sooner.
 ##
@@ -11,7 +12,7 @@ class_name TileSummary
 extends RefCounted
 
 ## Errands a summary carries out. (Warmth would move people into berths, and loose cash would have them walk to it.)
-const ERRANDS := ["food", "drink", "repair", "restock", "haul"]
+const ERRANDS := ["food", "drink", "repair", "restock", "haul", "collect"]
 const MAX_ERRANDS := 6  # the most one person does in one coarse step
 
 var _w: World
@@ -25,11 +26,9 @@ func _init(world: World) -> void:
 func step(zone: String, dt: float) -> void:
 	for m in _w.zones.machines_in(zone):
 		m.step(dt)
-	for fb in _w.zones.food_banks_in(zone):
-		fb.step(dt)
-	for p in _w.scrap_piles:
-		if p.zone == zone:
-			p.step(dt)
+	var heads := _w.zones.heads_in(zone)
+	for b in _w.zones.bins_in(zone):
+		b.step(dt, heads)
 	_w.needs.wake_sleepers([zone])
 	var by_a_fire := not _w.zones.fires_in(zone).is_empty()
 	var here: Array = _w.zones.drones_in(zone).duplicate()
@@ -82,8 +81,8 @@ func _errands(d: Drone) -> void:
 			break
 		var before := _state(d)
 		_w.logistics.complete(d, job)
-		if job["for"] == "haul" and not d.job.is_empty():
-			_w.logistics.complete(d, d.job)  # the pickup set up the drop: wheel it straight over
+		if job["for"] in ["haul", "collect"] and not d.job.is_empty():
+			_w.logistics.complete(d, d.job)  # the pickup set up the drop: take it straight over
 		if _state(d) == before:
 			break  # it could not be done after all (it could not pay, the shelf was bare)
 	d.job = {}
@@ -91,4 +90,4 @@ func _errands(d: Drone) -> void:
 
 ## Enough of a drone's state to tell whether an errand did anything.
 func _state(d: Drone) -> Array:
-	return [d.wallet, d.bars.hunger, d.bars.thirst, d.carry.counts.duplicate(), d.cart.counts.duplicate()]
+	return [d.wallet, d.bars.hunger, d.bars.thirst, d.carry.counts.duplicate(), d.runner.cart.counts.duplicate() if d.runner != null else {}]

@@ -3,7 +3,7 @@
 ## knows nothing of any of this; the views only read it.
 extends Node3D
 
-const DISTRICT_PATH := "res://data/bahnhofsviertel.json"
+const DISTRICT_PATH := Scenario.DISTRICT
 const SIM_STEP := SimLoop.STEP
 ## What the loading picture counts through while the game is built from the title (Launch.loading); built anywhere else
 ## (tests, tools) it is built all at once, as before.
@@ -15,7 +15,7 @@ signal built
 var is_built := false
 var _stepwise := false
 var _step_at := 0
-var dressing: DressingController  # a tile's water and green, coming in the background (none in the story)
+var dressing: DressingController  # the green and its trees (a tile's, or the story's), coming in the background
 var kerbs: Kerbs  # the raised pavements and their kerb lines (drawn, stood on, ground by a skateboard)
 
 var world: World
@@ -112,9 +112,9 @@ func _ready() -> void:
 		for a in args:
 			if a.begins_with("--stage="):
 				_jump_when_free(a.trim_prefix("--stage="))
-	var tile := landing as TileLanding
-	if tile != null:
-		dressing = DressingController.new().setup(tile.key, tile.district, city)
+	if not landing.district.get("green", {}).is_empty():  # (a tile's, or the story's: Scenario.load_district)
+		var dice: String = (landing as TileLanding).key if landing is TileLanding else Scenario.LAND_KEY
+		dressing = DressingController.new().setup(dice, landing.district, city)
 		add_child(dressing)
 	await _step()
 	if _stepwise:  # (the first frames compile the shaders: let them happen behind the picture)
@@ -316,9 +316,8 @@ func _build_story() -> void:
 
 
 func _load_district() -> Dictionary:
-	var f := FileAccess.open(DISTRICT_PATH, FileAccess.READ)
-	assert(f != null, "missing %s: run tools/osm_to_district.py" % DISTRICT_PATH)
-	return JSON.parse_string(f.get_as_text())
+	assert(FileAccess.file_exists(DISTRICT_PATH), "missing %s: run tools/osm_to_district.py" % DISTRICT_PATH)
+	return Scenario.load_district(DISTRICT_PATH)
 
 
 ## Makes the view for a drone, including one that turns up later (the bankers).

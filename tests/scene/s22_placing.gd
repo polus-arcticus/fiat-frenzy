@@ -36,7 +36,7 @@ func run() -> void:
 	game.interaction.open(city)
 	await tree.process_frame
 	var screen: InventoryScreen = game.inventory
-	check(screen.visible and screen._residents.visible and screen._cards.get_child_count() >= city.tents, "E at the tent city opens the trading screen, with who lives there")
+	check(screen.visible and screen._residents.visible and screen._cards.get_child_count() >= city.residence.tents, "E at the tent city opens the trading screen, with who lives there")
 	for item in ["barrel_fire", "tent"]:
 		for c in screen._sale.get_children():
 			if c is SlotView and c.item == item and c.tooltip_text.begins_with("Right-click to buy"):

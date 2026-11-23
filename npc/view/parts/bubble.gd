@@ -1,5 +1,5 @@
 ## VIEW PART. A speech bubble: dark ink on a thick paper-coloured outline, floating over a drone's head, which
-## wraps long lines and fades in and out as the drone's `speech` changes. Reads a Drone; owns nothing.
+## wraps long lines and fades in and out as what they said changes (Chatter.of). Reads a Drone and its Speech; owns nothing.
 class_name Bubble
 extends Label3D
 
@@ -35,13 +35,13 @@ func _init() -> void:
 	visible = false
 
 
-## Shows the drone's current line, if it has one. `lying`: they are on the ground, so the bubble sits lower.
-## `k` eases the position this frame; `delta` is real time, so a line is readable at any game speed.
-func refresh(drone: Drone, lying: bool, k: float, delta: float) -> void:
+## Shows the drone's current line (`said`: theirs, Chatter.of), if it has one. `lying`: they are on the ground, so the bubble
+## sits lower. `k` eases the position this frame; `delta` is real time, so a line is readable at any game speed.
+func refresh(drone: Drone, said: Speech, lying: bool, k: float, delta: float) -> void:
 	position.y = lerpf(position.y, LYING_Y if lying else STANDING_Y, k)
-	if drone.speech_seq != _seen:
-		_seen = drone.speech_seq
-		text = drone.speech
+	if said.seq != _seen:
+		_seen = said.seq
+		text = said.line
 		_left = Chatter.LINE_TIME
 		_age = 0.0
 	_left = maxf(0.0, _left - delta)

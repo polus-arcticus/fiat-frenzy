@@ -35,19 +35,17 @@ func show_target(d: Drone, w: World) -> void:
 func _describe(d: Drone, w: World) -> String:
 	var job := w.profession_of(d)
 	var text := ("%s  ·  " % job if job != "" else "") + "reputation %d points" % roundi(d.rep * 100.0)
-	if d.kind == "runner":
-		var load_text := ", ".join(d.cart.counts.keys().filter(func(k): return d.cart.count(k) > 0).map(func(k): return "%d %s" % [d.cart.count(k), k.replace("_", " ")]))
+	var r := d.runner
+	if r != null:
+		var load_text := ", ".join(r.cart.counts.keys().filter(func(k): return r.cart.count(k) > 0).map(func(k): return "%d %s" % [r.cart.count(k), k.replace("_", " ")]))
 		text += "\ncart: %s" % (load_text if load_text != "" else "empty")
-		text += "\n%d trips, %d units, $%.2f in fees" % [d.deliveries, d.delivered_total, d.fees_earned]
-		var worth := d.equity.value(Drone.CART_VALUE, d.growth.xp)
-		text += "\ncart worth $%.0f  ·  you own %d%% of its fees" % [worth, roundi(d.equity.share(w.ledger.local) * 100.0)]
-	var fb := w.food_bank_of(d)
-	if fb != null:
-		text += "\n%s: %s" % [fb.display_name(), ", ".join(Catalog.food_bank.goods.keys().map(func(g): return "%d %s" % [fb.output.count(g), g.replace("bottled_", "").replace("_", " ")]))]
+		text += "\n%d trips, %d units, $%.2f in fees" % [r.deliveries, r.delivered_total, r.fees_earned]
+		var worth := r.equity.value(Runner.CART_VALUE, d.growth.xp)
+		text += "\ncart worth $%.0f  ·  you own %d%% of its fees" % [worth, roundi(r.equity.share(w.ledger.local) * 100.0)]
 	var m := w.machine_of(d)
 	if m != null:
-		if m.working and m.shelter != null:
-			text += "\n%s: %d tents, %d lived in" % [m.display_name(), m.tents, w.lodging.housed(m).size()]
+		if m.working and m.residence != null:
+			text += "\n%s: %d tents, %d lived in" % [m.display_name(), m.residence.tents, w.lodging.housed(m).size()]
 			text += "\nworth $%.0f  ·  you own %d%%" % [m.value(), roundi(m.equity.share(w.ledger.local) * 100.0)]
 		elif m.working:
 			text += "\n%s: $%.2f, %d in stock" % [m.display_name(), m.price, m.stock()]

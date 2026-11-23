@@ -16,7 +16,7 @@ gun is a curse (see `docs/story.md`).
 | [docs/player.md](docs/player.md) | the controls, the gun, the screens and the vehicles |
 | [docs/story.md](docs/story.md) | the design note, the map, the places, the quests, the scripted cast |
 | [docs/coop.md](docs/coop.md) | tiles, merging saves, and co-op to come |
-| [docs/review.md](docs/review.md) | the latest code review, and the four code spaces it leads to |
+| [docs/review.md](docs/review.md) | the code review: what holds up, the four code spaces, what is still open |
 
 ## Run
 
@@ -37,7 +37,7 @@ network for two things, both public OpenStreetMap services:
   (kept in `user://tiles`):
   - its buildings and streets;
   - its land: water (solid), parks (where camps go), and the street's furniture as points (lamps, stops, signs, bike
-	stands, benches, recycling), cut to the tile's box by the server. Trees are scattered with the tile's own dice, not
+	stands, benches, and the bins and fountains the town runs on), cut to the tile's box by the server. Trees are scattered with the tile's own dice, not
 	fetched. (Its file is named by the version of its query: a tile cached with an older one fetches it once more.)
 
 Every request backs off exponentially when the server is busy (`Backoff`: 2 s doubling to 60 s, with jitter; `Retry-After`
@@ -55,28 +55,18 @@ honoured). Nothing about the player is sent.
   story's systems, and it is what the benches and a map of anywhere run on (`test_the_engine_runs_without_the_hero_or_the_story`).
   The game's world, `World.new()`, adds the hero's and the story's systems. The hero's own turn (their needs, their zone) is the
   `Hero` system's. The engine only knows which zone is watched (`Zones.focus`).
-- Composition, not inheritance: components (Equity, Shelter, Growth) are held by things, and systems by the world. Money is a
+- Composition, not inheritance: components (Equity, Shelter, Growth, a runner's `Runner`, a tent city's `Residence`) are held
+  by things, null where a thing has no such role, and systems by the world. Money is a
   number, never an item.
 
-**Four spaces, one top folder each** (`docs/review.md`). The dependencies point down: a script names no class from a space
-after its own. `test_architecture` checks this on every run, and fails on a planted upward reference.
-
-	engine/   the simulation: world, core data, entities, systems, map geometry,     (uses nothing above it)
-			  relief, welfare, lodging, portals, and the views of assets and the city
-	npc/      what agents decide and do: needs, errands, supply, queues, hauling,      (uses engine)
-			  borders, chatter, medical; the drone views
-	user/     the hero: hero, gun, commerce, bike, skating, transit, inspector,        (uses engine, npc)
-			  saves, the HUD and screens, the game controller
-	story/    the scenario and its cast, quests and tutorial, the sage, the ECB,       (uses anything)
-			  the story's verbs and set-piece views
-
-Inside a space, features have their own folders (`user/gun/`, `story/sage/`), with model, view and controller side by side.
-Presentation is in a `view/` or `control/` folder, or named for it (`_view`, `_controller`, `_screen`, ...). Everything else is
-model, headless.
+**Four spaces, one top folder each**: `engine/` (the simulation), `npc/` (what agents decide and do), `user/` (the hero and the
+screens) and `story/` (the scenario, quests and cast); what each holds is in `docs/review.md`. The dependencies point down: a
+script names no class from a space after its own, and `test_architecture` fails on an upward reference. Inside a space,
+features have their own folders (`user/gun/`, `story/sage/`), with model, view and controller side by side; presentation is in a
+`view/` or `control/` folder, or named for it (`_view`, `_controller`, `_screen`, ...), and everything else is headless model.
 
 **Two composition roots** may name every space: `engine/world.gd` (it owns every system) and `user/control/game_controller.gd`
-(it builds the app: the hero's controls and screens, and the story's controllers and views). Everywhere else, the user space
-reaches the story only through shapes the user space defines:
+(it builds the app). Everywhere else, the user space reaches the story only through shapes the user space defines:
 - `Objectives`, which the tutorial fills in;
 - `InteractionController.add_verb`, which the story's talks use (`StoryVerbs`);
 - `PauseScreen.stages`, which is handed the developer jumps.
@@ -86,7 +76,7 @@ The world holds the story's scripted cast (`World.cast`, a story `Cast`) without
 **Conventions that keep it honest.**
 - **Each fact is defined once.** Prices, rates and costs live in the Catalog (`engine/core/catalog.gd`); trades and their tiers in
   `Catalog.TRADES`; how a field merges in its class's `MERGE` table.
-- **Money is conserved.** It enters only by the gun, the seed or the welfare fountain, all counted in `Ledger.printed`. Every test
+- **Money is conserved.** It enters only by the gun, the seed or the deposit on bottles, all counted in `Ledger.printed`. Every test
   that moves money checks `total_money == ledger.printed`.
 - **Everything has a uid** (`World.mint`): `<zone>#n` while the map is seeded, `<author>/n` in play. References are uids, so
   saves combine (`docs/coop.md`).
@@ -127,6 +117,7 @@ The world holds the story's scripted cast (`World.cast`, a story `Cast`) without
   (`tools/capture_tool.gd`) and writes only its `_run()`.
 - `tools/probe_*.gd`: one question each, asked of the model.
 - `tools/check_stages.gd`: every developer jump.
-- `tools/osm_to_district.py`: the map from OpenStreetMap. It names its Overpass URLs before fetching anything.
+- `tools/osm_to_district.py`: the story's map (buildings and streets) from OpenStreetMap. It names its Overpass URLs before
+  fetching anything. `tools/story_land.gd` fetches the story's land (water, green, street furniture) in one request.
 - `tools/make_tile.gd -- lat=… lon=… [days=N] [offline]`: fetch (or read from the cache) a tile, put its atom on it and run it.
 - `tools/capture_globe.gd`, `tools/capture_newgame.gd`: the landing picker, and starting a game from the title on a tile.

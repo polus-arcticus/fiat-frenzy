@@ -86,7 +86,7 @@ func test_player_buy_refusals() -> void:
 		p.carry.add("lemonade", 10)
 		p.carry.counts["lemonade"] = 10 * (i + 1)
 	check(w.commerce.buy(bakery, "bread").text == "Your bag is full.", "a full bag")
-	check(not w.commerce.consume("flour").ok and not w.commerce.consume("bread").ok, "can't consume what you haven't got, or flour")
+	check(not w.commerce.consume("scrap").ok and not w.commerce.consume("bread").ok, "can't consume what you haven't got, or scrap")
 
 
 func test_the_hero_starts_with_bread_and_water() -> void:

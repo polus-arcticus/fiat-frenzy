@@ -17,16 +17,18 @@
 class_name Snapshot
 extends RefCounted
 
-const VERSION := 3  # (3: the hero's bike is in their loadout, Drone.gear, not parked in the world)
+const VERSION := 6  # (3: the hero's bike is in their loadout, Drone.gear; 4: bins (WasteBin) for scrap piles, no food bank;
+                    # 5: the bottle depot (Deposit) for the welfare office; 6: a runner's cart business is a component,
+                    # Drone.runner, and a tent city's homes, Machine.residence)
 ## The systems whose state is saved: World.SAVED, the one list.
 const SYSTEMS := World.SAVED
 ## Variables that are derived, or computed, and so are never written or read.
-const DERIVED := {"Zones": ["_index", "_dirty", "version", "regions"], "Rescue": ["on_admitted"], "Skating": ["mounted"], "Portals": ["all"],
+const DERIVED := {"Zones": ["_index", "_dirty", "version", "regions"], "Rescue": ["on_admitted"], "Chatter": ["_said"], "Machine": ["shelter"], "Skating": ["mounted"], "Portals": ["all"],
 	"Ledger": ["player_cash", "stake_income"], "Equity": ["stake"]}
 ## The world's lists of things, and the class each holds (a thing the save has and the fresh world lacks is made from it).
-const LISTS := {"drones": "Drone", "machines": "Machine", "food_banks": "FoodBank", "scrap_piles": "ScrapPile", "fires": "BarrelFire",
+const LISTS := {"drones": "Drone", "machines": "Machine", "bins": "WasteBin", "fires": "BarrelFire",
 	"relief_trucks": "ReliefTruck", "hospitals": "Hospital", "ambulances": "Ambulance", "bills": "Bill", "heroes": "Drone",
-	"welfare_offices": "WelfareOffice"}
+	"bottle_depots": "BottleDepot"}
 ## The things the world holds one of, by its field, and their class.
 const SINGLES := {"player": "Drone", "bus": "Bus", "shuttle": "Bus"}
 ## The world's own fields that are saved.

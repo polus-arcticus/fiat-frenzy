@@ -14,14 +14,10 @@ func award(d: Drone, amount: float) -> void:
 	if amount <= 0.0 or d.growth.add(amount) == 0:
 		return
 	var m = _w.machine_of(d)
-	var fb = _w.food_bank_of(d)
 	var what: String = d.label if d.label != "" else d.kind
 	if m != null:
 		m.set_level(d.growth.level)
 		what = m.display_name()
-	elif fb != null:
-		fb.set_level(d.growth.level)
-		what = fb.display_name()
 	_w.events.append("t=%d the %s grew to level %d" % [_w.clock.time, what, d.growth.level])
 
 

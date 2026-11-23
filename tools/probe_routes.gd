@@ -1,4 +1,4 @@
-## Headless probe: can people walk between the places they actually go (every stand, the food bank, the tent door, the
+## Headless probe: can people walk between the places they actually go (every stand, the bins, the tent door, the
 ## bus stop), in the real scenario with its street graph? Reports the trips that never arrive.
 ##   godot --headless --path . --script tools/probe_routes.gd
 extends SceneTree
@@ -11,8 +11,8 @@ func _initialize() -> void:
 	var spots := {}
 	for m in w.machines:
 		spots[m.display_name()] = m.pos + m.front * 1.6
-	for fb in w.food_banks:
-		spots["Food bank"] = fb.pos + fb.front * 1.6
+	for b in w.bins:
+		spots["%s bin" % b.kind] = b.pos + b.front * 1.6
 	spots["Medical tent door"] = w.hospitals[0].solid().door
 	spots["Bus stop"] = w.bus_stop
 	for k in IntroController.BANKER_SPOTS.size():  # where the helicopter's bankers land: east of the medical tent

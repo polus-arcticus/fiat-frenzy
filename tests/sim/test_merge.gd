@@ -15,7 +15,7 @@ static func build(tiles: Array) -> World:
 	var w := World.new()
 	for t in tiles:
 		w.zones.add_tile(t)
-		Fixtures.market_town(w, t, TileKey.rect(t).get_center(), 6, true, 40.0)
+		Cluster.build(w, t, TileKey.rect(t).get_center(), 6, true, 40.0, false)
 	return w
 
 

@@ -84,7 +84,7 @@ func _run() -> void:
 	var baker: Drone = sc.cast.bakery
 	var bm := w.machine_of(baker)
 	bm.output.add("bread", 7)
-	bm.receive("flour", 4, 1.0)
+	bm.receive("leftovers", 4, 0.75)
 	bm.refresh()
 	_player_view()
 	var bm_front: Dictionary = sc.front_of(bm, 3.2)
@@ -112,27 +112,26 @@ func _run() -> void:
 	await _frames(10)
 	await _shot("11_npc_bars")
 
-	# the food bank, and a cart runner on a delivery
-	var fb: FoodBank = w.food_banks[0]
+	# the bins, and a cart runner on a delivery
+	var fb: WasteBin = w.bins.filter(func(b): return b.kind == "organics")[0]
 	var fb_spot: Vector2 = fb.pos + fb.front * 7.0
 	game.sim.speed = 1.0
 	_player_view()
 	game.player.teleport(Vector3(fb_spot.x, 0.1, fb_spot.y))
 	game.player.look_toward(Vector3(fb.pos.x, 1.4, fb.pos.y))
 	await _frames(10)
-	await _shot("14_food_bank")
+	await _shot("14_bins")
 	var runner: Drone = sc.cast.runners[0]
 	runner.wallet = 40.0
 	for m in w.machines:
 		if m.working:
-			m.input.take("flour", 12)
-			m.input.take("bottled_water", 12)
-			m.input.take("sugar", 12)
+			m.input.take("leftovers", 12)
+			m.input.take("water", 12)
 	game.sim.speed = 4.0
 	var carrying := false
 	for i in 600:
 		await _frames(1)
-		if runner.cart.counts.values().any(func(n): return n > 0) and runner.pos.distance_to(runner.home) > 6.0:
+		if runner.runner.cart.counts.values().any(func(n): return n > 0) and runner.pos.distance_to(runner.home) > 6.0:
 			carrying = true
 			break
 	game.sim.speed = 1.0

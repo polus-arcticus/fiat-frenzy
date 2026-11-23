@@ -1,7 +1,7 @@
 ## People talking. Anyone who is awake says one of three things when the player comes close (not often, and
 ## not twice in a row), and one thing each when they pick up loose money, are given money, or are invested
-## in. Money lines are throttled so a burst of bills makes one line, and they cut in on a "close" line. The
-## line sits on the drone (`speech`) for the view to show; nothing here knows how.
+## in. Money lines are throttled so a burst of bills makes one line, and they cut in on a "close" line. What each person last
+## said is kept here (`of`: a Speech), for the view to show; nothing here knows how, and nothing of it is saved.
 ## It uses its own random numbers, so talk never changes what the rest of the simulation does.
 class_name Chatter
 extends RefCounted
@@ -15,6 +15,7 @@ const LINE_TIME := 3.2       # how long a line stays up
 var _w: World
 var _rng := RandomNumberGenerator.new()
 var _since_check := 0.0
+var _said := {}  # uid -> Speech (Snapshot.DERIVED: not saved)
 
 
 func _init(world: World) -> void:
@@ -22,12 +23,24 @@ func _init(world: World) -> void:
 	_rng.seed = 4242
 
 
+## What `d` last said, and their cooldowns.
+func of(d: Drone) -> Speech:
+	var s: Speech = _said.get(d.uid)
+	if s == null:
+		s = Speech.new()
+		_said[d.uid] = s
+	return s
+
+
 func step(dt: float) -> void:
 	for z in _w.zones.running():
 		for d in _w.zones.drones_in(z):
-			d.speech_ttl = maxf(0.0, d.speech_ttl - dt)
-			d.chat_cooldown = maxf(0.0, d.chat_cooldown - dt)
-			d.event_cooldown = maxf(0.0, d.event_cooldown - dt)
+			var s: Speech = _said.get(d.uid)
+			if s == null:
+				continue
+			s.ttl = maxf(0.0, s.ttl - dt)
+			s.near_cooldown = maxf(0.0, s.near_cooldown - dt)
+			s.event_cooldown = maxf(0.0, s.event_cooldown - dt)
 	_since_check += dt
 	if _since_check < 1.0:
 		return
@@ -35,7 +48,8 @@ func step(dt: float) -> void:
 	if _w.player == null:
 		return
 	for d in _w.zones.drones_in(_w.player.zone):  # people only talk up to the hero, so only in the hero's zone
-		if d.unconscious() or d.chat_cooldown > 0.0 or d.speech_ttl > 0.0:
+		var s := of(d)
+		if d.unconscious() or s.near_cooldown > 0.0 or s.ttl > 0.0:
 			continue
 		if d.pos.distance_to(_w.player.pos) <= NEAR_RANGE and _rng.randf() < NEAR_CHANCE:
 			say(d, Lines.NEAR)
@@ -45,19 +59,20 @@ func step(dt: float) -> void:
 func say(d: Drone, event: String) -> bool:
 	if d.unconscious():
 		return false
-	if event != Lines.NEAR and d.event_cooldown > 0.0:
+	var s := of(d)
+	if event != Lines.NEAR and s.event_cooldown > 0.0:
 		return false
 	var options := Lines.for_event(d, event)
 	var line: String = options[_rng.randi() % options.size()]
-	if event == Lines.NEAR and line == d.speech:
+	if event == Lines.NEAR and line == s.line:
 		line = options[(options.find(line) + 1) % options.size()]  # never the same line twice running
-	d.speech = line
-	d.speech_ttl = LINE_TIME
-	d.speech_seq += 1
+	s.line = line
+	s.ttl = LINE_TIME
+	s.seq += 1
 	if event == Lines.NEAR:
-		d.chat_cooldown = NEAR_COOLDOWN
+		s.near_cooldown = NEAR_COOLDOWN
 	else:
-		d.event_cooldown = EVENT_THROTTLE
+		s.event_cooldown = EVENT_THROTTLE
 	return true
 
 
@@ -65,7 +80,8 @@ func say(d: Drone, event: String) -> bool:
 func say_line(d: Drone, line: String) -> bool:
 	if d.unconscious():
 		return false
-	d.speech = line
-	d.speech_ttl = LINE_TIME + 1.0
-	d.speech_seq += 1
+	var s := of(d)
+	s.line = line
+	s.ttl = LINE_TIME + 1.0
+	s.seq += 1
 	return true

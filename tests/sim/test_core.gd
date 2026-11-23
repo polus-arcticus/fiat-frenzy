@@ -14,11 +14,11 @@ func test_inventory_and_flags() -> void:
 	m.working = true
 	m.refresh()
 	check(m.output.offer["bread"] == 25, "a working one offers its output stock (half of 50)")
-	check(m.input.want["flour"] == 8 and m.input.caps["flour"] == 12, "and its input inventory wants the flour it has room for (it holds six crafts' worth, 12)")
+	check(m.input.want["leftovers"] == 8 and m.input.caps["leftovers"] == 12, "and its input inventory wants the leftovers it has room for (it holds six crafts' worth, 12)")
 	check(not ("money" in m.output.counts) and not ("money" in m.input.counts), "money is not an item in any inventory")
 	var t := ReliefTruck.new(Vector2.ZERO)
 	check(not t.present and t.visits == 0, "the truck starts out of town")
-	check("sugar" in Catalog.relief_goods() and Catalog.base_price("sugar") > 0.0, "sugar is a good the truck carries")
+	check("leftovers" in ReliefTruck.GOODS and "leftovers" in Catalog.scavenged_goods(), "the truck carries leftovers, the goods the bins have too")
 
 
 func test_components() -> void:
@@ -54,14 +54,14 @@ func test_stacks() -> void:
 	note("stacks: one kind of item to a slot, ten to a stack")
 	var inv := Inventory.new()
 	inv.add("bread", 13)
-	inv.add("flour", 4)
-	check(Stacks.slots_used(inv) == 3, "13 bread and 4 flour is three slots")
+	inv.add("leftovers", 4)
+	check(Stacks.slots_used(inv) == 3, "13 bread and 4 leftovers is three slots")
 	var layout := Stacks.layout(inv)
-	check(layout.size() == 3 and layout[0] == {"item": "bread", "count": 10} and layout[1] == {"item": "bread", "count": 3} and layout[2].item == "flour", "laid out as 10 bread, 3 bread, 4 flour")
+	check(layout.size() == 3 and layout[0] == {"item": "bread", "count": 10} and layout[1] == {"item": "bread", "count": 3} and layout[2].item == "leftovers", "laid out as 10 bread, 3 bread, 4 leftovers")
 	check(Stacks.can_add(inv, "bread", 3), "there is room in the second bread stack even in a full bag")
 	check(not Stacks.can_add(inv, "lemonade", 3) and Stacks.can_add(inv, "lemonade", 4), "but a new kind of item needs a free slot")
-	inv.add("flour", 6)
-	check(Stacks.slots_used(inv) == 3 and not Stacks.can_add(inv, "flour", 3), "a full stack of ten needs a new slot for the eleventh")
+	inv.add("leftovers", 6)
+	check(Stacks.slots_used(inv) == 3 and not Stacks.can_add(inv, "leftovers", 3), "a full stack of ten needs a new slot for the eleventh")
 
 
 func test_everything_is_born_in_the_zone_being_built() -> void:
@@ -134,7 +134,7 @@ func test_a_sleeping_zone_keeps_producing_in_jumps() -> void:
 	var baker := w.add_vendor("bakery", Vector2(900, 0), 5.0)
 	var far_shop := w.machine_of(baker)
 	far_shop.output.take("bread", far_shop.stock())
-	far_shop.input.add("flour", 20)
+	far_shop.input.add("leftovers", 20)
 	var hunger_before: float = baker.bars.hunger
 	w.zones.active = ["district"]
 	for i in 9:

@@ -1,13 +1,15 @@
 ## The atom: the smallest town that keeps itself going, and the seed of every new tile (a coordinate in, a tile meshed, an atom
 ## put down on a street of it). One of each role the town needs, each with a tent in its tent city:
 ##   the tent keeper   the tent city itself: the spawn factory (see Lodging). It stands from the start.
-##   food              a bakery (bread needs only flour; the hot dog stand, which needs bread, comes with growth)
+##   food              a bakery (bread needs only leftovers; the hot dog stand, which needs bread, comes with growth)
 ##   drink             a lemonade stand
-##   supply            the food bank and its keeper, and one cart runner
-##   money             the welfare office and its clerk
+##   supply            two cart runners, who salvage the town's base inputs from its bins (WasteBin) to whatever wants them
+##   money             the bottle depot and its attendant (Deposit: whoever is short of cash takes the town's bottles there)
 ##   care              a medic and their first aid post (one bed; it grows into the medical tent)
-## And a pile of scrap in the street (not a role: what the runner pools into the tent city to build it up into a hostel), and a
-## barrel fire by the market for whoever is not housed (the hero, new to the street, gets only a block or two from one: Cold).
+## And its bins (not a role: what the town runs on): a station of three, garbage (scrap: what the tent city is built up of),
+## recycling and organics (leftovers: what the bakery and the lemonade stand make bread and lemonade of), and a water fountain;
+## on a tile, the map's own bins near the market where it has them (TileLanding). And a barrel fire by the market for whoever is
+## not housed (the hero, new to the street, gets only a block or two from one: Cold).
 ## No drifters: the seven are each other's customers. Everything after is growth: every tent put up brings someone (Lodging), and
 ## the tent city's first tier holds the atom's worth of tents (MachineDef.cap), so growing past it means building it up.
 ## The stands are found wrecked and their owners broke, as a cluster is (Cluster.fund gets them going). The Red Cross van is not
@@ -19,13 +21,24 @@ class_name Atom
 extends RefCounted
 
 ## The roles, in the order they are laid out. Its size is how many tents the first tier of a tent city holds.
-const ROLES := ["tent", "bakery", "lemonade_stand", "food_bank", "runner", "welfare_office", "first_aid"]
+const ROLES := ["tent", "bakery", "lemonade_stand", "salvager", "runner", "bottle_depot", "first_aid"]
 ## Where each stands on its street: [metres along from the site, across ("kerb", "wall" or "road", see Cluster.spot), by].
+## "bins" is the middle of its bin station (along the street); "fountain" its water fountain.
 const LAYOUT := {
 	"bakery": [-2.5, "kerb", 0.6], "lemonade_stand": [2.5, "kerb", 0.6], "tent": [7.0, "wall", 2.0],
-	"food_bank": [-9.0, "kerb", 0.6], "runner": [-6.5, "road", 1.5], "welfare_office": [-14.0, "kerb", 0.6],
-	"first_aid": [-19.0, "wall", 2.0], "scrap": [-24.0, "wall", 1.5], "fire": [-4.0, "wall", 1.0],
+	"salvager": [-9.0, "road", 1.5], "runner": [-6.5, "road", 1.5], "bottle_depot": [-14.0, "kerb", 0.6],
+	"first_aid": [-19.0, "wall", 2.0], "bins": [-24.0, "wall", 1.5], "fire": [-4.0, "wall", 1.0], "fountain": [-9.0, "kerb", 0.6],
 }
+const SALVAGER_WALLET := 8.0  # (what the food bank's keeper, whose place this is, started with: the town starts as it did)
+
+
+## The atom's own bins on `site`: a station of three against the wall, and a fountain at the kerb, each facing the street. (A
+## tile swaps in the map's own where it has them near: TileLanding.)
+static func add_bins(w: World, site: Dictionary) -> void:
+	var street_side: Vector2 = -(site.out as Vector2)
+	for b in w.add_bin_station(_at(site, "bins"), site.along):
+		b.front = street_side
+	w.add_bin("fountain", _at(site, "fountain")).front = street_side
 
 
 static func _at(site: Dictionary, role: String) -> Vector2:
@@ -46,16 +59,14 @@ static func seed(w: World, zone: String, at: Vector2, site := {}) -> Machine:
 		var m := w.machine_of(v)
 		m.front = street_side
 		v.pos = m.post()
-		if m.shelter != null:
+		if m.residence != null:
 			city = m
-			m.wing = signf(Vector2(-street_side.y, street_side.x).dot(site.along))
-	var keeper := w.add_food_bank(_at(site, "food_bank"), Cluster.KEEPER_WALLET)
-	w.food_bank_of(keeper).front = street_side
-	keeper.pos = w.food_bank_of(keeper).post()
+			m.residence.wing = signf(Vector2(-street_side.y, street_side.x).dot(site.along))
+	w.add_runner(_at(site, "salvager"), SALVAGER_WALLET)
 	w.add_runner(_at(site, "runner"), Cluster.RUNNER_WALLET)
-	w.add_welfare_office(_at(site, "welfare_office"), street_side)
+	w.add_bottle_depot(_at(site, "bottle_depot"), street_side)
 	w.add_first_aid(_at(site, "first_aid"), street_side)
-	w.add_scrap_pile(_at(site, "scrap"))  # (what the runner pools into the tent city to build it up: see ScrapPile)
+	add_bins(w, site)
 	w.add_fire(_at(site, "fire"))  # a barrel fire by the market: its people are housed (warm), but a stranger is not (see Cold)
 	w.lodging.house_everyone(city)
 	return city

@@ -130,7 +130,7 @@ func _lie_down(delta: float) -> void:
 	_pose.position.y = lerpf(_pose.position.y, (0.6 if drone.care == "patient" else 0.12) if lying else 0.0, k)
 	_pose.position.z = lerpf(_pose.position.z, -0.85 if lying else 0.0, k)
 	_bars.lower(lying, k)
-	_bubble.refresh(drone, lying, k, delta)
+	_bubble.refresh(drone, world.chatter.of(drone), lying, k, delta)
 	_label.position.y = lerpf(_label.position.y, 1.5 if lying else 2.78, k)
 	if drone.care == "patient" and not world.hospitals.is_empty():
 		var front := world.hospitals[0].front

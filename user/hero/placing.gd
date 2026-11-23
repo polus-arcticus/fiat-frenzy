@@ -70,7 +70,7 @@ func place(item: String, at: Vector2, front := Vector2(0, 1)) -> Dictionary:
 ## Everything that stands in the street in `zone`, which a thing put down must keep clear of.
 func _things(zone: String) -> Array:
 	var out: Array = []
-	for list in [_w.machines, _w.fires, _w.food_banks, _w.hospitals, _w.welfare_offices, _w.scrap_piles]:
+	for list in [_w.machines, _w.fires, _w.hospitals, _w.bottle_depots, _w.bins]:
 		for o in list:
 			if o.zone == zone:
 				out.append(o)
@@ -79,16 +79,17 @@ func _things(zone: String) -> Array:
 
 ## How far `at` is from `o`: from its middle, or for a tent city from the line down the middle of its row of tents.
 func _distance(o: Object, at: Vector2) -> float:
-	if o is Machine and o.shelter != null:
-		var last: Vector2 = o.bed_pos(maxi(0, o.tents - 1))
-		return Geometry2D.get_closest_point_to_segment(at, o.bed_pos(0), last).distance_to(at)
+	if o is Machine and o.residence != null:
+		var home: Residence = o.residence
+		var last := home.bed_pos(o, maxi(0, home.tents - 1))
+		return Geometry2D.get_closest_point_to_segment(at, home.bed_pos(o, 0), last).distance_to(at)
 	return o.pos.distance_to(at)
 
 
 ## Roughly how far `o` reaches from its middle (a tent city: from the line of its tents).
 func _size(o: Object) -> float:
-	if o is Machine and o.shelter != null:
-		return Machine.TENT_WIDTH * 0.6
+	if o is Machine and o.residence != null:
+		return Residence.TENT_WIDTH * 0.6
 	if o is BarrelFire:
 		return 0.6
 	return 1.5
@@ -97,6 +98,6 @@ func _size(o: Object) -> float:
 func _name(o: Object) -> String:
 	if o is BarrelFire:
 		return "barrel fire"
-	if o is ScrapPile:
-		return "pile of scrap"
+	if o is WasteBin:
+		return "fountain" if o.kind == "fountain" else "%s bin" % o.kind
 	return o.display_name().to_lower() if o.has_method("display_name") else "stand"

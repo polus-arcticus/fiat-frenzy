@@ -8,7 +8,7 @@ signal toggled(uid: String)
 
 ## The strip's colour, by what they do (a vendor by their stand's trade).
 const ROLE_COLORS := {"drifter": Color(0.55, 0.6, 0.5), "runner": Color(0.95, 0.75, 0.2), "keeper": Color(0.25, 0.6, 0.6),
-	"clerk": Color(0.25, 0.3, 0.55), "medic": Color(0.85, 0.3, 0.3), "vendor": Color(0.95, 0.55, 0.2), "lodging": Color(0.45, 0.35, 0.6)}
+	"clerk": Color(0.25, 0.3, 0.55), "attendant": Color(0.3, 0.6, 0.35), "medic": Color(0.85, 0.3, 0.3), "vendor": Color(0.95, 0.55, 0.2), "lodging": Color(0.45, 0.35, 0.6)}
 const STATUS := {"home": ["at home", Color(0.35, 0.45, 0.75)], "out": ["out", Color(0.4, 0.65, 0.35)],
 	"care": ["in care", Color(0.85, 0.3, 0.3)]}
 

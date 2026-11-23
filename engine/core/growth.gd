@@ -44,6 +44,3 @@ func progress() -> float:
 	return clampf((xp - total_for(level)) / need(level), 0.0, 1.0)
 
 
-## Dollars still to give before the next level.
-func to_next() -> float:
-	return INF if level >= MAX_LEVEL else total_for(level + 1) - xp

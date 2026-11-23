@@ -38,12 +38,12 @@ func housed(city: Machine) -> Array:
 
 
 func free_tents(city: Machine) -> int:
-	return city.tents - housed(city).size()
+	return city.residence.tents - housed(city).size()
 
 
 ## Where `d` sleeps in `city`: the middle of their own tent.
 func bed_of(city: Machine, d: Drone) -> Vector2:
-	return city.bed_pos(maxi(0, housed(city).find(d)))
+	return city.residence.bed_pos(city, maxi(0, housed(city).find(d)))
 
 
 ## A tent in `city` for everyone in its zone who has none, but for `except` (the story's own people, say), putting up as many as
@@ -52,11 +52,11 @@ func house_everyone(city: Machine, except: Array = []) -> void:
 	for d in _w.zones.drones_in(city.zone):
 		if d.bed == "" and not d in except:
 			d.bed = city.uid
-	set_tents(city, maxi(city.tents, housed(city).size()))
+	set_tents(city, maxi(city.residence.tents, housed(city).size()))
 
 
 func set_tents(city: Machine, n: int) -> void:
-	city.tents = n
+	city.residence.tents = n
 	city.set_level(city.level)
 	_w.zones.invalidate()  # (the row's ground changed: the walkers' grid is redrawn)
 
@@ -69,9 +69,9 @@ func is_housed(d: Drone) -> bool:
 	return city is Machine and city.working
 
 
-## How many more tents `city` may have at its tier (or as its scenario allowed it: `Machine.tents_cap`).
+## How many more tents `city` may have at its tier (or as its scenario allowed it: `Residence.tents_cap`).
 func room_for(city: Machine) -> int:
-	return maxi(0, maxi(Catalog.machine(city.kind).cap, city.tents_cap) - city.tents)
+	return maxi(0, maxi(Catalog.machine(city.kind).cap, city.residence.tents_cap) - city.residence.tents)
 
 
 func next_tent_cost(_city: Machine) -> float:
@@ -85,8 +85,8 @@ func add_tent(city: Machine) -> float:
 	var cost := next_tent_cost(city)
 	_w.ledger.printed += cost
 	_w.ledger.sunk += cost
-	set_tents(city, city.tents + 1)
-	_w.events.append("t=%d a tent was put up in the %s ($%.0f): %d tents" % [_w.clock.time, city.display_name(), cost, city.tents])
+	set_tents(city, city.residence.tents + 1)
+	_w.events.append("t=%d a tent was put up in the %s ($%.0f): %d tents" % [_w.clock.time, city.display_name(), cost, city.residence.tents])
 	return cost
 
 
@@ -116,9 +116,9 @@ func step(dt: float) -> void:
 		if d.bed != "":
 			taken[d.bed] = int(taken.get(d.bed, 0)) + 1
 	for m in _w.machines:
-		if m.shelter == null or m.zone in _w.zones.asleep:
+		if m.residence == null or m.zone in _w.zones.asleep:
 			continue
-		if not m.working or m.tents - int(taken.get(m.uid, 0)) <= 0:
+		if not m.working or m.residence.tents - int(taken.get(m.uid, 0)) <= 0:
 			waiting.erase(m.uid)
 			continue
 		waiting[m.uid] = float(waiting.get(m.uid, 0.0)) + dt
@@ -144,7 +144,7 @@ func _roll() -> String:
 func _newcomer(city: Machine) -> void:
 	var was := _w.build_zone
 	_w.build_zone = city.zone
-	var down_the_street := Vector2(-city.front.y, city.front.x) * city.wing * NEWCOMER_FROM
+	var down_the_street := Vector2(-city.front.y, city.front.x) * city.residence.wing * NEWCOMER_FROM
 	var role := _roll()
 	var at := city.pos + down_the_street
 	var d := _w.add_runner(at, NEWCOMER_PURSE) if role == "runner" else _w.add_drifter(at, NEWCOMER_PURSE)

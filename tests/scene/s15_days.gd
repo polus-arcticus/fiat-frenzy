@@ -13,8 +13,8 @@ func run() -> void:
 	var delivered := 0
 	var fees := 0.0
 	for r in runners:
-		delivered += r.delivered_total
-		fees += r.fees_earned
+		delivered += r.runner.delivered_total
+		fees += r.runner.fees_earned
 	check(delivered > 0 and fees > 0.0, "the cart runners have delivered %d units and earned $%.2f in fees" % [delivered, fees])
 	check(is_equal_approx(w.total_money(), w.ledger.printed), "money is conserved while the real scene runs")
 	var moved := w.drones.filter(func(d): return d.pos.distance_to(game.scenario.start) > 5.0).size()

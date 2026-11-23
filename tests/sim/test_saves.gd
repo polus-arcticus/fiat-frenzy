@@ -41,7 +41,7 @@ func test_a_snapshot_survives_json_and_comes_back_the_same() -> void:
 	var made := Snapshot.new(fresh).apply(data)
 	check(made.size() == 1 and made[0].label == "Latecomer", "it says which drones it had to make: the latecomer (%d)" % made.size())
 	check(fresh.drones.size() == w.drones.size(), "the latecomer is back (%d drones)" % fresh.drones.size())
-	check(fresh.drones[-1].label == "Latecomer" and fresh.drones[-1].wallet == 12.0, "with their name and wallet")
+	check(fresh.drones[-1].label == "Latecomer" and is_equal_approx(fresh.drones[-1].wallet, w.drones[-1].wallet), "with their name and wallet ($%.2f: they may have handed some bottles in meanwhile)" % fresh.drones[-1].wallet)
 	check(fresh.bills.size() == w.bills.size() and fresh.bills[-1].loose and fresh.bills[-1].pos == Vector2(3, 4), "the loose bill lies where it did")
 	check(is_equal_approx(fresh.clock.time, w.clock.time), "the clock reads the same")
 	check(is_equal_approx(fresh.ledger.player_cash, w.ledger.player_cash), "so does the player's cash")

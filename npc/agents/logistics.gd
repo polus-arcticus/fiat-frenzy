@@ -1,7 +1,8 @@
 ## Planet Crafter's logistics with people as the drones. Machines offer items from their output
 ## inventories and want items in their input inventories; an idle drone looks for a supply that answers
 ## its most pressing demand (Needs.demands), walks there, and moves the item, paying with a plain number
-## moving between wallets. Also repairs, joining a barrel fire or tent, and a cart runner's deliveries.
+## moving between wallets. Also repairs, joining a barrel fire or tent, a cart runner's deliveries, and collecting bottles for
+## the deposit (Collecting).
 class_name Logistics
 extends RefCounted
 
@@ -13,6 +14,7 @@ const SLOT_RADIUS := 1.5     # how far from a stand they stand (inside TRADE_REA
 var _w: World
 var supply: Supply
 var hauling: Hauling
+var collecting: Collecting
 var queues := Queueing.new()
 
 
@@ -20,6 +22,7 @@ func _init(world: World) -> void:
 	_w = world
 	supply = Supply.new(world)
 	hauling = Hauling.new(world)
+	collecting = Collecting.new(world)
 
 
 func act(d: Drone, dt: float) -> void:
@@ -79,15 +82,12 @@ func _gives_up_place(d: Drone) -> bool:
 	return false
 
 
-## Where a drone waits when it has nothing to do: a vendor behind their stand, a keeper behind the food
-## bank's counter, a runner at home. Null for everyone else (they stay where they are).
+## Where a drone waits when it has nothing to do: a vendor behind their stand, a runner at home. Null for everyone else (they
+## stay where they are).
 func _idle_post(d: Drone):
 	var m = _w.machine_of(d)
 	if m != null:
 		return m.post()
-	var fb = _w.food_bank_of(d)
-	if fb != null:
-		return fb.post()
 	if d.kind in ["runner", "medic"] and d.home.is_finite():
 		return d.home
 	return null
@@ -105,6 +105,8 @@ func plan(d: Drone) -> Dictionary:
 				job = supply.warmth_job(d)
 			"haul":
 				job = hauling.haul_job(d)
+			"collect":
+				job = collecting.job(d)
 			"cash":
 				var bill: Bill = _w.cash.nearest_loose(d.pos, Cash.SCAN, d.zone)
 				if bill != null:
@@ -151,6 +153,8 @@ func _still_valid(job: Dictionary) -> bool:
 			if not dest.working or dest.input.room(job.item) < 1:
 				return false
 			return t.offers(job.item) if job.stage == "pickup" else true
+		"collect":
+			return t.offers(job.item) if job.stage == "pickup" else _w.bottle_depots.has(t)
 		"cash":
 			return t.loose and _w.bills.has(t)
 		"repair":
@@ -184,6 +188,9 @@ func complete(d: Drone, job: Dictionary) -> void:
 		return
 	if job["for"] == "haul":
 		hauling.complete(d, job)
+		return
+	if job["for"] == "collect":
+		collecting.complete(d, job)
 		return
 	if job["for"] == "leave":
 		_w.borders.cross(d, t)  # at the border: over into the next tile

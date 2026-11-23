@@ -36,9 +36,9 @@ The game opens at 6:47 on Kaiserstraße: a helicopter of bankers crashes, and th
 (`IntroController`). Laid out across the street's width (`Scenario._spot`):
 - the first market at the kerb: a hot dog stand, a bakery, a lemonade stand;
 - the tent against the buildings, and the barrel fire;
-- the food bank and two cart runners 40 m down the street;
+- a station of bins (garbage, recycling, organics) and a water fountain, and two cart runners, 40 m down the street;
 - the medical tent and its ambulance bay;
-- the welfare office;
+- the bottle depot;
 - the bus stop.
 
 Every stand starts wrecked and every vendor broke: nothing runs until the hero funds it.
@@ -78,7 +78,7 @@ who he is, and the one thing that marks him out is that he never bends down for 
 
 ## The market at the bank
 
-Across from the gate is a market of its own: a lemonade stand, a hot dog stand and a bakery (wrecked), a food bank and a runner,
+Across from the gate is a market of its own: a lemonade stand, a hot dog stand and a bakery (wrecked), bins, a fountain, a bottle depot and a runner,
 a medical tent, and three visitors. It is a zone of its own (`"ecb"`, a rectangle in `Zones.regions`), asleep until the hero gets
 there, so the first market's people never trek 2 km to it.
 

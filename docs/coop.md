@@ -13,7 +13,8 @@ their common ancestor**: the tile as its map seeds it.
 - Tiles are grouped in zoom-10 regions (64 × 64 tiles, about 25 km). Positions are metres from the region's north-west corner,
   so a `Vector2` stays precise to millimetres.
 - Regions will meet through gates (bus, train), not borders.
-- Frankfurt's district does not use tiles yet: it keeps its pinned origin and its hand-made zones.
+- Frankfurt's district does not use tiles yet: it keeps its pinned origin and its hand-made zones (its land is brought into
+  those metres by `MapFrame`, as a tile's is into a region's).
 
 ## Heroes
 A world can hold several heroes (`World.heroes`). Only the local one is present; the others' pockets (`Ledger.pockets`) and
@@ -22,7 +23,7 @@ stakes go on earning.
 ## Borders (`npc/agents/borders.gd`)
 Where two loaded tiles touch:
 - a drifter who can't get food or drink at home (or would pay more than $1 over the neighbour's price) crosses over;
-- a cart runner hauls a load from one tile's food bank to the other's short shops, at most one cart each way every two minutes.
+- a cart runner hauls a load from one tile's bins to the other's short shops, at most one cart each way every two minutes.
 
 ## Merging (`engine/core/merge.gd`)
 `Merge.combine(host, guest, build)`:

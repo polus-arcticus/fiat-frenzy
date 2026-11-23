@@ -30,7 +30,7 @@ func test_neighbouring_tiles_line_up_edge_to_edge() -> void:
 
 
 func test_a_dormant_town_lives_in_summary_much_as_it_would_in_full() -> void:
-	# (A funded town that keeps going, the standard cluster with its van and welfare office: a town without them goes broke and
+	# (A funded town that keeps going, the standard cluster with its van and bottle depot: a town without them goes broke and
 	# collapses, which is a cascade, not a test of the summary.)
 	var full := World.new()
 	Cluster.build(full, "a", Vector2.ZERO, 6, true, 200.0)
@@ -66,8 +66,8 @@ func _neighbours(purse := 200.0) -> Array:
 	var w := World.new()
 	w.zones.add_tile(a)
 	w.zones.add_tile(b)
-	Fixtures.market_town(w, a, TileKey.rect(a).get_center(), 6, false, purse)
-	Fixtures.market_town(w, b, TileKey.rect(b).get_center(), 6, true, purse)
+	Cluster.build(w, a, TileKey.rect(a).get_center(), 6, false, purse, false)
+	Cluster.build(w, b, TileKey.rect(b).get_center(), 6, true, purse, false)
 	return [w, a, b]
 
 
@@ -85,7 +85,7 @@ func test_goods_and_people_cross_between_dormant_tiles_and_the_money_adds_up() -
 		if not is_equal_approx(w.total_money(), money):
 			leaks += 1
 	check(leaks == 0, "the money in the world is the same on every tick (%d off)" % leaks)
-	check(w.borders.carts > 0, "carts of flour and the like went over to the town without a food bank (%d)" % w.borders.carts)
+	check(w.borders.carts > 0, "carts of leftovers and the like went over to the town without bins of its own (%d)" % w.borders.carts)
 	var in_b := w.zones.drones_in(n[2]).size()
 	note("crossings %d; people in a %d, in b %d" % [w.borders.crossings, w.zones.drones_in(n[1]).size(), in_b])
 	check(w.borders.crossings > 0 and in_b + w.zones.drones_in(n[1]).size() == people, "people crossed (%d), and nobody was lost on the way (%d)" % [w.borders.crossings, people])

@@ -12,7 +12,6 @@ signal chapter_requested(slot)
 ## Developer tool (debug builds): play the story forward to a stage (one of `stages`).
 signal stage_requested(id)
 
-var visible_now := false
 ## The developer's jumps ahead, as [id, label] pairs: handed in by whoever builds the game (the story's), before it is added.
 var stages: Array = []
 var _box: VBoxContainer

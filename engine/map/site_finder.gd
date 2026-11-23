@@ -62,25 +62,48 @@ const CAMP_CLEAR := 4.0     # metres a camp keeps off a street's carriageway (an
 const CAMP_ROOM := 5.0      # metres round the camp that must be park too (its pile one side, its fire the other)
 
 
-## Where a tile's scrap gathers: at its real recycling containers (StreetThings' "recycling" points), the nearest to the market
-## on foot first, at most RECYCLE_MOST of them and none further than RECYCLE_WALK. Each is {at, front} (front: where the runner
-## stands, toward the street). [] if none is near enough: the atom keeps the pile it lays out itself.
+## Where a tile's bins are (WasteBin): at the real ones on its map (StreetThings' points), for each kind, the nearest to the
+## market on foot first, at most RECYCLE_MOST of a kind and none further than RECYCLE_WALK. {bin kind: [{at, front}]} (front:
+## where the runner stands, toward the street); a kind with none near enough is left out, and the atom keeps the one it lays
+## out itself. Waste baskets are the garbage (the scrap), recycling containers the recycling (the bottles), those that take
+## food or compost the organics, drinking fountains the fountain.
 ## (Further than a camp may be, CAMP_WALK: only the pick-up end of a runner's trip is far, the market's stalls are at the other.
 ## Measured: the tile by the Main, its two containers a 200 m walk off, 20 days in full detail, 0 collapses, nothing built.)
 const RECYCLE_WALK := 220.0
 const RECYCLE_MOST := 3
-const PILE_OUT := 1.6       # metres in front of the container the scrap lies
+const PILE_OUT := 1.6       # metres in front of the container what it gathers lies
+const ON_MAP := {"garbage": "bin", "recycling": "recycling", "organics": "organics", "fountain": "fountain"}  # bin kind -> point kind
 
 
+## The recycling is walked to by whoever is short of cash, on foot, for their next meal (Collecting): it must be near, or they
+## go down on the way. (At the tile by the Main its containers, a 200 m walk off, cost 8 collapses in 20 days; the runners
+## wheel the rest on carts, the far end of a trip whose near end is the market.)
+const BOTTLE_WALK := CAMP_WALK
+
+
+static func bins(district: Dictionary, tile_key: String, market: Vector2, walk := Callable()) -> Dictionary:
+	var out := {}
+	for kind in ON_MAP:
+		var found := _nearest(district, tile_key, market, walk, ON_MAP[kind], BOTTLE_WALK if kind == "recycling" else RECYCLE_WALK)
+		if not found.is_empty():
+			out[kind] = found
+	return out
+
+
+## The tile's recycling containers near the market (`bins`' recycling).
 static func recycling(district: Dictionary, tile_key: String, market: Vector2, walk := Callable()) -> Array:
+	return _nearest(district, tile_key, market, walk, "recycling", BOTTLE_WALK)
+
+
+static func _nearest(district: Dictionary, tile_key: String, market: Vector2, walk: Callable, point_kind: String, reach := RECYCLE_WALK) -> Array:
 	var rect := TileKey.rect(tile_key)
 	var water: Dictionary = district.get("water", {})
 	var found: Array = []
 	for p in district.get("street", {}).get("points", []):
-		if p.kind != "recycling" or not rect.has_point(p.at) or OsmWater.wet(water, p.at):
-			continue
+		if p.kind != point_kind or not rect.has_point(p.at) or market.distance_to(p.at) > reach or OsmWater.wet(water, p.at):
+			continue  # (no walk is shorter than the straight line: the far ones are not walked out)
 		var d: float = float(walk.call(p.at)) if walk.is_valid() else market.distance_to(p.at)
-		if d <= RECYCLE_WALK:
+		if d <= reach:
 			var front := _toward_street(p.at, district.roads)
 			found.append({"at": p.at + front * PILE_OUT, "front": front, "walk": d})
 	found.sort_custom(func(a, b): return a.walk < b.walk or (is_equal_approx(a.walk, b.walk) and _before(a.at, b.at)))

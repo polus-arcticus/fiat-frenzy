@@ -95,23 +95,49 @@ func test_cobbles_slow_a_board() -> void:
 	check(is_equal_approx(w.skating.speed, Skating.TOP_SPEED), "off them, it can")
 
 
-func test_the_scrap_gathers_at_the_recycling() -> void:
+func test_the_bottles_gather_at_the_recycling() -> void:
 	var d := Fixtures.tile_district()
 	var landing := TileLanding.new(Fixtures.tile_key(), d, Fixtures.TILE_LAT, Fixtures.TILE_LON)
 	var bare := landing.build()
-	var made: Array = bare.scrap_piles.filter(func(p): return p.zone == Fixtures.tile_key())
-	check(made.size() == 1 and made[0].source == "", "no recycling on the map: the atom's own pile")
+	var made: Array = bare.bins.filter(func(p): return p.zone == Fixtures.tile_key() and p.kind == "recycling")
+	check(made.size() == 1 and made[0].source == "", "no recycling on the map: the atom's own recycling bin")
 	var m: Vector2 = landing.market
 	var near := [m + Vector2(12, 9), m + Vector2(-15, 10), m + Vector2(20, -12), m + Vector2(-25, -8)]
 	d["street"] = {"points": near.map(func(p): return {"kind": "recycling", "at": p, "tags": {}}), "lines": []}
 	var with_bins := TileLanding.new(Fixtures.tile_key(), d, Fixtures.TILE_LAT, Fixtures.TILE_LON)
 	var w := with_bins.build()
-	var piles: Array = w.scrap_piles.filter(func(p): return p.zone == Fixtures.tile_key())
-	check(piles.size() == SiteFinder.RECYCLE_MOST and piles.all(func(p): return p.source == "recycling"), "at the nearest of the containers (%d of %d), and no made-up pile" % [piles.size(), near.size()])
+	var piles: Array = w.bins.filter(func(p): return p.zone == Fixtures.tile_key() and p.kind == "recycling")
+	check(piles.size() == SiteFinder.RECYCLE_MOST and piles.all(func(p): return p.source == "map"), "at the nearest of the containers (%d of %d), and no made-up bin" % [piles.size(), near.size()])
 	var rate := 0.0
 	for p in piles:
 		rate += p.rate
-	check(is_equal_approx(rate, ScrapPile.RATE), "between them, as much scrap as the one pile gave (the baseline holds)")
+	check(is_equal_approx(rate, WasteBin.KINDS.recycling.rate), "between them, as many bottles as the one bin gave (the baseline holds)")
+	check(w.bins.filter(func(p): return p.zone == Fixtures.tile_key() and p.kind == "garbage").size() == 1, "and the scrap still gathers in the atom's own garbage bin")
 	check(piles.all(func(p): return near.any(func(b): return b.distance_to(p.pos) <= SiteFinder.PILE_OUT + 0.01)), "lying in front of each")
 	var far := SiteFinder.recycling(d, Fixtures.tile_key(), m, func(_at: Vector2) -> float: return SiteFinder.RECYCLE_WALK + 1.0)
 	check(far.is_empty(), "a container too long a walk away isn't used")
+
+
+func test_every_kind_of_bin_is_the_maps_where_it_has_one() -> void:
+	check(StreetThings.kind_of({"amenity": "drinking_water"}) == "fountain" and StreetThings.kind_of({"amenity": "waste_basket"}) == "bin", "a drinking fountain and a waste basket on the map")
+	check(StreetThings.kind_of({"amenity": "recycling", "recycling:organic": "yes"}) == "organics" and StreetThings.kind_of({"amenity": "recycling", "recycling:glass_bottles": "yes"}) == "recycling", "a recycling point that takes food is the organics; one for bottles, the recycling")
+	var d := Fixtures.tile_district()
+	var m: Vector2 = TileLanding.new(Fixtures.tile_key(), d, Fixtures.TILE_LAT, Fixtures.TILE_LON).market
+	var pts := [
+		{"kind": "bin", "at": m + Vector2(8, 6)}, {"kind": "bin", "at": m + Vector2(-10, 7)},
+		{"kind": "fountain", "at": m + Vector2(14, -6)},
+		{"kind": "organics", "at": m + Vector2(-18, -5)},
+	]
+	d["street"] = {"points": pts.map(func(p): return {"kind": p.kind, "at": p.at, "tags": {}}), "lines": []}
+	var landing := TileLanding.new(Fixtures.tile_key(), d, Fixtures.TILE_LAT, Fixtures.TILE_LON)
+	var w := landing.build()
+	var of := func(kind: String) -> Array: return w.bins.filter(func(b): return b.zone == Fixtures.tile_key() and b.kind == kind)
+	check(landing.bins.keys().size() == 3 and not landing.bins.has("recycling"), "the map has waste baskets, a fountain and an organics bin near the market, and no recycling (%s)" % [landing.bins.keys()])
+	check(of.call("garbage").size() == 2 and of.call("garbage").all(func(b): return b.source == "map"), "the scrap gathers at the two waste baskets")
+	var rate := 0.0
+	for b in of.call("garbage"):
+		rate += b.rate
+	check(is_equal_approx(rate, WasteBin.KINDS.garbage.rate), "and between them as fast as the atom's one bin (%.2f a minute)" % rate)
+	check(of.call("fountain").size() == 1 and of.call("fountain")[0].source == "map" and of.call("organics").size() == 1 and of.call("organics")[0].source == "map", "the water at the fountain, the leftovers at the organics bin")
+	check(of.call("recycling").size() == 1 and of.call("recycling")[0].source == "", "and the bottles in the atom's own recycling bin, the map having none")
+	check(is_equal_approx(w.total_money(), w.ledger.printed), "the books balance")

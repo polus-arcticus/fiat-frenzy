@@ -42,9 +42,11 @@ func add_shuttle(at: Vector2, facing: float) -> Bus:
 	return cart
 
 
-## The hero gets on and the bus sets off for `dest`; on arriving it sets quest flag `flag`. `via` is any places it must
-## pass on the way (the last of them is where it ends up pointing from). False if it is already out, or there is no bus.
-func board(dest: Vector2, flag := "rode_bus", via: Array = [], vehicle: Bus = null, direct := false) -> bool:
+## The hero gets on and the bus sets off for `dest`; on arriving it sets quest flag `flag` ("" for none). `via` is any places it
+## must pass on the way (the last of them is where it ends up pointing from). If its way starts behind it, it first turns round
+## to the left in a half circle `uturn` metres across (into the other lane; 0: it doesn't, the way is never behind it). False if
+## it is already out, or there is no bus.
+func board(dest: Vector2, flag := "rode_bus", via: Array = [], vehicle: Bus = null, direct := false, uturn := 0.0) -> bool:
 	var bus := vehicle if vehicle != null else _w.bus
 	if bus == null or bus.state == Bus.State.DRIVING or not dest.is_finite():
 		return false
@@ -52,6 +54,13 @@ func board(dest: Vector2, flag := "rode_bus", via: Array = [], vehicle: Bus = nu
 	var legs: Array = via.duplicate()
 	legs.append(dest)
 	var at := bus.pos
+	if uturn > 0.0:
+		var first: Vector2 = legs[0]
+		var ahead: Vector2 = first if direct else _route(at, first)[0]
+		if (ahead - at).normalized().dot(Vector2.from_angle(bus.heading)) < UTURN_BEHIND:
+			var round := u_turn(at, Vector2.from_angle(bus.heading), uturn * 0.5)
+			route.append_array(round)
+			at = round[round.size() - 1]
 	for target in legs:
 		if direct:
 			route.append(target)  # (a route laid out by hand: not the streets)
@@ -109,6 +118,24 @@ func _drive(bus: Bus, dt: float) -> void:
 		_w.events.append("t=%d the %s has stopped" % [_w.clock.time, "shuttle" if bus == _w.shuttle else "bus"])
 	if bus.aboard and _w.player != null:
 		_w.player.pos = bus.pos
+
+
+## A half circle to the left of radius `r`, from `at` going `fwd`, after a few metres straight on: it ends 2r to the left of
+## where it began, pointing back the way it came. Not counting `at` itself.
+static func u_turn(at: Vector2, fwd: Vector2, r: float) -> PackedVector2Array:
+	var left := fwd.rotated(-PI * 0.5)  # (x east, y south: a quarter turn back from forward is to the left)
+	var start := at + fwd * UTURN_RUN
+	var centre := start + left * r
+	var out := PackedVector2Array([start])
+	for k in range(1, UTURN_POINTS + 1):
+		var a := PI * float(k) / UTURN_POINTS
+		out.append(centre - left * r * cos(a) + fwd * r * sin(a))
+	return out
+
+
+const UTURN_BEHIND := -0.3  # the way is behind it if it heads off more than about 107 degrees from where the vehicle points
+const UTURN_RUN := 4.0      # metres straight on before it swings round
+const UTURN_POINTS := 12
 
 
 ## The streets from `from` to `to`, not counting `from` itself, without a first stretch that doubles back: the nearest

@@ -1,5 +1,5 @@
 ## Zones fence the town into patches that run separately, so the sim can grow without every system looking at
-## everyone. Each drone, machine, food bank, fire, hospital, relief van, bill and ring belongs to one zone, and the
+## everyone. Each drone, machine, bin, fire, hospital, relief van, bill and ring belongs to one zone, and the
 ## systems only look at what is in the asker's own zone.
 ##
 ## `active` says which zones run in full detail (empty: all of them, the default, so a small town just works).
@@ -27,7 +27,7 @@ var region := ""
 var tiles := {}  # tile key -> true
 var version := 0  # bumps whenever something is added to the world or moves zone: the indexes (and navigation grids) are rebuilt
 var _owed := {}  # zone -> seconds of dormant time not yet run
-var _index := {}  # zone -> {drones, machines, food_banks, fires, runners}: what a search in that zone looks at
+var _index := {}  # zone -> {drones, machines, bins, fires, runners}: what a search in that zone looks at
 var _dirty := true
 
 var _w: World
@@ -43,7 +43,7 @@ func invalidate() -> void:
 	version += 1
 
 
-## Everyone, every machine, food bank and fire in `zone`. The systems search these, never the world's whole lists,
+## Everyone, every machine, bin and fire in `zone`. The systems search these, never the world's whole lists,
 ## so what a search costs depends on the size of its zone and not of the world.
 func drones_in(zone: String) -> Array:
 	return _of(zone).drones
@@ -57,8 +57,19 @@ func machines_in(zone: String) -> Array:
 	return _of(zone).machines
 
 
-func food_banks_in(zone: String) -> Array:
-	return _of(zone).food_banks
+## The zone's bins and fountains (WasteBin): its base inputs.
+func bins_in(zone: String) -> Array:
+	return _of(zone).bins
+
+
+## How many live in `zone`: everyone with needs (not the depot's attendant, the story's doorman and the like, nor the hero).
+## What its recycling fills with (WasteBin.per_head).
+func heads_in(zone: String) -> int:
+	var n := 0
+	for d in _of(zone).drones:
+		if not d.needless and d.kind != "player":
+			n += 1
+	return n
 
 
 func fires_in(zone: String) -> Array:
@@ -77,8 +88,6 @@ func solids_in(zone: String) -> Array:
 		var out: Array[Footprint] = []
 		for m in e.machines:
 			out.append(m.solid())
-		for fb in e.food_banks:
-			out.append(fb.solid())
 		for f in e.fires:
 			out.append(f.solid())
 		for h in e.hospitals:
@@ -107,7 +116,7 @@ func _of(zone: String) -> Dictionary:
 	return _index.get(zone, _EMPTY)
 
 
-const _EMPTY := {"drones": [], "runners": [], "machines": [], "food_banks": [], "fires": [], "hospitals": [], "solids": []}
+const _EMPTY := {"drones": [], "runners": [], "machines": [], "bins": [], "fires": [], "hospitals": [], "solids": []}
 
 
 func _rebuild() -> void:
@@ -120,8 +129,8 @@ func _rebuild() -> void:
 			e.runners.append(d)
 	for m in _w.machines:
 		_entry(m.zone).machines.append(m)
-	for fb in _w.food_banks:
-		_entry(fb.zone).food_banks.append(fb)
+	for b in _w.bins:
+		_entry(b.zone).bins.append(b)
 	for f in _w.fires:
 		_entry(f.zone).fires.append(f)
 	for h in _w.hospitals:
@@ -130,7 +139,7 @@ func _rebuild() -> void:
 
 func _entry(zone: String) -> Dictionary:
 	if not _index.has(zone):
-		_index[zone] = {"drones": [], "runners": [], "machines": [], "food_banks": [], "fires": [], "hospitals": [], "solids": null}
+		_index[zone] = {"drones": [], "runners": [], "machines": [], "bins": [], "fires": [], "hospitals": [], "solids": null}
 	return _index[zone]
 
 
@@ -216,7 +225,7 @@ func books() -> Dictionary:
 ## Move someone to another zone, at a place in it. The one legal way for a drone to change zone. A vendor (who owns
 ## a stand where they are) cannot be sent; money goes with them in their wallet.
 func send(d: Drone, zone: String, at: Vector2) -> bool:
-	if d.stand != "" or d.bank != "":
+	if d.stand != "":
 		return false
 	if d.sheltered_in != null:
 		d.sheltered_in.release(d)

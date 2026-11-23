@@ -17,7 +17,7 @@ var lat := 0.0       # where the player chose to land
 var lon := 0.0
 var site := {}       # where the atom stands (SiteFinder.pick)
 var camp := {}       # where its park's camp is ({at, toward}: SiteFinder.camp), {} if it has no park
-var recycling: Array = []  # the recycling containers its scrap gathers at ([{at, front}]: SiteFinder.recycling), or []
+var bins := {}  # the map's bins the town's run on, by kind ({kind: [{at, front}]}: SiteFinder.bins); a kind left out is the atom's
 var market := Vector2.ZERO
 
 
@@ -47,22 +47,22 @@ func build() -> World:
 		if area.kind == "green":
 			w.parks.append(area.poly)
 	Atom.seed(w, key, site.point, site)
-	_recycle(w)
+	_place_bins(w)
 	var taken: Array[Vector2] = []  # (the camp keeps clear of the atom, and of its tent row as far as it can grow)
-	for list in [w.machines, w.food_banks, w.hospitals, w.welfare_offices, w.fires, w.scrap_piles]:
+	for list in [w.machines, w.hospitals, w.bottle_depots, w.fires, w.bins]:
 		for o in list:
 			taken.append(o.pos)
 	for m in w.machines:
-		if m.shelter != null:
+		if m.residence != null:
 			for i in Catalog.machine("hostel").cap + 1:
-				taken.append(m.bed_pos(i))
+				taken.append(m.residence.bed_pos(m, i))
 	camp = SiteFinder.camp(district, key, market, func(at: Vector2) -> float: return walked(w, market, at), taken)
 	if not camp.is_empty():  # the park nearest the market has a homeless camp, with its own fire: its keeper lives by it
 		w.build_zone = key
 		Camp.pitch(w, camp.at, camp.toward, Camp.KEEPER_WALLET, "scrap_camp", "Camp keeper", true)
 	for m in w.machines:
 		facing[m] = _yaw(m.front)
-	for list in [w.food_banks, w.hospitals, w.welfare_offices]:
+	for list in [w.hospitals, w.bottle_depots]:
 		for o in list:
 			facing[o] = _yaw(o.front)
 	start = _landing_spot(w)
@@ -72,22 +72,24 @@ func build() -> World:
 	return w
 
 
-## The tile's scrap gathers at its real recycling containers, if any are near the market (SiteFinder.recycling): the atom's
-## made-up pile is taken away and one is laid at each, sharing its rate (so the town has as much scrap as ever).
-func _recycle(w: World) -> void:
-	var bins := SiteFinder.recycling(district, key, market, func(at: Vector2) -> float: return walked(w, market, at))
-	if bins.is_empty():
-		return
-	var made: Array = w.scrap_piles.filter(func(p): return p.zone == key)
-	for p in made:
-		w.scrap_piles.erase(p)
+## The tile's bins are its real ones, of each kind that has any near the market (SiteFinder.bins: its waste baskets, recycling
+## containers, organics bins and drinking fountains): the atom's own bin of that kind is taken away and one is put at each,
+## sharing its rate (so the town has as much of everything as ever). A kind the map has none of near enough keeps the atom's.
+func _place_bins(w: World) -> void:
+	bins = SiteFinder.bins(district, key, market, func(at: Vector2) -> float: return walked(w, market, at))
 	w.build_zone = key
-	for b in bins:
-		var pile := w.add_scrap_pile(b.at)
-		pile.front = b.front
-		pile.rate = ScrapPile.RATE / bins.size()
-		pile.source = "recycling"
-	recycling = bins
+	for kind in bins:
+		var found: Array = bins[kind]
+		for b in w.bins.filter(func(b): return b.zone == key and b.kind == kind):
+			w.bins.erase(b)
+		for f in found:
+			var b := w.add_bin(kind, f.at)
+			b.front = f.front
+			b.rate = float(WasteBin.KINDS[kind].rate) / found.size()
+			b.output.take(b.item, b.output.count(b.item) - int(WasteBin.KINDS[kind].start) / found.size())  # (and its start)
+			b.refresh()
+			b.source = "map"
+	w.zones.invalidate()
 
 
 ## Metres on foot from `a` to `b` along the town's streets (RoadGraph.route), the way its people go.

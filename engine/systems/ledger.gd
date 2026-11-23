@@ -11,7 +11,7 @@ extends RefCounted
 const MERGE := {"printed": "sum", "issued": "sum", "sunk": "sum", "pockets": "sum", "incomes": "sum"}
 
 var printed := 0.0
-var issued := 0.0   # the part of `printed` that the welfare office was issued ("pass go": see Welfare), not the gun
+var issued := 0.0   # the part of `printed` paid out as deposits on bottles, once the depot's fund ran dry (Deposit), not the gun
 var sunk := 0.0
 var pockets := {}   # hero uid -> spending money: what they have picked up, plus their stakes' share
 var incomes := {}   # hero uid -> lifetime total of what their stakes have paid them

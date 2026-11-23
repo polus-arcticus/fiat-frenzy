@@ -21,14 +21,8 @@ const VOICES := {
 		"gift": ["Now we're talking!"],
 		"invest": ["A partner! Splendid."],
 	},
-	"keeper": {
-		"near": ["Food bank's open.", "Take only what you need.", "Mind the queue."],
-		"cash": ["Every bit helps."],
-		"gift": ["Donations welcome."],
-		"invest": ["The food bank thanks you."],
-	},
 	"runner": {
-		"near": ["Coming through!", "Mind the cart!", "Fees don't earn themselves."],
+		"near": ["Coming through!", "Mind the cart!", "One man's rubbish..."],
 		"cash": ["A tip's a tip."],
 		"gift": ["For me? Really?"],
 		"invest": ["Investing in a runner?"],

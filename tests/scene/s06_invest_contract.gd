@@ -12,7 +12,7 @@ func run() -> void:
 	check(not game.gun.rig.rolling() and game.gun.rig.mode == "invest", "and the roll finishes")
 	game.player.teleport(Vector3(game.scenario.start.x, 0.1, game.scenario.start.y), game.scenario.start_yaw)
 	game.player.look_toward(Vector3(game.scenario.start.x, 40.0, game.scenario.start.y) + Vector3(0, 0, 0))  # up at the sky: it will miss
-	var printed1 := w.ledger.printed - w.ledger.issued  # (what the gun printed: the welfare office's fountain goes on meanwhile)
+	var printed1 := w.ledger.printed - w.ledger.issued  # (what the gun printed: the deposit on bottles goes on meanwhile)
 	var bills1 := w.bills.size()
 	game.gun.step(true, 0.35)
 	var half_charge: float = game.gun.charge

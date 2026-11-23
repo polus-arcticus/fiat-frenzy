@@ -332,7 +332,7 @@ func _refresh_residents() -> void:
 	var people := lodging.housed(city)
 	var free := lodging.free_tents(city)
 	var room := lodging.room_for(city)
-	_residents_count.text = "Tents %d  ·  lived in %d  ·  empty %d  ·  %s" % [city.tents, people.size(), free, ("room for %d more" % room) if room > 0 else "full for its tier"]
+	_residents_count.text = "Tents %d  ·  lived in %d  ·  empty %d  ·  %s" % [city.residence.tents, people.size(), free, ("room for %d more" % room) if room > 0 else "full for its tier"]
 	if not city.working:
 		_residents_news.text = "Wrecked: nobody is kept warm and nobody new will come."
 	elif free > 0:
@@ -371,7 +371,5 @@ func _toggle_card(uid: String) -> void:
 func _source_note(raw: String, short: int, have: int) -> String:
 	var name := raw.replace("_", " ")
 	if raw in Catalog.scavenged_goods():
-		return "%s: wants %d more. Runners gather it from the street." % [name, short] if short > 0 else "%s: full." % name
-	if raw in Catalog.relief_goods():
-		return "%s: wants %d more. The Red Cross van brings it, free." % [name, short] if short > 0 else "%s: full." % name
+		return "%s: wants %d more. Runners salvage it from the bins." % [name, short] if short > 0 else "%s: full." % name
 	return "%s: wants %d more. Bought from another stand." % [name, short] if short > 0 else "%s: full." % name

@@ -4,8 +4,8 @@
 ## tier (Machine.retier). The money is sunk, like a repair (Ledger.sunk): it is what the builders were paid. Nothing else
 ## moves: no rent, no loan, no tax, and nothing comes back down.
 ##
-## The build costs are set against what an owner saves (the welfare office's fountain at Welfare.DOLLARS_A_DAY puts a little
-## money into the town, and it reaches the owners as takings), so a cluster climbs slowly: see tools/epoch.gd. The hero can
+## The build costs are set against what an owner saves (the deposit on the town's bottles puts a little money into the town,
+## Deposit, and it reaches the owners as takings), so a cluster climbs slowly: see tools/epoch.gd. The hero can
 ## hurry it, by giving an owner the money.
 ##
 ## It runs everywhere that is not asleep, dormant zones too (a cluster in summary grows as it would in full detail).

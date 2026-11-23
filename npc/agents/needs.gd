@@ -3,7 +3,8 @@
 ##      it is cold or night is falling
 ##   2. its vocation: repairing its machine, then keeping its input inventory stocked from suppliers
 ##   3. a runner's deliveries
-##   4. loose money lying nearby
+##   4. short of cash: collecting bottles for the deposit (Collecting)
+##   5. loose money lying nearby
 ## Survival comes first when it can be answered. When no supply can answer it (nothing for sale, or
 ## nothing affordable) the drone moves on to its vocation rather than waiting, or a baker too hungry to
 ## buy flour would starve in a town whose only bread is the bakery's.
@@ -123,6 +124,24 @@ func wake_sleepers(zones: Array = []) -> void:
 				s.release(d)
 
 
+## Seconds until `d`'s first bar of hunger or thirst runs out (INF for someone without needs).
+func lasts(d: Drone) -> float:
+	if d.needless:
+		return INF
+	return minf(d.bars.hunger * HUNGER_SECONDS, d.bars.thirst * THIRST_SECONDS)
+
+
+## Would `d` last a walk of `metres` (a trip they are planning), with some to spare? A runner low on water doesn't wheel a load
+## 200 m off and back: they stay near the market until they have eaten and drunk. (At the tile by the Main the runners went
+## down on the way back from its far waste baskets, having set out half empty.)
+func would_last(d: Drone, metres: float) -> bool:
+	return metres * DETOUR / maxf(d.speed, 0.1) <= lasts(d) * TRIP_MARGIN
+
+
+const TRIP_MARGIN := 0.6  # of what their bars have left, a trip may take
+const DETOUR := 1.8       # the walk through the streets, against the straight line a trip is reckoned in (round the blocks)
+
+
 ## The demand classes a drone currently has, most pressing first: survival, most pressing bar first,
 ## then the vocation. Logistics.plan takes the first one a supply exists for.
 func demands(d: Drone) -> Array:
@@ -144,6 +163,8 @@ func demands(d: Drone) -> Array:
 			out.append("restock")
 	if d.kind == "runner":
 		out.append("haul")  # whether there is anything to deliver is for the planner to find out
+	if _w.logistics.collecting.wants(d):
+		out.append("collect")  # short of cash: bottles to the depot (Collecting)
 	if _w.cash.nearest_loose(d.pos, Cash.SCAN, d.zone) != null:
 		out.append("cash")  # last: loose money is only worth a detour when there is nothing better to do
 	return out
@@ -155,8 +176,8 @@ func short_input(m: Machine) -> String:
 	var worst := ""
 	var low := float(RESTOCK_BELOW)
 	for raw in m.recipe:
-		if raw in Catalog.scavenged_goods() or raw in Catalog.relief_goods():
-			continue  # gathered or delivered by runners and the van: nothing for the vendor to go and fetch
+		if raw in Catalog.scavenged_goods():
+			continue  # salvaged from the bins by runners (or brought by the van): nothing for the vendor to go and fetch
 		var crafts: float = float(m.input.count(raw)) / float(m.recipe[raw])
 		if crafts < low:
 			low = crafts

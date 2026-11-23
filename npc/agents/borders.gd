@@ -94,7 +94,7 @@ func _trade(to: String, from: String, span: float) -> void:
 	if _cart_clock[key] < CARTS_EVERY:
 		return
 	for r in _w.zones.runners_in(from) + _w.zones.runners_in(to):
-		if r.unconscious() or not r.job.is_empty() or r.cart.counts.values().any(func(n): return n > 0):
+		if r.unconscious() or not r.job.is_empty() or r.runner.cart.counts.values().any(func(n): return n > 0):
 			continue
 		var job := _w.logistics.hauling.haul_job(r, from, to)
 		if job.is_empty():

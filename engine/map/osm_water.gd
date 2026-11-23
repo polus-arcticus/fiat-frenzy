@@ -25,8 +25,12 @@ const REACH := 60.0       # metres past the tile's edge the water reaches: as fa
 
 ## The water of `tile_key` from the raw answer, given the tile's district (its streets cut through it): {pieces, edges}.
 static func tile(overpass: Dictionary, tile_key: String, district: Dictionary) -> Dictionary:
-	var region := TileKey.region_of(tile_key)
-	var rect := TileKey.rect(tile_key).grow(REACH)
+	return of(overpass, MapFrame.tile(tile_key), district)
+
+
+## The same in any frame (MapFrame), cut to what it owns and REACH past it.
+static func of(overpass: Dictionary, frame: MapFrame, district: Dictionary) -> Dictionary:
+	var rect := frame.rect.grow(REACH)
 	var square := _rect_poly(rect)
 	var shapes: Array = []
 	for e in overpass.get("elements", []):
@@ -34,14 +38,14 @@ static func tile(overpass: Dictionary, tile_key: String, district: Dictionary) -
 		if tags.get("tunnel", "no") != "no" or tags.get("covered", "no") == "yes":
 			continue  # (a stream in a culvert: underground)
 		if e.get("type", "") == "way" and RIVER_WIDTH.has(str(tags.get("waterway", ""))):
-			shapes.append_array(_band(OsmDressing.points(e.get("geometry", []), region), width_of(tags)))
+			shapes.append_array(_band(OsmDressing.points(e.get("geometry", []), frame), width_of(tags)))
 		elif tags.get("natural", "") == "water" or tags.get("waterway", "") == "riverbank":
 			if e.get("type", "") == "way":
-				var pts := OsmDressing.points(e.get("geometry", []), region)
+				var pts := OsmDressing.points(e.get("geometry", []), frame)
 				if pts.size() >= 3:
 					shapes.append(pts)
 			elif e.get("type", "") == "relation":
-				shapes.append_array(OsmDressing.rings(e.get("members", []), region))
+				shapes.append_array(OsmDressing.rings(e.get("members", []), frame))
 	var water: Array = []
 	for s in shapes:
 		for part in Geometry2D.intersect_polygons(s, square):

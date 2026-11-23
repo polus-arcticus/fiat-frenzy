@@ -5,6 +5,8 @@ extends SceneSection
 
 func run() -> void:
 	var p: PlayerController = game.player
+	for need in Drone.NEEDS:
+		game.world.player.bars[need] = 1.0  # (s15 ran the clock on a long way: this is about the camera, not the cold)
 	p.teleport(Vector3(game.scenario.start.x, 0.1, game.scenario.start.y), 0.0)  # out in the open street
 	for i in 5:
 		await tree.physics_frame
