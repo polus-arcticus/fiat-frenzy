@@ -5,18 +5,16 @@ extends Node3D
 
 const HOT_DOG := preload("res://assets/models/hotdog_cart.glb")
 const TENT := preload("res://assets/models/tent.glb")
-const BARREL := preload("res://assets/models/fire_barrel.glb")
 const LAYER_MACHINE := 8
 
 var machine: Machine
 var world: World
 var _prop: Node3D
-var _extras: Node3D  # what stands beside the prop: the tent's barrel and its glow, the hostel's board
+var _extras: Node3D  # what stands beside the prop: the hostel's board
 var _body: StaticBody3D  # what the hero bumps into (the machine's footprint)
 var _kind := ""      # the kind the prop was built for
 var _tents_drawn := 0  # a tent city: how many tents it was drawn with
 var _board: Label3D
-var _light: OmniLight3D
 var _clock := 0.0
 var _up := 0.0  # 0 wrecked .. 1 standing
 var _grown := 1.0  # how much bigger it has got, with its level
@@ -54,7 +52,6 @@ func _build_prop() -> void:
 		_board.position = Vector3((maxi(1, home.tents) - 1) * Residence.TENT_WIDTH * home.wing * 0.5, 3.2, 0)
 	_loaves.clear()
 	_sacks.clear()
-	_light = null
 	_kind = machine.kind
 	name = "Machine_%s" % _kind
 	_prop = Node3D.new()
@@ -100,8 +97,8 @@ func _build_prop() -> void:
 			_kiosk(Color(0.36, 0.22, 0.14))
 
 
-## The tent city: a tent for each person, side by side down its wing, with a cot in each, and by the first one the tent keeper's
-## own barrel (barrels are what the keeper will sell, for the hero to place: see Lodging).
+## The tent city: a tent for each person, side by side down its wing, with a cot in each. (No barrel: barrel fires are what the
+## keeper sells, for the hero to place, and a tent city's warmth is its own: see Lodging.)
 func _tent_modules() -> void:
 	var home := machine.residence
 	var n := maxi(1, home.tents)
@@ -111,15 +108,6 @@ func _tent_modules() -> void:
 		section.position = Vector3(k * step, 0, 0)
 		_prop.add_child(section)
 		Look.box(_prop, Vector3(0.42, 0.14, 0.7), Vector3(k * step, 0.12, 0.3), Color(0.42, 0.36, 0.3))  # a cot
-	var barrel := Look.model(BARREL)
-	barrel.position = Vector3(-0.9 * home.wing, 0, -1.75)
-	_extras.add_child(barrel)
-	_light = OmniLight3D.new()
-	_light.position = Vector3((n - 1) * step * 0.5, 1.2, -1.6)
-	_light.omni_range = 8.0 + n * Residence.TENT_WIDTH * 0.6
-	_light.light_color = Color(1.0, 0.6, 0.3)
-	_light.light_energy = 0.0
-	_extras.add_child(_light)
 	_tents_drawn = home.tents
 
 
@@ -200,8 +188,6 @@ func _process(delta: float) -> void:
 	var goal := 1.0 if machine.working else 0.0
 	_up = move_toward(_up, goal, delta * 0.8)
 	_apply_pose()
-	if _light:
-		_light.light_energy = (1.8 + sin(Time.get_ticks_msec() * 0.011) * 0.4) * _up
 	_clock -= delta
 	if _clock <= 0.0:
 		_clock = 0.5
