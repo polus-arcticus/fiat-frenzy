@@ -135,6 +135,7 @@ func drive(delta: float, grounded: bool) -> Dictionary:
 		"heading": Vector2(-player.transform.basis.z.x, -player.transform.basis.z.z).normalized(),
 		"falling": player.velocity.y < 0.0,
 		"rough": world.skating.kerbs != null and world.skating.kerbs.rough_at(player.ground_pos()),  # (cobbles: slower)
+		"grade": _grade(),
 	}
 	var grinds := world.skating.grinds
 	var bails := world.skating.bails
@@ -155,6 +156,13 @@ func drive(delta: float, grounded: bool) -> Dictionary:
 	elif out.jump > 0.0:
 		hud.show_caption("Ollie", 0.6)
 	return out
+
+
+## Rise over run of the land along the way the board faces (positive: uphill), over a metre and a half about the hero.
+func _grade() -> float:
+	var h := Vector2(-player.transform.basis.z.x, -player.transform.basis.z.z).normalized()
+	var here := player.ground_pos()
+	return (Ground.land(here + h * 0.75) - Ground.land(here - h * 0.75)) / 1.5
 
 
 func _physics_process(delta: float) -> void:
@@ -185,4 +193,6 @@ func _physics_process(delta: float) -> void:
 	player.body.rotation.z = lean
 	_squash = lerpf(_squash, squash, clampf(14.0 * delta, 0.0, 1.0))
 	player.body.scale = Vector3(1.0, _squash, 1.0)
-	_board.pitch(deg_to_rad(10.0) if world.skating.in_air and not world.skating.grinding else 0.0)
+	# the nose tips up in the air, and the board lies along the hill it is on
+	var nose := deg_to_rad(10.0) if s.in_air and not s.grinding else atan(_grade()) * 0.9
+	_board.pitch(nose)

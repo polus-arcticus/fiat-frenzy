@@ -62,7 +62,7 @@ func haul_job(d: Drone, from_zone := "", to_zone := "") -> Dictionary:
 			if qty < maxi(least, 1):
 				continue
 			var need: float = float(short) / float(dest.input.caps[item])
-			var trip: float = d.pos.distance_to(bin.pos) + bin.pos.distance_to(dest.pos)
+			var trip: float = _w.walking.effort([d.pos, bin.pos, dest.pos])  # (metres on the flat: a hill counts for more)
 			if to_zone == "" and not _w.needs.would_last(d, trip):
 				continue  # (not half empty, that far: eat and drink first. A load over the border is Borders' to judge.)
 			var value := need * 10.0 - Logistics.DISTANCE_COST * trip

@@ -20,6 +20,10 @@ var roads: RoadGraph = null  # optional: with one, drones walk the streets
 ## The parks on the map (the green, OsmDressing: kind "green"), as polygons: where a camp may be pitched (Placing), and where
 ## the night wind bites (Cold). From the map, not saved: built again with it. None in the story's Frankfurt (yet).
 var parks: Array[PackedVector2Array] = []
+## The shape of the land (Landform): how high it is anywhere, how steep, metres above the sea. It sets the walkers' pace
+## (Walking) and keeps stalls and camps off slopes. From the map and its elevation, not saved: built again with it. Flat (every
+## height 0) where there is no elevation: the story's Frankfurt, the headless tests.
+var landform := Landform.new()
 ## The story's scripted cast, by role (Mr. Nobody, the bank's people, its lift): the story's to fill and read. The world only
 ## holds it (it is the composition root); nothing in the engine looks inside.
 var cast := Cast.new()

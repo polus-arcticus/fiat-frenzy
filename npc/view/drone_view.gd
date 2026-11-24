@@ -31,6 +31,8 @@ var _hold_clip := ""
 var _hold_until := 0.0
 var _last := Vector3.ZERO
 var _speed := 0.0
+var _stood_at := Vector2.INF  # where the drone was when its place on the ground was last asked...
+var _target := Vector3.ZERO   # ...and that place (Ground.at: asked again only when the drone has moved)
 var _label_clock := 0.0
 var _tent_shelters: Array = []
 
@@ -95,7 +97,10 @@ func _capsule() -> CapsuleShape3D:
 
 
 func _process(delta: float) -> void:
-	var target := Ground.at(drone.pos)  # (up onto the pavement and down off it: the sim walks flat)
+	if drone.pos != _stood_at:  # (up onto the pavement and down off it, up the hill and down: the sim walks flat)
+		_stood_at = drone.pos
+		_target = Ground.at(drone.pos)
+	var target := _target
 	global_position = global_position.lerp(target, 1.0 - exp(-14.0 * delta))
 	var moved := global_position - _last
 	_speed = lerpf(_speed, moved.length() / maxf(delta, 0.0001), 1.0 - exp(-8.0 * delta))

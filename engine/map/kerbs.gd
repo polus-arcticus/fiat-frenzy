@@ -17,7 +17,8 @@ const LEVEL := ["pedestrian"] # streets that are paved level, with no kerbs
 const ROUGH := ["sett", "cobblestone", "unhewn_cobblestone", "gravel", "pebblestone"]
 
 var pieces: Array[PackedVector2Array] = []
-var edges: Array = []          # [{a: Vector2, b: Vector2, side: the unit vector toward the pavement}]
+var piece_roads: Array[int] = []  # with `pieces`: the street (an index into district.roads) each is the pavement of
+var edges: Array = []          # [{a: Vector2, b: Vector2, side: the unit vector toward the pavement, road}]
 var _cells := {}               # Vector2i -> [piece index]
 var _edge_cells := {}          # Vector2i -> [edge index]
 var _boxes: Array[Rect2] = []
@@ -82,9 +83,10 @@ static func of(district: Dictionary, hollow := {}) -> Kerbs:
 				parts = _clip_all(parts, w.poly)
 		for part in parts:
 			k.pieces.append(part)
+			k.piece_roads.append(band.road)
 		for line in lines:
 			if line.size() >= 2 and line[0].distance_to(line[line.size() - 1]) > 0.3:
-				k.edges.append({"a": line[0], "b": line[line.size() - 1], "side": band.side})
+				k.edges.append({"a": line[0], "b": line[line.size() - 1], "side": band.side, "road": band.road})
 	k._boxes.assign(k.pieces.map(func(p): return _box(p)))
 	k._cells = _index(k._boxes)
 	k._edge_cells = _index(k.edges.map(func(e): return Rect2(e.a, Vector2.ZERO).expand(e.b)))

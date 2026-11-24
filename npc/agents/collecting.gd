@@ -70,7 +70,7 @@ func job(d: Drone) -> Dictionary:
 		if bin.item != ITEM or bin.output.count(ITEM) - _inbound(bin, d) < MIN_PICK:
 			continue
 		var gap := d.pos.distance_to(bin.pos)
-		if not _w.needs.would_last(d, gap + bin.pos.distance_to(depot.pos)):
+		if not _w.needs.would_last(d, _w.walking.effort([d.pos, bin.pos, depot.pos])):  # (metres on the flat: hills count)
 			continue  # (they'd go down on the way)
 		if gap < near:
 			near = gap

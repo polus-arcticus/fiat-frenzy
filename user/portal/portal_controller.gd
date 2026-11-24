@@ -23,7 +23,7 @@ func update() -> bool:
 	if ring == null or ring.twin == null:
 		return false
 	var out := ring.twin.exit_point()
-	player.teleport(Vector3(out.x, 0.1, out.y), ring.twin.exit_yaw())
+	player.teleport(Ground.at(out, 0.1), ring.twin.exit_yaw())
 	player.level_gaze()
 	world.portals.cross(world.player, ring)
 	world.commerce.pick_up_cash()

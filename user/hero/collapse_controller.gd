@@ -107,7 +107,7 @@ func _put_body_at_the_tent() -> void:
 	if not world.hospitals.is_empty():
 		var f := world.hospitals[0].front
 		yaw = atan2(-f.x, -f.y)
-	player.teleport(Vector3(at.x, 0.1, at.y), yaw)
+	player.teleport(Ground.at(at, 0.1), yaw)  # (on the hills the cot is up or down the slope: stood on the ground, not at 0)
 	player.level_gaze()
 
 

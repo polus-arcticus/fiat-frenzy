@@ -24,3 +24,23 @@ func fetch(key: String, dir := TileSource.CACHE, layer := "osm") -> Dictionary:
 	if not TileSource.store(key, (got.body as PackedByteArray).get_string_from_utf8(), dir, layer):
 		return {"ok": false, "error": "the map server's answer was not a map"}
 	return {"ok": true, "error": ""}
+
+
+## The tile's relief (Terrain): each Terrarium PNG it needs that is not in the cache, from Mapzen's public elevation bucket on
+## AWS (https://s3.amazonaws.com/elevation-tiles-prod/terrarium/14/x/y.png: a GET with the generic User-Agent, nothing about
+## the player but which patch of ground, as with the map). One to four requests, shared with every tile they cover. Returns
+## {ok, error}; a game goes on without it (flat), so the caller may ignore a failure.
+func fetch_relief(key: String, dir := TileSource.CACHE) -> Dictionary:
+	for t in TileSource.relief_missing(key, dir):
+		var http := RetryingFetchController.new()
+		http.timeout = 30.0
+		http.waiting.connect(func(s, a): waiting.emit(s, a))
+		add_child(http)
+		var headers := PackedStringArray(["User-Agent: " + TileSource.AGENT])
+		var got: Dictionary = await http.fetch(Terrain.url(t), headers)
+		http.queue_free()
+		if not got.ok:
+			return {"ok": false, "error": "the elevation server said no after %d tries (%s)" % [got.attempts, got.error]}
+		if not TileSource.store_relief(t, got.body, dir):
+			return {"ok": false, "error": "the elevation server's answer was not a picture"}
+	return {"ok": true, "error": ""}

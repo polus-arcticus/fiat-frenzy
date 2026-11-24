@@ -10,7 +10,8 @@
 ## recycling and organics (leftovers: what the bakery and the lemonade stand make bread and lemonade of), and a water fountain;
 ## on a tile, the map's own bins near the market where it has them (TileLanding). And a barrel fire by the market for whoever is
 ## not housed (the hero, new to the street, gets only a block or two from one: Cold).
-## No drifters: the seven are each other's customers. Everything after is growth: every tent put up brings someone (Lodging), and
+## No drifters: the seven are each other's customers. Everything after is growth: every tent put up brings someone (Lodging), the
+## first two the founders of a thrift stall (the tailor) and a camp (it puts boards together), then drifters and runners; and
 ## the tent city's first tier holds the atom's worth of tents (MachineDef.cap), so growing past it means building it up.
 ## The stands are found wrecked and their owners broke, as a cluster is (Cluster.fund gets them going). The Red Cross van is not
 ## part of it (that is the story's).
@@ -29,6 +30,9 @@ const LAYOUT := {
 	"salvager": [-9.0, "road", 1.5], "runner": [-6.5, "road", 1.5], "bottle_depot": [-14.0, "kerb", 0.6],
 	"first_aid": [-19.0, "wall", 2.0], "bins": [-24.0, "wall", 1.5], "fire": [-4.0, "wall", 1.0], "fountain": [-9.0, "kerb", 0.6],
 }
+## Where the first two arrivals of its tent city pitch their stalls (Lodging.FOUNDERS: the tailor's thrift stall, then the board
+## maker's camp): metres along the wall from the tent city, on the side away from its row. Past the bin station at the far end of the street (the street is full up to it), room for a camp's pile beside each.
+const STALL_OFFSETS := [-39.0, -46.0]
 const SALVAGER_WALLET := 8.0  # (what the food bank's keeper, whose place this is, started with: the town starts as it did)
 
 
@@ -69,4 +73,5 @@ static func seed(w: World, zone: String, at: Vector2, site := {}) -> Machine:
 	add_bins(w, site)
 	w.add_fire(_at(site, "fire"))  # a barrel fire by the market: its people are housed (warm), but a stranger is not (see Cold)
 	w.lodging.house_everyone(city)
+	city.residence.stall_offsets = STALL_OFFSETS.duplicate()
 	return city

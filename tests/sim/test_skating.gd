@@ -47,8 +47,74 @@ func test_it_rolls_up_to_a_top_speed_and_slows_down() -> void:
 	_roll(w, 4.0)
 	_roll(w, 2.0, {})
 	check(w.skating.speed < Skating.TOP_SPEED and w.skating.speed > 0.0, "and with no push it coasts down slowly (%.1f)" % w.skating.speed)
-	_roll(w, 20.0, {})
+	_roll(w, 40.0, {})
 	check(w.skating.speed == 0.0 and w.skating.step(0.05, {}, true, Vector2.ZERO).speed >= 0.0, "to a stop: it never rolls backwards")
+
+
+func test_holding_w_pushes_once_then_glides() -> void:
+	var w := _rider()
+	w.skating.mount()
+	_roll(w, 6.0)  # (W held the whole time)
+	check(w.skating.kicks == 1, "W held for six seconds is one push of the foot, not one every half second (%d)" % w.skating.kicks)
+	check(is_equal_approx(w.skating.speed, Skating.TOP_SPEED), "and it still builds up to the top speed")
+	_roll(w, 0.1, {})
+	_roll(w, 0.1)
+	check(w.skating.kicks == 2, "letting go and pressing again is a new push")
+	var before: float = w.skating.speed
+	_roll(w, 5.0, {})
+	check(w.skating.speed > before * 0.6, "let go, it glides: %.1f m/s after five seconds, from %.1f" % [w.skating.speed, before])
+	var far := 0.0
+	var g := _rider()
+	g.skating.mount()
+	g.skating.speed = Skating.TOP_SPEED
+	for i in 2000:
+		g.skating.step(0.05, {}, true, Vector2.ZERO)
+		far += g.skating.speed * 0.05
+	check(far > 60.0 and far < 160.0 and g.skating.speed == 0.0, "from the top speed it rolls %.0f m before it stops" % far)
+
+
+func test_a_board_rolls_down_hills() -> void:
+	var down := _rider()
+	down.skating.mount()
+	for i in 100:
+		down.skating.step(0.05, {"grade": -0.15}, true, Vector2.ZERO)
+	check(down.skating.speed > 5.0, "pointed downhill with no push, it picks up speed (%.1f m/s after five seconds)" % down.skating.speed)
+	for i in 600:
+		down.skating.step(0.05, {"grade": -0.4}, true, Vector2.ZERO)
+	check(down.skating.speed > Skating.TOP_SPEED and down.skating.speed <= Skating.DOWNHILL_TOP, "a steep hill takes it past the top speed for pushing, but not without limit (%.1f)" % down.skating.speed)
+	var held := _rider()
+	held.skating.mount()
+	for i in 100:
+		held.skating.step(0.05, {"grade": -0.4, "push": true}, true, Vector2.ZERO)
+	check(held.skating.speed > Skating.TOP_SPEED, "and pushing downhill never slows it to the flat top speed (%.1f)" % held.skating.speed)
+	var up := _rider()
+	up.skating.mount()
+	up.skating.speed = 6.0
+	for i in 400:
+		up.skating.step(0.05, {"grade": 0.2}, true, Vector2.ZERO)
+	check(up.skating.speed < 0.0, "pointed uphill it slows, stops and rolls back (%.1f)" % up.skating.speed)
+	var braked := _rider()
+	braked.skating.mount()
+	braked.skating.speed = -4.0
+	for i in 40:
+		braked.skating.step(0.05, {"grade": 0.3, "brake": true}, true, Vector2.ZERO)
+	check(braked.skating.speed == 0.0, "the brake holds it on a hill")
+	var gentle := _rider()
+	gentle.skating.mount()
+	for i in 100:
+		gentle.skating.step(0.05, {"grade": 0.02}, true, Vector2.ZERO)
+	check(gentle.skating.speed == 0.0, "on a slope the wheels can hold it stays put")
+	var steep := _rider()
+	steep.skating.mount()
+	for i in 40:
+		steep.skating.step(0.05, {"grade": 0.2}, true, Vector2.ZERO)
+	check(steep.skating.speed < -1.0, "left alone on a steep one, it rolls away backwards (%.1f)" % steep.skating.speed)
+	var air := _rider()
+	air.skating.mount()
+	air.skating.in_air = true
+	air.skating.speed = 5.0
+	air.skating.step(0.05, {"grade": -0.4}, false, Vector2.ZERO)
+	check(is_equal_approx(air.skating.speed, 5.0), "in the air the hill pulls at nothing")
 
 
 func test_steering_turns_you_more_when_you_are_moving() -> void:

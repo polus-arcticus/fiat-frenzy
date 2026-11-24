@@ -2,6 +2,8 @@
 ## saves can be merged). The rule: a straight stretch of a quiet street, long enough for the atom's layout, with a pavement wide
 ## enough for stalls at the kerb and tents against the wall, none of it inside a building, and as near the tile's middle as can
 ## be. Quieter streets come first (a pedestrian street before a residential one, before a through road; never a main road).
+## On a hill (a Landform) a site whose layout stands on ground steeper than MAX_GRADE anywhere is passed over; if every site is,
+## the best of them is taken all the same (a mountain tile still gets its market).
 ## Nothing fits (a park, the water): an open street through the tile's middle, the atom on it as everywhere.
 class_name SiteFinder
 extends RefCounted
@@ -14,11 +16,57 @@ const MIN_PAVEMENT := 4.0    # metres from the kerb to the building line on the 
 const STRAIGHT := 0.966      # a bend sharper than about 15 degrees ends a stretch
 const TENT_ROW := 16.0       # metres the tent row may grow along the wall, either way from the tent city
 const EDGE := 8.0            # the layout stays this far inside the tile
+const MAX_GRADE := 0.10      # the steepest ground (rise over run) a market's stalls and tents stand on: a 10% street
+const CAMP_GRADE := 0.12     # and a camp's
 
 
 ## The site for `tile_key`'s atom in `district`: {point, along, out, width, line} (see Cluster.spot), plus "street" (its name,
-## or "" for the open site).
-static func pick(district: Dictionary, tile_key: String) -> Dictionary:
+## or "" for the open site). `land` is the tile's Landform (none: flat).
+static func pick(district: Dictionary, tile_key: String, land: Landform = null) -> Dictionary:
+	var best := _pick(district, tile_key, land, MAX_GRADE)
+	if best.is_empty() and land != null and not land.flat:
+		best = _pick(district, tile_key, land, INF)  # (nowhere level enough: the best street all the same)
+	if best.is_empty():
+		best = _open(district, tile_key, land)
+		best["street"] = ""
+	return best
+
+
+## No street will do: an open site, in the tile's middle. On a hill, the open spot nearest the middle whose layout stands on
+## ground no steeper than MAX_GRADE, or failing that the levelest.
+const OPEN_STEP := 16.0  # metres between the open spots tried on a hill
+
+
+static func _open(district: Dictionary, tile_key: String, land: Landform) -> Dictionary:
+	var rect := TileKey.rect(tile_key)
+	var middle := rect.get_center()
+	if land == null or land.flat:
+		return Cluster.open_site(middle)
+	var inner := rect.grow(-EDGE)
+	var polys: Array[PackedVector2Array] = []
+	for b in district.buildings:
+		polys.append(MapSites.pts(b.poly))
+	var water: Dictionary = district.get("water", {})
+	var best := {}
+	var best_key := INF
+	var y := inner.position.y
+	while y <= inner.end.y:
+		var x := inner.position.x
+		while x <= inner.end.x:
+			var site := Cluster.open_site(Vector2(x, y))
+			if _fits(site, inner, polys, water):
+				var steep := steepest(site, land)
+				# (level enough: the nearest the middle; else the least steep, which no level one ever loses to)
+				var key: float = (site.point as Vector2).distance_to(middle) if steep <= MAX_GRADE else 1.0e6 + steep * 1000.0
+				if key < best_key:
+					best_key = key
+					best = site
+			x += OPEN_STEP
+		y += OPEN_STEP
+	return best if not best.is_empty() else Cluster.open_site(middle)
+
+
+static func _pick(district: Dictionary, tile_key: String, land: Landform, max_grade: float) -> Dictionary:
 	var rect := TileKey.rect(tile_key)
 	var inner := rect.grow(-EDGE)
 	var middle := rect.get_center()
@@ -40,21 +88,28 @@ static func pick(district: Dictionary, tile_key: String) -> Dictionary:
 			var site := _site(r, a, b)
 			if site.is_empty() or not _fits(site, inner, polys, water):
 				continue
+			if land != null and max_grade < INF and steepest(site, land) > max_grade:
+				continue
 			var score := float(RANK[r["class"]]) * 1000.0 - (site.point as Vector2).distance_to(middle)
 			if score > best_score or (is_equal_approx(score, best_score) and _before(site.point, best.point)):
 				best_score = score
 				best = site
-	if best.is_empty():
-		best = Cluster.open_site(middle)
-		best["street"] = ""
 	return best
+
+
+## The steepest ground under a site's layout (its stalls and tents, and its tent row as far as it can grow).
+static func steepest(site: Dictionary, land: Landform) -> float:
+	var most := 0.0
+	for p in _layout(site):
+		most = maxf(most, land.slope_at(p))
+	return most
 
 
 ## Where a tile's homeless camp goes (Camp, with its own fire): in the park nearest the market, as near the market as it can be,
 ## on open ground (in the park, not in the water, not on a street, not in a building, inside the tile), its counter facing the
 ## nearest street; and no further from the market than CAMP_WALK on foot (`walk`: metres along the town's streets to a point),
-## or its keeper and the runner hauling its scrap spend their day on the road and go down on the way. The same every time, for
-## everyone. {at, toward} ({} if no park is big enough and near enough).
+## or its keeper and the runner hauling its scrap spend their day on the road and go down on the way. On a hill (`land`) no
+## steeper than CAMP_GRADE. The same every time, for everyone. {at, toward} ({} if no park is big enough and near enough).
 const MIN_PARK := 300.0     # square metres: a smaller patch of grass is not a park
 const CAMP_WALK := 90.0     # metres on foot from the market, at most (a riverside park 100 m off was a 300 m walk round)
 const CAMP_STEP := 3.0      # metres between the spots tried in a park
@@ -113,7 +168,7 @@ static func _nearest(district: Dictionary, tile_key: String, market: Vector2, wa
 const CAMP_APART := 8.0     # metres a camp keeps from anything already standing (`taken`: the atom's stalls, its tent row)
 
 
-static func camp(district: Dictionary, tile_key: String, market: Vector2, walk := Callable(), taken: Array[Vector2] = []) -> Dictionary:
+static func camp(district: Dictionary, tile_key: String, market: Vector2, walk := Callable(), taken: Array[Vector2] = [], land: Landform = null) -> Dictionary:
 	var parks: Array = district.get("green", {}).get("areas", []).filter(func(a): return a.kind == "green" and _area(a.poly) >= MIN_PARK)
 	if parks.is_empty():
 		return {}
@@ -140,7 +195,7 @@ static func camp(district: Dictionary, tile_key: String, market: Vector2, walk :
 		for at in spots:
 			if taken.any(func(p): return p.distance_to(at) < CAMP_APART + CAMP_ROOM):
 				continue
-			if _camp_fits(at, poly, inner, walls, water, district.roads):
+			if _camp_fits(at, poly, inner, walls, water, district.roads) and (land == null or land.slope_at(at) <= CAMP_GRADE):
 				if walk.is_valid() and float(walk.call(at)) > CAMP_WALK:
 					break  # (the nearest spot in this park is too far round: the next park)
 				return {"at": at, "toward": _toward_street(at, district.roads)}
@@ -224,8 +279,8 @@ static func _site(r: Dictionary, a: Vector2, b: Vector2) -> Dictionary:
 	return {"point": (a + b) * 0.5, "along": dir, "out": nrm * side, "width": width, "line": line, "street": str(r.get("name", ""))}
 
 
-## Is every place the atom puts something (and its tent row, as far as it can grow) inside the tile and outside the buildings?
-static func _fits(site: Dictionary, inner: Rect2, polys: Array[PackedVector2Array], water := {}) -> bool:
+## Every place the atom puts something at `site`, and its tent row as far as it can grow.
+static func _layout(site: Dictionary) -> Array[Vector2]:
 	var spots: Array[Vector2] = []
 	for role in Atom.LAYOUT:
 		var l: Array = Atom.LAYOUT[role]
@@ -233,7 +288,12 @@ static func _fits(site: Dictionary, inner: Rect2, polys: Array[PackedVector2Arra
 	var tent: Array = Atom.LAYOUT.tent
 	for shift in [-TENT_ROW, TENT_ROW]:
 		spots.append(Cluster.spot(site, float(tent[0]) + shift, tent[1], tent[2]))
-	for p in spots:
+	return spots
+
+
+## Is every place the atom puts something (and its tent row, as far as it can grow) inside the tile and outside the buildings?
+static func _fits(site: Dictionary, inner: Rect2, polys: Array[PackedVector2Array], water := {}) -> bool:
+	for p in _layout(site):
 		if not inner.has_point(p) or OsmWater.wet(water, p):
 			return false
 		for poly in polys:

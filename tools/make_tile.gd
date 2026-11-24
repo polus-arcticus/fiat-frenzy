@@ -1,4 +1,5 @@
-## Makes a tile from anywhere: fetches its map from the Overpass API into the tile cache (once: see TileSource), imports it,
+## Makes a tile from anywhere: fetches its map from the Overpass API and its relief from AWS's elevation tiles into the tile
+## cache (once: see TileSource), imports it with the shape of its land (Landform),
 ## puts its atom on the street SiteFinder picks, funds the atom, and runs it in summary to see that it keeps itself going. Prints
 ## what it made. This is the command the MCP server (step 2 of the agentic plan) will wrap.
 ##   godot --headless --path . --script tools/make_tile.gd -- lat=50.11 lon=8.67 [days=30] [offline]
@@ -46,9 +47,28 @@ func _run() -> void:
 		if not r.ok:
 			quit(1)
 			return
+	if not TileSource.relief_missing(key).is_empty():  # (its hills: Terrarium tiles from AWS's public elevation bucket)
+		if "offline" in OS.get_cmdline_user_args():
+			print("its relief is not in the cache, and offline")
+			quit(1)
+			return
+		for t in TileSource.relief_missing(key):
+			print("fetching its relief from %s ..." % Terrain.url(t))
+		var relief := TileFetchController.new()
+		root.add_child(relief)
+		var got: Dictionary = await relief.fetch_relief(key)
+		relief.queue_free()
+		if not got.ok:
+			print("  FAILED: %s" % got.error)
+			quit(1)
+			return
 	var district := TileSource.district(key)
-	var landing := TileLanding.new(key, district, lat, lon)
+	var landform := TileSource.landform(key, district)
+	var landing := TileLanding.new(key, district, lat, lon, landform)
 	var w := landing.build()
+	var span := landform.span()
+	print("land: %s, %.0f to %.0f m above the sea; the market's ground at most %.0f%% steep" % ["flat" if landform.flat else "relief",
+		span.x, span.y, 100.0 * SiteFinder.steepest(landing.site, landform)])
 	print("map: %d buildings, %d streets (%d bridges), water in %d pieces with %d m of bank" % [district.buildings.size(), district.roads.size(),
 		district.roads.filter(func(r): return r.get("bridge", false)).size(), district.get("water", {}).get("pieces", []).size(),
 		roundi(district.get("water", {}).get("edges", []).reduce(func(s, e): return s + e.a.distance_to(e.b), 0.0))])

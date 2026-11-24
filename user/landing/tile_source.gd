@@ -9,7 +9,7 @@
 ##   tile's box by the server (`out geom(box)`); a waterway's centre line comes whole (a way is a few km), so its band reaches
 ##   the tile's edge. Trees aren't asked for (a tile can have thousands of mapped ones): they are scattered in the green, the
 ##   same for everyone.
-## At most two requests per tile, ever.
+## At most two requests per tile to Overpass, ever, and one to four for its relief (shared with its neighbours).
 class_name TileSource
 extends RefCounted
 
@@ -65,9 +65,62 @@ static func mapped(dir := CACHE) -> Array[String]:
 const BEFORE_LANDING := ["osm", "land"]
 
 
-## Whether everything needed to land on `key` is in the cache.
+## **Relief** is a third source, apart from the two layers: the Terrarium elevation PNGs (Terrain) over the tile and RELIEF_REACH
+## metres round it, one to four of them (1.5 km each), kept as they came in the same cache, and shared by every tile they cover.
+## A tile needs it before anyone lands (`ready`), as it needs its map: the shape of its land (Landform) decides where its market
+## and camp go, and that must be the same for everyone who lands there.
+const RELIEF_REACH := 300.0  # metres round the tile that the terrain covers (its streets reach 60, the picture beyond them)
+
+
+## The square of `key`'s metres that its terrain covers.
+static func relief_rect(key: String) -> Rect2:
+	return TileKey.rect(key).grow(RELIEF_REACH)
+
+
+## The relief tiles `key` needs.
+static func relief_needed(key: String) -> Array[Vector2i]:
+	return Terrain.tiles_for(MapFrame.tile(key), TileKey.rect(key), RELIEF_REACH)
+
+
+static func relief_path(t: Vector2i, dir := CACHE) -> String:
+	return dir.path_join(Terrain.file_name(t))
+
+
+## The relief tiles of `key` that are not in the cache yet.
+static func relief_missing(key: String, dir := CACHE) -> Array[Vector2i]:
+	return relief_needed(key).filter(func(t): return not FileAccess.file_exists(relief_path(t, dir)))
+
+
+## Keeps a relief tile as it came. False if it is not a Terrarium picture (a 256 px PNG).
+static func store_relief(t: Vector2i, bytes: PackedByteArray, dir := CACHE) -> bool:
+	var img := Image.new()
+	if img.load_png_from_buffer(bytes) != OK or img.get_width() != Terrain.PIXELS or img.get_height() != Terrain.PIXELS:
+		return false
+	DirAccess.make_dir_recursive_absolute(dir)
+	var f := FileAccess.open(relief_path(t, dir), FileAccess.WRITE)
+	if f == null:
+		return false
+	f.store_buffer(bytes)
+	return true
+
+
+## The landform of `key` (its `district`, from `district`): the land's shape from its cached relief and the city on it. Flat
+## unless all its relief is there (a save from before the hills; a fetch cut short): never half made up, so it is the same for
+## everyone who has it.
+static func landform(key: String, district: Dictionary, dir := CACHE) -> Landform:
+	var tiles := {}
+	for t in relief_needed(key):
+		var file := relief_path(t, dir)
+		if not FileAccess.file_exists(file):
+			tiles = {}
+			break
+		tiles[t] = FileAccess.get_file_as_bytes(file)
+	return Landform.of(MapFrame.tile(key), relief_rect(key).grow(-Landform.INSET), district, Terrain.images(tiles))
+
+
+## Whether everything needed to land on `key` is in the cache: its layers and its relief.
 static func ready(key: String, dir := CACHE) -> bool:
-	return BEFORE_LANDING.all(func(l): return cached(key, dir, l))
+	return BEFORE_LANDING.all(func(l): return cached(key, dir, l)) and relief_missing(key, dir).is_empty()
 
 
 ## The tile's district from the cache ({} if it is not there), with its water (OsmWater) and its green (OsmDressing: the parks

@@ -56,6 +56,14 @@ static func begin(tree: SceneTree, saved_slot := "", new_landing := {}) -> Strin
 				screen.queue_free()
 				landing = {}
 				return "The map of %s couldn't be fetched: %s." % [new_landing.key, got.error]
+		if not TileSource.relief_missing(new_landing.key).is_empty():  # (the lie of the land: where its market goes depends on it)
+			screen.caption = "FETCHING THE HILLS OF %s..." % new_landing.key
+			var got: Dictionary = await fetcher.fetch_relief(new_landing.key)
+			if not got.ok:
+				fetcher.queue_free()
+				screen.queue_free()
+				landing = {}
+				return "The hills of %s couldn't be fetched: %s." % [new_landing.key, got.error]
 		fetcher.queue_free()
 		screen.caption = LoadingScreen.PRINTING
 	screen.holding = false

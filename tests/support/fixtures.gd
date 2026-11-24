@@ -134,3 +134,27 @@ static func made(w: World) -> int:
 	for m in w.machines:
 		n += m.crafted_total
 	return n
+
+
+## A Landform over `rect` whose ground is `height` (a callable of the point), with no streets or buildings of its own: hills
+## for the sim's tests, without elevation tiles.
+static func landform(rect: Rect2, height: Callable) -> Landform:
+	var f := Landform.new()
+	f.flat = false
+	var origin := (rect.position / Landform.CELL).floor() * Landform.CELL
+	f.cols = ceili((rect.end.x - origin.x) / Landform.CELL) + 1
+	f.rows = ceili((rect.end.y - origin.y) / Landform.CELL) + 1
+	f.rect = Rect2(origin, Vector2(f.cols - 1, f.rows - 1) * Landform.CELL)
+	f.land.resize(f.cols * f.rows)
+	for j in f.rows:
+		for i in f.cols:
+			f.land[j * f.cols + i] = float(height.call(f.point(i, j)))
+	f.surface = f.land.duplicate()
+	f.ground = f.land.duplicate()
+	f._mark_plain()
+	return f
+
+
+## A plane rising `rise` (rise over run, x east and y south) over `rect`.
+static func tilted(rect: Rect2, rise: Vector2) -> Landform:
+	return landform(rect, func(p: Vector2) -> float: return 100.0 + rise.dot(p - rect.position))

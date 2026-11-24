@@ -131,7 +131,8 @@ func lasts(d: Drone) -> float:
 	return minf(d.bars.hunger * HUNGER_SECONDS, d.bars.thirst * THIRST_SECONDS)
 
 
-## Would `d` last a walk of `metres` (a trip they are planning), with some to spare? A runner low on water doesn't wheel a load
+## Would `d` last a walk of `metres` on the flat (a trip they are planning: Walking.effort reckons its hills in), with some to
+## spare? A runner low on water doesn't wheel a load
 ## 200 m off and back: they stay near the market until they have eaten and drunk. (At the tile by the Main the runners went
 ## down on the way back from its far waste baskets, having set out half empty.)
 func would_last(d: Drone, metres: float) -> bool:

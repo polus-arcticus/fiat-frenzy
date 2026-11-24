@@ -10,7 +10,17 @@ extends RefCounted
 
 const TOP_SPEED := 12.0     # metres a second at full push
 const ACCEL := 7.0          # pushing
-const COAST := 1.5          # slowing down by itself
+## Gliding: with no push the board keeps rolling, slowed by its wheels (a flat ROLL_FRICTION) and the air (AIR_DRAG times the
+## speed squared, so a fast board sheds speed quickly and a slow one glides on). From the top speed it takes about 20 s and
+## 100 m to stop on the flat.
+const ROLL_FRICTION := 0.3  # metres a second, a second
+const AIR_DRAG := 0.006     # per metre
+## Hills (the `grade` a step is given: rise over run along the board's heading): gravity pulls the board down them, so one
+## pointed downhill speeds up (to at most DOWNHILL_TOP, the old board's share of it), one pointed uphill slows and, if it
+## stops, rolls back. It holds still on a slope the wheels can hold (gravity along it under ROLL_FRICTION), and braking holds
+## it on any.
+const GRAVITY := 9.8
+const DOWNHILL_TOP := 20.0  # metres a second
 const BRAKE := 13.0         # slowing down on purpose
 const TURN_RATE := 2.6      # radians a second at speed: steering. (Slower going slowly, but you can always turn a little.)
 const CHARGE_TIME := 0.45   # seconds of holding jump for the highest ollie
@@ -73,6 +83,7 @@ var _dir := 1.0              # +1 toward its end, -1 toward its start
 var _since_bill := 0.0
 var _since_kick := 1.0
 var _crouched := 0.0         # seconds the jump key has been held on the ground
+var _pushing := false        # W was down last step (the foot goes down once as it is pressed, not as long as it is held)
 
 
 func _init(world: World) -> void:
@@ -155,24 +166,37 @@ func step(dt: float, input: Dictionary, grounded: bool, at: Vector2) -> Dictiona
 	_since_kick += dt
 	var rolling := grounded and not in_air
 	rough = rolling and input.get("rough", false)
-	if speed > top_speed():  # onto cobbles going fast: they shake it out of you
+	if rough and speed > top_speed():  # onto cobbles going fast: they shake it out of you
 		speed = maxf(top_speed(), speed - ROUGH_DRAG * dt)
+	var pull := 0.0  # gravity's pull along the heading (positive: the way the board faces), on the ground only
+	if rolling:
+		var grade := float(input.get("grade", 0.0))
+		pull = -GRAVITY * grade / sqrt(1.0 + grade * grade)
+	var pushing: bool = input.get("push", false)
+	var braking := false
+	var coasting := false
 	if input.get("kick", false) and rolling and _since_kick >= KICK_EVERY:  # a push with the foot
-		speed = minf(top_speed(), speed + KICK)
+		speed = maxf(speed, minf(top_speed(), speed + KICK))
 		_since_kick = 0.0
 		kicks += 1
-	elif input.get("push", false):
-		speed = minf(top_speed(), speed + ACCEL * dt)
-		if rolling and _since_kick >= KICK_EVERY * 2.0:  # (holding W pushes too: the foot goes down now and then)
+	elif pushing:  # (holding W keeps pushing: faster, up to the top, never slower; the foot goes down once, as it is pressed)
+		speed = maxf(speed, minf(top_speed(), speed + ACCEL * dt))
+		if rolling and not _pushing and _since_kick >= KICK_EVERY:
 			_since_kick = 0.0
 			kicks += 1
 	elif rolling and _crouched > CHARGE_TIME + PUMP_AFTER and speed < top_speed() * PUMP_TOP:  # crouched long: pumping
 		speed = minf(top_speed() * PUMP_TOP, speed + PUMP_ACCEL * dt)
+	elif input.get("brake", false) and rolling:
+		speed = move_toward(speed, 0.0, BRAKE * dt)
+		braking = true  # (the brake holds it still on any slope the board can stand on)
 	elif input.get("brake", false):
-		speed = maxf(0.0, speed - BRAKE * dt)
+		speed = move_toward(speed, 0.0, BRAKE * dt)
 	else:
-		speed = maxf(0.0, speed - COAST * dt)
-	var out := {"speed": speed, "turn": float(input.get("steer", 0.0)) * TURN_RATE * clampf(speed / 4.0, 0.4, 1.0), "jump": 0.0, "flip": false, "grind": false}
+		coasting = true
+	_pushing = pushing
+	if rolling and not braking:
+		speed = _glide(dt, pull, coasting)
+	var out := {"speed": speed, "turn": float(input.get("steer", 0.0)) * TURN_RATE * clampf(absf(speed) / 4.0, 0.4, 1.0), "jump": 0.0, "flip": false, "grind": false}
 	if not grounded:
 		in_air = true
 	elif in_air:
@@ -199,6 +223,22 @@ func step(dt: float, input: Dictionary, grounded: bool, at: Vector2) -> Dictiona
 			ollies += 1
 			last_trick = "Ollie"
 	return out
+
+
+## One step of rolling on the ground: gravity's `pull` along the heading (m/s², from the hill) and, when `coasting`, the wheels
+## and the air slowing the board. Returns the new speed, which is negative while the board rolls backwards down a slope it
+## faces up. A board at rest stays there on a slope its wheels can hold.
+func _glide(dt: float, pull: float, coasting: bool) -> float:
+	var cap := DOWNHILL_TOP * (Catalog.item(board()).speed if board() != "" else 1.0)
+	if not coasting:
+		return clampf(speed + pull * dt, -cap, cap)
+	if absf(speed) <= 0.01 and absf(pull) <= ROLL_FRICTION:
+		return 0.0
+	var going := signf(speed) if absf(speed) > 0.01 else signf(pull)
+	var next := speed + (pull - going * (ROLL_FRICTION + AIR_DRAG * speed * speed)) * dt
+	if speed != 0.0 and signf(next) != signf(speed) and absf(pull) <= ROLL_FRICTION:
+		return 0.0  # (the wheels stop it, they do not turn it round)
+	return clampf(next, -cap, cap)
 
 
 ## Coming down at `at`, `height` above the street, facing `heading`: is there a kerb line to catch? If so, the grind begins.

@@ -141,18 +141,26 @@ func _build_city() -> void:
 	var district := landing.district
 	var openings := landing.openings()
 	var tile_key: String = landing.key if landing is TileLanding else ""
+	# The shape of the land (the landing's Landform: flat for the story's Frankfurt), drawn with its floating origin at the
+	# tile's market: the views' 0 is the land there, not the sea (Ground.datum).
+	var land: Landform = (landing as TileLanding).landform if landing is TileLanding else Landform.new()
+	var datum := 0.0 if land.flat else land.height_at((landing as TileLanding).market)
 	var make := func():
 		var kerbs := Kerbs.of(district, openings)
+		Ground.landform = land
+		Ground.datum = datum
 		Ground.kerbs = kerbs  # (the street things stand on the pavements: set before they're baked)
 		var things := StreetThingsBuilder.bake(StreetThings.of(district, kerbs, tile_key))
-		return {"kerbs": kerbs, "city": CityBuilder.bake(district, openings, kerbs), "things": things}
+		return {"kerbs": kerbs, "city": CityBuilder.bake(district, openings, kerbs, land, datum), "things": things}
 	var baked: Dictionary
 	if _stepwise:
 		baked = await OffThread.run(self, make)
 	else:
 		baked = make.call()
 	kerbs = baked.kerbs
-	Ground.kerbs = kerbs  # (the views stand things on the pavements)
+	Ground.landform = land  # (the views stand things on the land...)
+	Ground.datum = datum
+	Ground.kerbs = kerbs  # (...and on the pavements)
 	city = CityBuilder.assemble(baked.city)
 	city.add_child(StreetThingsBuilder.assemble(baked.things))  # (lamps, stops, signs, benches, hedges: StreetThings)
 
@@ -163,7 +171,7 @@ func _landing_of(spec: Dictionary) -> Landing:
 	if spec.get("kind", "story") == "tile":
 		var map := TileSource.district(spec.key)
 		if not map.is_empty():
-			return TileLanding.new(spec.key, map, float(spec.lat), float(spec.lon))
+			return TileLanding.new(spec.key, map, float(spec.lat), float(spec.lon), TileSource.landform(spec.key, map))
 		push_warning("tile %s is not in the cache: landing in Frankfurt" % spec.key)
 	return Scenario.new(_load_district())
 
@@ -196,7 +204,7 @@ func _build_player() -> void:
 	add_child(hud)
 	player = PlayerController.new()
 	add_child(player)
-	player.teleport(Vector3(landing.start.x, 0.1, landing.start.y), landing.start_yaw)
+	player.teleport(Ground.at(landing.start, 0.1), landing.start_yaw)
 	world.add_player(landing.start)
 	gun = GunController.new()
 	player.camera.add_child(gun)
@@ -440,7 +448,7 @@ func load_game(slot: String) -> bool:
 	var h: Dictionary = doc.hero
 	world.hero.mode = Hero.Mode.ON_FOOT  # back on their feet: the bike and board wait where they were left
 	world.skating.speed = 0.0
-	player.teleport(Vector3(world.player.pos.x, 0.1, world.player.pos.y), float(h.get("yaw", 0.0)))
+	player.teleport(Ground.at(world.player.pos, 0.1), float(h.get("yaw", 0.0)))
 	player.camera.rotation.x = float(h.get("pitch", 0.0))
 	player.set_third_person(h.get("third_person", false))
 	gun.mode = h.get("gun_mode", "gift")

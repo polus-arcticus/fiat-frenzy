@@ -39,9 +39,16 @@ class Buf:
 	var n := PackedVector3Array()
 	var c := PackedColorArray()
 	var i := PackedInt32Array()
+	## While a number, every vertex put in rises by it: a building stands at its floor's height (Landform.pads), plumb and
+	## level on its slope. (Shapes laid on the land go through Drape instead.)
+	var level := NAN
 
 	## One triangle, wound so it faces along `nrm` (Godot's front faces are clockwise).
 	func tri(a: Vector3, b: Vector3, d: Vector3, nrm: Vector3, col: Color) -> void:
+		if not is_nan(level):
+			a.y += level
+			b.y += level
+			d.y += level
 		if (b - a).cross(d - a).dot(nrm) > 0.0:
 			var t := b
 			b = d
@@ -104,38 +111,74 @@ static func build(district: Dictionary, openings := {}) -> Node3D:
 
 ## The long half of `build`: every wall, window, roof and street as plain triangle arrays (no nodes, no servers), so it can
 ## run on a worker thread (OffThread) while the loading picture keeps moving. `assemble` makes the nodes from it.
-static func bake(district: Dictionary, openings := {}, kerbs: Kerbs = null) -> Dictionary:
+## `landform` is the shape of the land (Landform; none: flat, the city as it always was), drawn `datum` metres down (the views'
+## floating origin: Ground.datum).
+static func bake(district: Dictionary, openings := {}, kerbs: Kerbs = null, landform: Landform = null, datum := 0.0) -> Dictionary:
 	if kerbs == null:
 		kerbs = Kerbs.of(district, openings)
+	var drape := Drape.on(landform, datum)
 	var walls := Buf.new()
 	var windows := Buf.new()
 	var lit := Buf.new()
 	var roofs := Buf.new()
 	var ground := Buf.new()
 	var streets := Buf.new()
+	var floors := Buf.new()  # (inside the buildings with a door: walked on)
+	var raised := Buf.new()
+	var bar := Buf.new()  # (collision only)
 
 	var b: Array = district.bounds
 	var pad := 400.0
 	var up := Vector3.UP
-	ground.quad(Vector3(b[0] - pad, 0, b[1] - pad), Vector3(b[2] + pad, 0, b[1] - pad),
-		Vector3(b[2] + pad, 0, b[3] + pad), Vector3(b[0] - pad, 0, b[3] + pad), up, GROUND)
+	var extent := Rect2(b[0] - pad, b[1] - pad, b[2] - b[0] + 2.0 * pad, b[3] - b[1] + 2.0 * pad)
+	var ground_span := Vector2.ZERO
+	if drape.flat:
+		ground.quad(Vector3(extent.position.x, 0, extent.position.y), Vector3(extent.end.x, 0, extent.position.y),
+			Vector3(extent.end.x, 0, extent.end.y), Vector3(extent.position.x, 0, extent.end.y), up, GROUND)
+	else:
+		drape.ground(ground, extent, GROUND)
+		ground_span = drape.land.span() - Vector2(datum, datum)
 
-	for r in district.roads:
-		_road(streets, _pts(r.pts), float(r.w), String(r["class"]), r.get("pave", []), r.get("bike", []), str(r.get("surface", "")), int(r.get("lanes", 0)))
+	for ri in district.roads.size():
+		var r: Dictionary = district.roads[ri]
+		_road(drape, streets, ri, _pts(r.pts), float(r.w), String(r["class"]), r.get("pave", []), r.get("bike", []), str(r.get("surface", "")), int(r.get("lanes", 0)))
+	var holes: Array = []  # (the footprints with a floor inside: what is walked on there is the floor)
 	for bd in district.buildings:
 		for piece in Landmarks.pieces(int(bd.id), _pts(bd.poly)):  # (usually the one: its whole footprint)
 			var opening: Dictionary = openings.get(int(bd.id), {})
-			_building(bd, walls, windows, lit, roofs, streets, opening, piece.pts, _mapped_style(bd, piece.pts, piece.style, opening))
-	var raised := Buf.new()
-	_kerbs(raised, kerbs)
-	var bar := Buf.new()  # (collision only)
-	_water(streets, walls, bar, district.get("water", {}))
+			if not opening.is_empty():
+				holes.append(piece.pts)
+			var stands := [walls, windows, lit, roofs, floors]
+			var skirt := _stand(drape, int(bd.id), piece.pts, stands)
+			_building(bd, walls, windows, lit, roofs, floors, opening, piece.pts, _mapped_style(bd, piece.pts, piece.style, opening), skirt)
+			for buf in stands:
+				buf.level = NAN
+	_kerbs(drape, raised, kerbs)
+	_water(drape, streets, walls, bar, district.get("water", {}))
 	var solid_faces := walls.faces()  # walls and roofs: a bill that arcs over a building comes down on its roof, not through it
 	solid_faces.append_array(roofs.faces())
 	solid_faces.append_array(raised.faces())  # and the pavements: you step up onto them, a board stops at them
 	solid_faces.append_array(bar.faces())     # and the unseen wall over the quays
-	return {"layers": {"Ground": ground, "Streets": streets, "Pavements": raised, "Walls": walls, "Windows": windows, "Roofs": roofs},
-		"lit": lit, "solid": solid_faces, "bounds": b, "pad": pad}
+	if not drape.flat:
+		solid_faces.append_array(floors.faces())  # (on hills a floor is not at the street's height: it is stood on)
+	return {"layers": {"Ground": ground, "Streets": streets, "Floors": floors, "Pavements": raised, "Walls": walls, "Windows": windows, "Roofs": roofs},
+		"lit": lit, "solid": solid_faces, "bounds": b, "pad": pad, "hills": not drape.flat,
+		"walk_faces": drape.walk_faces(extent, holes) if not drape.flat else PackedVector3Array(), "ground_span": ground_span}
+
+
+## Stands a building on the land: its buffers (`bufs`) rise to its floor (Landform.pads: the pavement at its front), the whole of
+## it at one height (its walls plumb, its roof flat). Returns how far its walls go down below the floor, to meet the ground at
+## its lowest corner (a plinth on the downhill side). 0 on flat ground.
+static func _stand(drape: Drape, id: int, pts: PackedVector2Array, bufs: Array) -> float:
+	if drape.flat:
+		return 0.0
+	var level: float = float(drape.land.pads.get(id, drape.land.surface_at(pts[0]))) - drape.datum
+	var lo := level
+	for p in pts:
+		lo = minf(lo, drape.height(p, "ground"))
+	for buf in bufs:
+		buf.level = level
+	return level - lo + 0.3
 
 
 ## The quick half of `build`, on the main thread: the meshes, the night windows and the collision, under a Node3D "City".
@@ -153,7 +196,7 @@ static func assemble(baked: Dictionary) -> Node3D:
 		mi.name = key
 		mi.mesh = layers[key].to_mesh()
 		mi.material_override = mat
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if key in ["Ground", "Streets", "Pavements", "Windows"] else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if key in ["Ground", "Streets", "Floors", "Pavements", "Windows"] else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 		root.add_child(mi)
 	var lit_mi := MeshInstance3D.new()
 	lit_mi.name = "LitWindows"
@@ -181,7 +224,15 @@ static func assemble(baked: Dictionary) -> Node3D:
 	var box := BoxShape3D.new()
 	box.size = Vector3(b[2] - b[0] + 2.0 * pad, 2.0, b[3] - b[1] + 2.0 * pad)
 	slab.shape = box
-	slab.position = Vector3((b[0] + b[2]) * 0.5, -1.0, (b[1] + b[3]) * 0.5)
+	var low := 0.0
+	if baked.get("hills", false):  # (hills: the surface to walk on, Drape.walk_faces, and the slab down at the lowest under it)
+		var face_shape := ConcavePolygonShape3D.new()
+		face_shape.set_faces(baked.walk_faces)
+		var walk := CollisionShape3D.new()
+		walk.shape = face_shape
+		ground_body.add_child(walk)
+		low = (baked.ground_span as Vector2).x - 2.0
+	slab.position = Vector3((b[0] + b[2]) * 0.5, low - 1.0, (b[1] + b[3]) * 0.5)
 	ground_body.add_child(slab)
 	root.add_child(ground_body)
 	return root
@@ -222,7 +273,7 @@ static func _area2(pts: PackedVector2Array) -> float:
 	return s * 0.5
 
 
-static func _building(bd: Dictionary, walls: Buf, windows: Buf, lit: Buf, roofs: Buf, floors: Buf, opening: Dictionary, pts: PackedVector2Array, style: Dictionary) -> void:
+static func _building(bd: Dictionary, walls: Buf, windows: Buf, lit: Buf, roofs: Buf, floors: Buf, opening: Dictionary, pts: PackedVector2Array, style: Dictionary, skirt := 0.0) -> void:
 	var h: float = bd.h
 	var id: int = bd.id
 	var kind: String = bd.kind
@@ -254,6 +305,8 @@ static func _building(bd: Dictionary, walls: Buf, windows: Buf, lit: Buf, roofs:
 		var p0 := Vector3(p.x, 0, p.y)
 		var q0 := Vector3(q.x, 0, q.y)
 		var up := Vector3(0, gh, 0)
+		if skirt > 0.0:  # (on a slope: its foundation, down to the ground below it)
+			walls.quad(p0 - Vector3(0, skirt, 0), q0 - Vector3(0, skirt, 0), q0, p0, out, shopfront)
 		var has_door: bool = not opening.is_empty() and int(opening.edge) == k
 		if has_door:
 			_door_wall(walls, p0, dir, length, out, gh, opening, shopfront)
@@ -335,7 +388,7 @@ const LANE_LINE := Color(0.86, 0.85, 0.80)
 const DASH := Vector2(3.0, 9.0)  # a lane line's dash, and how far apart they start
 
 
-static func _road(streets: Buf, pts: PackedVector2Array, width: float, cls: String, pave := [], bike := [], surface := "", lanes := 0) -> void:
+static func _road(drape: Drape, streets: Buf, ri: int, pts: PackedVector2Array, width: float, cls: String, pave := [], bike := [], surface := "", lanes := 0) -> void:
 	var paved := cls == "pedestrian"
 	var side_w := width + (0.0 if paved else 3.4)
 	var side_col: Color = SURFACES.get(surface, STONE).lerp(STONE, 0.4) if paved else SIDEWALK
@@ -355,16 +408,16 @@ static func _road(streets: Buf, pts: PackedVector2Array, width: float, cls: Stri
 		if paved:  # level paving, wall to wall (a street with kerbs has its pavements raised: Kerbs, _kerbs)
 			for side in 2:
 				var sgn := 1.0 if side == 1 else -1.0  # the right-hand side is along +nrm
-				_band(streets, p - ext, q + ext, nrm * sgn, 0.0, float(reach[side]), 0.015, side_col)
+				_band(drape, streets, ri, p - ext, q + ext, nrm * sgn, 0.0, float(reach[side]), 0.015, side_col)
 		else:
-			_strip(streets, p - ext, q + ext, nrm, width * 0.5, 0.03, road_col)
+			_strip(drape, streets, ri, p - ext, q + ext, nrm, width * 0.5, 0.03, road_col)
 			if lanes >= 2 and road_col == ASPHALT:  # (painted lines on asphalt: a dashed one between each lane)
 				for lane in range(1, lanes):
 					var off := -width * 0.5 + width * float(lane) / float(lanes)
 					var t := 0.0
 					while t + DASH.x <= e.length():
 						var a := p + dir * t + nrm * off
-						_strip(streets, a, a + dir * DASH.x, nrm, 0.07, 0.034, LANE_LINE)
+						_strip(drape, streets, ri, a, a + dir * DASH.x, nrm, 0.07, 0.034, LANE_LINE)
 						t += DASH.y
 		for side in mini(bike.size(), 2):
 			var kind := String(bike[side])
@@ -372,21 +425,22 @@ static func _road(streets: Buf, pts: PackedVector2Array, width: float, cls: Stri
 				continue
 			var sgn := 1.0 if side == 1 else -1.0
 			if kind == "lane":  # inside the carriageway, along its edge
-				_band(streets, p - ext, q + ext, nrm * sgn, width * 0.5 - 1.5, width * 0.5, 0.04, BIKE_LANE)
+				_band(drape, streets, ri, p - ext, q + ext, nrm * sgn, width * 0.5 - 1.5, width * 0.5, 0.04, BIKE_LANE)
 			else:               # a track: on the pavement, beside the kerb
-				_band(streets, p - ext, q + ext, nrm * sgn, width * 0.5, width * 0.5 + 1.8, Kerbs.HEIGHT + 0.01, BIKE_TRACK)
+				_band(drape, streets, ri, p - ext, q + ext, nrm * sgn, width * 0.5, width * 0.5 + 1.8, Kerbs.HEIGHT + 0.01, BIKE_TRACK)
 
 
-## The water (OsmWater): its surface, and a low stone wall along every edge where it meets land (a quay along the bank, a
-## parapet along a bridge, the same rule), with an unseen wall above it in `bar` so nobody goes over.
-static func _water(surface: Buf, walls: Buf, bar: Buf, water: Dictionary) -> void:
+## The water (OsmWater): its surface, WATER_DROP under the land (Landform.water_at), and a low stone wall along every edge where
+## it meets land (a quay along the bank, a parapet along a bridge, the same rule), its foot down in the water, with an unseen
+## wall above it in `bar` so nobody goes over.
+const QUAY_FOOT := 0.8  # how far below the bank a quay's wall goes (into the water)
+
+
+static func _water(drape: Drape, surface: Buf, walls: Buf, bar: Buf, water: Dictionary) -> void:
+	var drop := 0.0 if drape.flat else -Landform.WATER_DROP
 	for poly in water.get("pieces", []):
-		var tris := Geometry2D.triangulate_polygon(poly)
-		for t in range(0, tris.size(), 3):
-			var a: Vector2 = poly[tris[t]]
-			var b: Vector2 = poly[tris[t + 1]]
-			var c: Vector2 = poly[tris[t + 2]]
-			surface.tri(Vector3(a.x, WATER_Y, a.y), Vector3(b.x, WATER_Y, b.y), Vector3(c.x, WATER_Y, c.y), Vector3.UP, WATER)
+		drape.poly(surface, poly, WATER_Y + drop, WATER, "land")
+	var foot := 0.0 if drape.flat else -QUAY_FOOT
 	for e in water.get("edges", []):
 		var a: Vector2 = e.a
 		var b: Vector2 = e.b
@@ -399,50 +453,41 @@ static func _water(surface: Buf, walls: Buf, bar: Buf, water: Dictionary) -> voi
 			var p: Vector2 = corners[i]
 			var q: Vector2 = corners[(i + 1) % 4]
 			var out := Vector3((p + q).x * 0.5 - (a0 + b0).x * 0.5, 0.0, (p + q).y * 0.5 - (a0 + b0).y * 0.5).normalized()
-			walls.quad(Vector3(p.x, 0.0, p.y), Vector3(q.x, 0.0, q.y), Vector3(q.x, QUAY_H, q.y), Vector3(p.x, QUAY_H, p.y), out, QUAY)
-		var top := [Vector3(corners[0].x, QUAY_H, corners[0].y), Vector3(corners[1].x, QUAY_H, corners[1].y), Vector3(corners[2].x, QUAY_H, corners[2].y), Vector3(corners[3].x, QUAY_H, corners[3].y)]
-		walls.quad(top[0], top[1], top[2], top[3], Vector3.UP, QUAY.lightened(0.08))
-		bar.quad(Vector3(a.x, QUAY_H, a.y), Vector3(b.x, QUAY_H, b.y), Vector3(b.x, QUAY_BAR, b.y), Vector3(a.x, QUAY_BAR, a.y), Vector3(n.x, 0, n.y).normalized(), QUAY)
+			drape.wall(walls, p, q, foot, QUAY_H, out, QUAY)
+		drape.quad(walls, corners[0], corners[1], corners[2], corners[3], QUAY_H, QUAY.lightened(0.08))
+		drape.wall(bar, a, b, QUAY_H, QUAY_BAR, Vector3(n.x, 0, n.y).normalized(), QUAY)
 
 
-## The raised pavements: their tops, their sides down to the road, and a lighter kerb stone along each kerb line.
-static func _kerbs(buf: Buf, kerbs: Kerbs) -> void:
+## The raised pavements (Kerbs): their tops, their sides down to the road, and a lighter kerb stone along each kerb line, all
+## on the street's surface (a bridge's pavements on its deck). A side whose outside is pavement too (a seam where a pavement was
+## cut in pieces: more than half of them) has no drop to show, and is left out.
+static func _kerbs(drape: Drape, buf: Buf, kerbs: Kerbs) -> void:
 	var h := Kerbs.HEIGHT
-	for poly in kerbs.pieces:
-		var tris := Geometry2D.triangulate_polygon(poly)
-		for t in range(0, tris.size(), 3):
-			var a := poly[tris[t]]
-			var b := poly[tris[t + 1]]
-			var c := poly[tris[t + 2]]
-			buf.tri(Vector3(a.x, h, a.y), Vector3(b.x, h, b.y), Vector3(c.x, h, c.y), Vector3.UP, SIDEWALK)
+	for pi in kerbs.pieces.size():
+		var poly: PackedVector2Array = kerbs.pieces[pi]
+		var road: int = kerbs.piece_roads[pi] if pi < kerbs.piece_roads.size() else -1
+		drape.poly(buf, poly, h, SIDEWALK, "surface", road)
 		for i in poly.size():  # (counter-clockwise: the outside of an edge a->b is to its right)
 			var a := poly[i]
 			var b := poly[(i + 1) % poly.size()]
 			var e := b - a
 			if e.length() < 0.01:
 				continue
-			var out := Vector3(e.y, 0.0, -e.x).normalized()
-			buf.quad(Vector3(a.x, 0.0, a.y), Vector3(b.x, 0.0, b.y), Vector3(b.x, h, b.y), Vector3(a.x, h, a.y), out, KERB_FACE)
+			var out := Vector2(e.y, -e.x).normalized()
+			if kerbs.height_at((a + b) * 0.5 + out * 0.05) > 0.0 and not drape.land.is_bridge(road):
+				continue  # (a seam: pavement both sides)
+			drape.wall(buf, a, b, 0.0, h, Vector3(out.x, 0.0, out.y), KERB_FACE, "surface", road)
 	for e in kerbs.edges:
 		var a: Vector2 = e.a
 		var b: Vector2 = e.b
 		var n: Vector2 = e.side * KERB_STONE_W  # (on the pavement, from the drop inward)
-		var y := h + 0.004
-		buf.quad(Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(b.x + n.x, y, b.y + n.y), Vector3(a.x + n.x, y, a.y + n.y), Vector3.UP, KERB_STONE)
+		drape.quad(buf, a, b, b + n, a + n, h + 0.004, KERB_STONE, "surface", int(e.get("road", -1)))
 
 
-## A band along the street from `inner` to `outer` metres to one side of its centre line.
-static func _band(streets: Buf, p: Vector2, q: Vector2, side: Vector2, inner: float, outer: float, y: float, col: Color) -> void:
-	var a := p + side * inner
-	var b := p + side * outer
-	var c := q + side * outer
-	var d := q + side * inner
-	streets.quad(Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(c.x, y, c.y), Vector3(d.x, y, d.y), Vector3.UP, col)
+## A band along the street from `inner` to `outer` metres to one side of its centre line, `y` over its surface.
+static func _band(drape: Drape, streets: Buf, ri: int, p: Vector2, q: Vector2, side: Vector2, inner: float, outer: float, y: float, col: Color) -> void:
+	drape.quad(streets, p + side * inner, p + side * outer, q + side * outer, q + side * inner, y, col, "surface", ri)
 
 
-static func _strip(streets: Buf, p: Vector2, q: Vector2, nrm: Vector2, half: float, y: float, col: Color) -> void:
-	var a := p + nrm * half
-	var b := p - nrm * half
-	var c := q - nrm * half
-	var d := q + nrm * half
-	streets.quad(Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(c.x, y, c.y), Vector3(d.x, y, d.y), Vector3.UP, col)
+static func _strip(drape: Drape, streets: Buf, ri: int, p: Vector2, q: Vector2, nrm: Vector2, half: float, y: float, col: Color) -> void:
+	drape.quad(streets, p + nrm * half, p - nrm * half, q - nrm * half, q + nrm * half, y, col, "surface", ri)

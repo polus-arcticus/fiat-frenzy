@@ -44,7 +44,7 @@ The classes of asset:
 | money | the bottle depot: pays the deposit on bottles handed in, out of the town's fund (§5.1) | `BottleDepot` (`engine/deposit/bottle_depot.gd`) |
 | medical | looks after the collapsed: a medic's first aid post (one bed; the medic tends those down nearby), then the medical tent (beds and an ambulance) | `Hospital` (`npc/medical/hospital.gd`) |
 | camp | the salvage trade: a homeless camp turns scrap into an old skateboard (tier 0); built up of scrap, a bike camp makes an old bike (tier 1). Both are sold to the hero at a flat price, cheap and slow (`ItemDef.speed`) | `Machine`, pitched with its pile by `Camp` (`engine/salvage/camp.gd`) |
-| clothing | a thrift stall stitches old coats from scrap (tier 0). Built up with money, it becomes a clothing shop that makes coats (still of scrap, until there is a cloth trade). Flat prices: the hero is the buyer, for now | `Machine`, pitched with its own pile by `Camp.pitch` |
+| clothing | a thrift stall stitches old coats from scrap (tier 0). Built up with money, it becomes a clothing shop that makes coats (still of scrap, until there is a cloth trade). Flat prices: the hero is the buyer, for now. In a custom game the first arrival to an atom's tent city is its keeper (`Lodging.FOUNDERS`), then a camp's | `Machine`, pitched with its own pile by `Camp.pitch` |
 
 **1.4 Resource.** Something that can be held in an inventory: an **item**, defined once in the Catalog (`ItemDef`), with a
 class: `food`, `drink`, `material`, `warmth`, `vehicle`, `board`, `clothes`, `document`.

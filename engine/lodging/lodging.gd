@@ -8,7 +8,7 @@
 ##   a free tent    while the tent city stands (repaired), someone comes for it: one every ARRIVE_EVERY seconds, with
 ##                  NEWCOMER_PURSE dollars (new money, counted as printed: they brought it), who moves in and stays. Who
 ##                  comes is a weighted roll of the kinds of people there are (NEWCOMERS): the cluster's base set is laid out
-##                  by Atom; it is growth that is left to the dice.
+##                  by Atom; it is growth that is left to the dice, but for the first two, who are founders (FOUNDERS).
 ## Nobody is turned out: there is no taking a tent away. A wrecked tent city keeps its tents and its people, but nobody new comes,
 ## and it warms nobody.
 ## (Barrel fires are things the tent keeper sells, for the hero to place: not part of the tent city.)
@@ -18,6 +18,10 @@ extends RefCounted
 const MERGE := {"waiting": "max"}  # (see Merge)
 ## Who a newcomer is, by weight: every kind of person there is so far that needs no premises of their own.
 const NEWCOMERS := {"drifter": 3.0, "runner": 1.0}
+## The first arrivals to a tent city are not mouths but makers, in this order: each pitches a stall beside it and keeps it, in the
+## tent that was waiting (Camp.pitch). After them the weighted roll above.
+const FOUNDERS := [{"kind": "thrift_stall", "label": "Thrift seller"}, {"kind": "scrap_camp", "label": "Camp keeper"}]
+const STALL_ROOM := 2.5      # metres a founder's stall needs clear round it
 const ARRIVE_EVERY := 30.0   # seconds between newcomers, while a tent stands empty
 const NEWCOMER_PURSE := 15.0
 const NEWCOMER_FROM := 28.0  # metres down the street from the tents that a newcomer walks in from
@@ -142,6 +146,8 @@ func _roll() -> String:
 
 ## Someone turns up for an empty tent in `city`: they walk in from down the street, with a little money.
 func _newcomer(city: Machine) -> void:
+	if city.residence.founded < FOUNDERS.size() and _found_stall(city):
+		return
 	var was := _w.build_zone
 	_w.build_zone = city.zone
 	var down_the_street := Vector2(-city.front.y, city.front.x) * city.residence.wing * NEWCOMER_FROM
@@ -153,3 +159,36 @@ func _newcomer(city: Machine) -> void:
 	d.arrived_at = _w.clock.time
 	_w.arrivals.append(d)
 	_w.events.append("t=%d %s came to live in the %s" % [_w.clock.time, d.label, city.display_name()])
+
+
+## The next founder pitches their stall beside `city` and moves into the waiting tent. False if there is nowhere clear to put it
+## (then an ordinary newcomer comes instead, and the founder waits for the next free tent).
+func _found_stall(city: Machine) -> bool:
+	var res := city.residence
+	var f: Dictionary = FOUNDERS[res.founded]
+	var along := Vector2(-city.front.y, city.front.x) * res.wing
+	var at: Vector2 = city.pos + along * float(res.stall_offsets[res.founded])
+	if _w.nav.blocked(city.zone, at) or not _clear(city.zone, at):
+		return false
+	var was := _w.build_zone
+	_w.build_zone = city.zone
+	var stall := Camp.pitch(_w, at, city.front, NEWCOMER_PURSE, f.kind, f.label, false, city)
+	_w.build_zone = was
+	var keeper := _w.drone(stall.owner)
+	keeper.arrived_at = _w.clock.time
+	res.founded += 1
+	_w.arrivals.append(stall)
+	_w.arrivals.append(keeper)
+	_w.arrivals.append(_w.bins[_w.bins.size() - 1])
+	_w.zones.invalidate()
+	_w.events.append("t=%d %s came to live in the %s and pitched a %s" % [_w.clock.time, keeper.label, city.display_name(), stall.display_name().to_lower()])
+	return true
+
+
+## Is there room for a stall at `at`: nothing else of the street's within STALL_ROOM of it?
+func _clear(zone: String, at: Vector2) -> bool:
+	for list in [_w.machines, _w.fires, _w.hospitals, _w.bottle_depots, _w.bins]:
+		for o in list:
+			if o.zone == zone and o.pos.distance_to(at) < STALL_ROOM:
+				return false
+	return true

@@ -16,7 +16,8 @@ signal skate_bumped(speed: float)
 
 const ARM_LENGTH := 3.4   # how far behind the hero's head the camera hangs in third person
 const SHOULDER := 0.55    # and how far to the right: over the shoulder
-const STEP_UP := 0.2      # the highest ledge walked (or ridden) straight up onto: a kerb (Kerbs.HEIGHT), not a wall
+const BUMP_MIN := 1.0     # the slowest a board is going to be bumped by something in its way (below it, it only creeps)
+const STEP_UP := 0.2     # the highest ledge walked (or ridden) straight up onto: a kerb (Kerbs.HEIGHT), not a wall
 
 var controls_enabled := true
 ## The view in use now, and the one the player has asked for (it is first person whatever they ask while sitting on the
@@ -166,6 +167,8 @@ func shake(amount: float) -> void:
 
 
 func teleport(pos: Vector3, yaw := 0.0) -> void:
+	if Ground.landform != null and not Ground.landform.flat:  # (on hills never under the ground: it is one-sided, and you'd fall through)
+		pos.y = maxf(pos.y, Ground.land(Vector2(pos.x, pos.z)) + 0.1)
 	global_position = pos
 	rotation.y = yaw
 	velocity = Vector3.ZERO
@@ -216,7 +219,7 @@ func _physics_process(delta: float) -> void:
 		if out.get("grind", false):  # on a kerb's edge: the board follows the kerb line, on top of it (Skating)
 			var at: Vector2 = out.grind_at
 			var h: Vector2 = out.grind_heading
-			global_position = Vector3(at.x, Kerbs.HEIGHT, at.y)
+			global_position = Vector3(at.x, Ground.land(at) + Kerbs.HEIGHT, at.y)  # (on the hills, up on the kerb)
 			rotation.y = atan2(-h.x, -h.y)
 			velocity = Vector3(h.x, 0.0, h.y) * float(out.speed)
 			if third_person:
@@ -231,8 +234,8 @@ func _physics_process(delta: float) -> void:
 			velocity.y = out.jump
 		move_and_slide()
 		var moving := Vector2(get_real_velocity().x, get_real_velocity().z).length()
-		if moving < out.speed * 0.5:  # ran into something: the board stops dead, as in the games
-			skate_bumped.emit(out.speed)
+		if absf(out.speed) > BUMP_MIN and moving < absf(out.speed) * 0.5:  # ran into something: the board stops dead, as in the games (rolling back too; a creep, as a board starts down a hill, is not a wall)
+			skate_bumped.emit(absf(out.speed))
 		if third_person:
 			body.refresh(0.0)  # (standing on the board)
 		_shake = maxf(0.0, _shake - delta * 1.5)

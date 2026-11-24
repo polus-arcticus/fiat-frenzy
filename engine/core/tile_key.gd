@@ -105,6 +105,11 @@ static func border_point(a: String, b: String) -> Vector2:
 	return (ra.get_center() + rb.get_center()) * 0.5
 
 
+## Fractional web-map tile coordinates of a point at `zoom`, as [x, y] (what other web-map layers, like the terrain's, are cut by).
+static func web(lat: float, lon: float, zoom: int) -> Array[float]:
+	return _tile_coords(lat, lon, zoom)
+
+
 # Fractional web-map tile coordinates at `zoom`, as [x, y] in 64-bit floats (a Vector2's 32 bits would lose metres out here).
 static func _tile_coords(lat: float, lon: float, zoom: int) -> Array[float]:
 	var n := float(1 << zoom)

@@ -19,20 +19,24 @@ var site := {}       # where the atom stands (SiteFinder.pick)
 var camp := {}       # where its park's camp is ({at, toward}: SiteFinder.camp), {} if it has no park
 var bins := {}  # the map's bins the town's run on, by kind ({kind: [{at, front}]}: SiteFinder.bins); a kind left out is the atom's
 var market := Vector2.ZERO
+var landform: Landform  # the shape of the tile's land (TileSource.landform): its sites keep off the slopes, its walkers climb
 
 
-## `district` is the tile's map (OsmImport.tile of the tile that holds lat, lon).
-func _init(tile_key: String, map: Dictionary, at_lat: float, at_lon: float) -> void:
+## `district` is the tile's map (OsmImport.tile of the tile that holds lat, lon); `land` the shape of its land (none: flat, as
+## the headless tests have it).
+func _init(tile_key: String, map: Dictionary, at_lat: float, at_lon: float, land: Landform = null) -> void:
 	key = tile_key
 	district = map
 	lat = at_lat
 	lon = at_lon
-	site = SiteFinder.pick(district, key)
+	landform = land if land != null else Landform.new()
+	site = SiteFinder.pick(district, key, landform)
 	market = Cluster.spot(site, 0.0, "kerb", 0.6)
 
 
 func build() -> World:
 	var w := World.new()
+	w.landform = landform
 	w.roads = RoadGraph.new()
 	w.roads.shortcut = MARKET_REACH
 	for r in district.roads:
@@ -56,7 +60,9 @@ func build() -> World:
 		if m.residence != null:
 			for i in Catalog.machine("hostel").cap + 1:
 				taken.append(m.residence.bed_pos(m, i))
-	camp = SiteFinder.camp(district, key, market, func(at: Vector2) -> float: return walked(w, market, at), taken)
+			for off in m.residence.stall_offsets:  # (and where its first arrivals will pitch their stalls: Lodging.FOUNDERS)
+				taken.append(m.pos + Vector2(-m.front.y, m.front.x) * m.residence.wing * float(off))
+	camp = SiteFinder.camp(district, key, market, func(at: Vector2) -> float: return walked(w, market, at), taken, landform)
 	if not camp.is_empty():  # the park nearest the market has a homeless camp, with its own fire: its keeper lives by it
 		w.build_zone = key
 		Camp.pitch(w, camp.at, camp.toward, Camp.KEEPER_WALLET, "scrap_camp", "Camp keeper", true)
@@ -92,14 +98,12 @@ func _place_bins(w: World) -> void:
 	w.zones.invalidate()
 
 
-## Metres on foot from `a` to `b` along the town's streets (RoadGraph.route), the way its people go.
+## Metres on foot from `a` to `b` along the town's streets (RoadGraph.route), the way its people go: on a hill, the metres on
+## the flat it takes (Walking.effort), so a camp up a slope is as far off as it feels.
 static func walked(w: World, a: Vector2, b: Vector2) -> float:
-	var length := 0.0
-	var prev := a
-	for p in w.roads.route(a, b):
-		length += prev.distance_to(p)
-		prev = p
-	return length
+	var points: Array = [a]
+	points.append_array(Array(w.roads.route(a, b)))
+	return w.walking.effort(points)
 
 
 ## Where the hero sets foot: on the street nearest the point the player chose (not in a building, not on a stall).
@@ -125,8 +129,8 @@ func landmarks(w: World) -> Array:
 	for h in w.hospitals:
 		marks.append({"pos": h.pos, "label": "first aid", "color": Color(0.9, 0.25, 0.25)})
 	for m in w.machines:
-		if m.kind in ["scrap_camp", "bike_camp"]:
-			marks.append({"pos": m.pos, "label": "camp", "color": Color(0.45, 0.6, 0.35)})
+		if m.kind in ["scrap_camp", "bike_camp", "thrift_stall", "clothing_shop"]:
+			marks.append({"pos": m.pos, "label": "camp" if m.kind.ends_with("camp") else "stall", "color": Color(0.45, 0.6, 0.35)})
 	return marks
 
 

@@ -31,7 +31,7 @@ static func found(w: World, at: Vector2, toward_street: Vector2, zone: String) -
 ## zone's tent city if there is one with room; or, `with_fire`, the camp has a barrel fire of its own and its keeper lives by it
 ## (a camp in a park: SiteFinder.camp, Placing). Returns the camp. Any stall that works the street's scrap is pitched the same
 ## way (`kind`: the thrift stall too, which stitches coats from it).
-static func pitch(w: World, at: Vector2, toward_street: Vector2, wallet := KEEPER_WALLET, kind := "scrap_camp", label := "Camp keeper", with_fire := false) -> Machine:
+static func pitch(w: World, at: Vector2, toward_street: Vector2, wallet := KEEPER_WALLET, kind := "scrap_camp", label := "Camp keeper", with_fire := false, home: Machine = null) -> Machine:
 	var keeper := w.add_vendor(kind, at, wallet, true, true)  # (open, with a few things already made)
 	keeper.profession = label  # (what they are called: their name is their own)
 	var camp := w.machine_of(keeper)
@@ -42,6 +42,9 @@ static func pitch(w: World, at: Vector2, toward_street: Vector2, wallet := KEEPE
 		w.add_fire(at + along * FIRE_AT.x + toward_street * FIRE_AT.y)
 		return camp
 	w.add_bin("garbage", at + along * PILE_AT.x + toward_street * PILE_AT.y).front = toward_street
+	if home != null:  # (a newcomer to that tent city: the tent that was waiting for them)
+		keeper.bed = home.uid
+		return camp
 	for m in w.zones.machines_in(keeper.zone):
 		if m.residence != null and m.working and w.lodging.room_for(m) > 0:
 			keeper.bed = m.uid

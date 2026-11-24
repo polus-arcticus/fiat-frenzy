@@ -3,12 +3,13 @@
 ##   a barrel fire   becomes a barrel fire there: anyone near it warms up (see Cold, Needs)
 ##   a tent          founds a tent city of its own at tier 0, with a newcomer who keeps it (Lodging.found)
 ##   a camp kit      only in a park (World.parks): a homeless camp with its own fire, a newcomer keeping it (Camp.found)
-## It goes only where someone could stand: on open ground (not in a wall or a stand: Navigation.blocked), within REACH of the
-## hero, and not on top of anything else that stands in the street.
+## It goes only where someone could stand: on open ground (not in a wall or a stand: Navigation.blocked), no steeper than
+## MAX_GRADE (World.landform), within REACH of the hero, and not on top of anything else that stands in the street.
 class_name Placing
 extends RefCounted
 
 const REACH := 6.0
+const MAX_GRADE := 0.2  # the steepest ground (rise over run) anything is put down on: a tent pitched on a 20% bank, no more
 ## How much room each needs round its middle: the open ground it must have, and how far it must be from anything else.
 const ROOM := {"barrel_fire": 0.6, "tent": 1.3, "camp_kit": 3.0}  # (a camp: its stall, and its fire beside it)
 const GAP := 1.2  # metres of clear ground between it and the next thing
@@ -35,6 +36,8 @@ func why_not(item: String, at: Vector2) -> String:
 	for off in [Vector2.ZERO, Vector2(r, 0), Vector2(-r, 0), Vector2(0, r), Vector2(0, -r)]:
 		if _w.nav.blocked(p.zone, at + off):
 			return "Not there: it needs open ground."
+	if _w.landform.slope_at(at) > MAX_GRADE:
+		return "Too steep here: it needs level ground."
 	for o in _things(p.zone):
 		if _distance(o, at) < r + GAP + _size(o):
 			return "Too close to the %s." % _name(o)
