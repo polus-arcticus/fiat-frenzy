@@ -24,7 +24,7 @@ func best_offer(d: Drone, cls: String, zone := "") -> Dictionary:
 	for m in _w.zones.machines_in(zone if zone != "" else d.zone):
 		if m.owner == d.uid:
 			continue
-		for it in _answering(m, cls):
+		for it in answering(m, cls):
 			var price: float = m.price_of(it)
 			if not m.offers(it) or price > d.wallet:
 				continue
@@ -35,8 +35,8 @@ func best_offer(d: Drone, cls: String, zone := "") -> Dictionary:
 	return best
 
 
-# What `m` sells that answers `cls`: its item first, then its wares.
-func _answering(m: Machine, cls: String) -> Array:
+## What `m` sells that answers `cls`: its item first, then its wares.
+func answering(m: Machine, cls: String) -> Array:
 	var out: Array = []
 	if Catalog.class_of(m.item) == cls:
 		out.append(m.item)

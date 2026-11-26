@@ -24,6 +24,8 @@ const WRECK_ALONG := 34.0
 const WRECK_OFF := 4.0     # (toward the road)
 const HOSPITAL_ALONG := -4.0
 const HOSPITAL_OFF := 11.0  # (toward the road)
+## The station's doors onto the square, where its passersby come out and go in (Passersby): just clear of its front.
+const STATION_GATES := [Vector2(-386.0, 105.0), Vector2(-374.0, 125.0)]
 ## Its paving, between the station's front and the road (x, y pairs).
 const FORECOURT_PAVING := [-446, 100, -420, 62, -394, 52, -365, 62, -342, 77, -322, 95, -304, 113, -290, 133, -278, 156, -272, 180,
 	-268, 205, -268, 235, -305, 245, -345, 180, -406, 84]
@@ -252,6 +254,18 @@ func build() -> World:
 			w.parks.append(area.poly)
 	if ecb_region.has_area():
 		w.zones.regions[ECB_ZONE] = ecb_region
+	for city in [market, ecb_market]:  # where a better rig can fetch from, further out than anyone walks
+		if city != null:
+			w.rounds.append_array(SiteFinder.rounds(district, city.zone, city.pos, WasteBin.far_kinds(), WasteBin.FAR_MOST))
+	for gate in STATION_GATES:  # the station's traffic: through its doors, across the square, to and from the tram's stops
+		w.passersby.gates.append({"zone": Zones.HOME, "at": gate, "kind": "station"})
+	for called in [TRAM_QUEST, "tram_west"]:
+		for r in district.get("routes", []):
+			if str(r.ref) != TRAM or _eastbound(r) != (called == TRAM_QUEST):
+				continue
+			for s in r.stops:
+				if str(s.name) == TRAM_WAITS[TRAM_QUEST]:
+					w.passersby.gates.append({"zone": Zones.HOME, "at": Vector2(s.at[0], s.at[1]), "kind": "stop"})
 	wreck_pos = _fore(WRECK_ALONG, -WRECK_OFF)  # on the square, under the arched halls
 	wreck_yaw = start_yaw + 0.5
 	gun_rest = start + dir * 3.4

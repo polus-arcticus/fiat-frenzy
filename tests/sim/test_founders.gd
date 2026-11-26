@@ -53,7 +53,7 @@ func test_each_tent_brings_the_next_founder_in_order() -> void:
 	check(stalls.all(func(m): return not m.working and w.drone(m.owner).wallet == 0.0), "every business came wrecked, its keeper broke (%d of them)" % stalls.size())
 	check(w.bottle_depots.size() == 1 and w.hospitals.size() == 1 and w.hospitals[0].kind == "first_aid" and w.zones.runners_in("atom").size() == 1, "one bottle depot, one first aid post, one runner")
 	check(w.lodging.room_for(city) == 0, "and the tent city is full at its first tier")
-	check(is_equal_approx(w.total_money(), w.ledger.printed), "the money adds up (the tents were printed and sunk)")
+	check(is_equal_approx(w.total_money(), w.ledger.printed), "the money adds up (putting up the tents printed nothing)")
 
 
 func test_grown_at_once_it_is_the_same_town() -> void:

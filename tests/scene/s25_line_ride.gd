@@ -44,3 +44,28 @@ func run() -> void:
 	view.queue_free()
 	w.vehicles.erase(model)
 	w.heating.vehicles.erase(model)
+	await _passersby(w)
+
+
+## The station's passersby (switched off for the suite: tests/smoke_scene.gd), let back in for one: they are drawn while they
+## are about, and gone from the screen when they go.
+func _passersby(w: World) -> void:
+	var gates: Array = game.get_meta("passersby_gates")
+	check(gates.size() >= 4 and gates.any(func(g): return g.kind == "station") and gates.any(func(g): return g.kind == "stop"), "the story's passersby come and go by the station's doors and the tram's stops (%d)" % gates.size())
+	var d := w.passersby.arrive(Zones.HOME, gates[0].at, gates[2].at)
+	game.advance(0.2)
+	await tree.process_frame
+	await tree.process_frame
+	var views := game.get_children().filter(func(c): return c is DroneView and c.drone == d)
+	check(views.size() == 1 and game.hud != null, "one who sets out is drawn")
+	d.home = d.pos  # (there already)
+	d.job = {}
+	d.bars.hunger = 1.0
+	d.bars.thirst = 1.0
+	for b in w.bills.duplicate():
+		if b.loose and b.pos.distance_to(d.pos) <= Cash.SCAN:
+			w.bills.erase(b)
+	w.passersby.step(0.1)
+	await tree.process_frame
+	await tree.process_frame
+	check(not w.visitors.has(d) and game.get_children().filter(func(c): return c is DroneView and c.drone == d).is_empty(), "and when they arrive they are gone, view and all")

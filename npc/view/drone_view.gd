@@ -7,6 +7,8 @@ const MODELS := {
 	"drifter": preload("res://assets/models/zombie.glb"),
 	"vendor": preload("res://assets/models/builder.glb"),
 	"banker": preload("res://assets/models/banker.glb"),
+	"commuter": preload("res://assets/models/banker.glb"),  # (passersby: someone in a suit, someone in work clothes)
+	"walker": preload("res://assets/models/builder.glb"),
 	"sage": preload("res://assets/models/banker.glb"),
 	"clerk": preload("res://assets/models/banker.glb"),
 	"guard": preload("res://assets/models/builder.glb"),  # (a hi-vis vest, like the one at the bank's gate)
@@ -22,7 +24,8 @@ var _pose: Node3D   # lies the whole body down; the model hangs under it, turned
 var _anim: AnimationPlayer
 var _label: Label3D
 var _bars: BarsRig
-var _cart: CartView = null  # a runner's
+var _cart: Node3D = null  # what a runner hauls with (CartView, or BikeTrailerView), for the rig they had when it was made...
+var _rig := -1            # ...which rig that is (Runner.TIERS)
 var _bubble: Bubble
 var _aura: AuraView
 var _last_level := 1
@@ -67,9 +70,7 @@ func setup(d: Drone, w: World) -> DroneView:
 	add_child(_bubble)
 	_aura = AuraView.new()
 	add_child(_aura)
-	if d.kind == "runner":
-		_cart = CartView.new()
-		add_child(_cart)
+	_rig_up()
 	if d.kind == "sage":
 		_bars.visible = false  # he is not a thing with bars
 		var emblem := Emblem.new()
@@ -89,6 +90,20 @@ func setup(d: Drone, w: World) -> DroneView:
 	return self
 
 
+## A runner's cart or bike, made again when they have traded up; a rider sits up over the pedals.
+func _rig_up() -> void:
+	if drone.runner == null or drone.runner.tier == _rig:
+		return
+	_rig = drone.runner.tier
+	if _cart != null:
+		_cart.queue_free()
+	var bike: bool = drone.runner.rig().id != "cart"
+	_cart = BikeTrailerView.new() if bike else CartView.new()
+	add_child(_cart)
+	_model.position = Vector3(0, BikeTrailerView.SADDLE, -0.2) if bike else Vector3.ZERO  # (the model faces +Z here)
+	_model.rotation.x = BikeTrailerView.LEAN if bike else 0.0
+
+
 func _capsule() -> CapsuleShape3D:
 	var c := CapsuleShape3D.new()
 	c.radius = 0.5
@@ -97,6 +112,9 @@ func _capsule() -> CapsuleShape3D:
 
 
 func _process(delta: float) -> void:
+	if drone.kind == "passerby" and not world.visitors.has(drone):
+		queue_free()  # (they have gone)
+		return
 	if drone.pos != _stood_at:  # (up onto the pavement and down off it, up the hill and down: the sim walks flat)
 		_stood_at = drone.pos
 		_target = Ground.at(drone.pos)
@@ -122,6 +140,7 @@ func _process(delta: float) -> void:
 		_label_clock = 0.5
 		_label.text = _caption()
 		_label.visible = _model.visible
+		_rig_up()
 		if _cart != null:
 			_cart.refresh(drone)
 
@@ -187,7 +206,8 @@ func _play(clip: String) -> void:
 
 
 func _caption() -> String:
-	var wants: Array = world.needs.demands(drone)
+	var wants: Array = world.needs.demands(drone) if drone.kind != "passerby" else \
+		Passersby.NEEDS.filter(func(bar): return drone.bars[bar] < Passersby.WANTS_BELOW).map(func(bar): return Drone.BARS[bar].cls)
 	var line := ""
 	if drone.care != "":
 		line = {"down": "collapsed, waiting for the ambulance", "patient": "resting in the medical tent"}.get(drone.care, "")

@@ -90,16 +90,14 @@ func next_tent_cost(_city: Machine) -> float:
 	return Catalog.base_price("tent")
 
 
-## The hero adds a tent to `city`, printing what it costs. Returns what it cost (0: there is no room at its tier).
-func add_tent(city: Machine) -> float:
+## Adds a tent to `city`: false if there is no room at its tier. (What the hero pays for one: Commerce.put_up_tent; a town
+## grown or laid out at once costs nobody anything.)
+func add_tent(city: Machine) -> bool:
 	if room_for(city) <= 0:
-		return 0.0
-	var cost := next_tent_cost(city)
-	_w.ledger.printed += cost
-	_w.ledger.sunk += cost
+		return false
 	set_tents(city, city.residence.tents + 1)
-	_w.events.append("t=%d a tent was put up in the %s ($%.0f): %d tents" % [_w.clock.time, city.display_name(), cost, city.residence.tents])
-	return cost
+	_w.events.append("t=%d a tent was put up in the %s: %d tents" % [_w.clock.time, city.display_name(), city.residence.tents])
+	return true
 
 
 ## A tent put down in the street at `at`, its open end toward `front`: a tent city of its own, at tier 0, standing, with one
@@ -251,7 +249,7 @@ func _found(city: Machine, f: Dictionary) -> Drone:
 ## The bins of `kind` in `zone` share one bin's rate (WasteBin.KINDS): a stall's pile beside it shows where the scrap lies, but
 ## the street throws away no more for it. (Three piles at a full rate each had the hostel built of scrap by day 14.)
 func _share(zone: String, kind: String) -> void:
-	var same := _w.zones.bins_in(zone).filter(func(b): return b.kind == kind)
+	var same := _w.zones.bins_in(zone).filter(func(b): return b.kind == kind and b.far <= 0.0)  # (a round's are extra)
 	for b in same:
 		b.rate = float(WasteBin.KINDS[kind].rate) / same.size()
 

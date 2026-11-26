@@ -77,9 +77,9 @@ func test_a_runner_collects_with_the_cart() -> void:
 	var r := w.add_runner(Vector2(0, 3), 0.0)
 	r.bars = Fixtures.bars(1.0, 1.0, 1.0)
 	var job := w.logistics.collecting.job(r)
-	check(job.qty == Hauling.CART_CAPACITY, "a runner takes a cartload (%d), not a bag" % job.qty)
+	check(job.qty == int(r.runner.rig().load), "a runner takes a cartload (%d), not a bag" % job.qty)
 	w.logistics.complete(r, job)
-	check(r.runner.cart.count("recyclables") == Hauling.CART_CAPACITY and r.job.stage == "redeem", "into the cart, and on to the depot")
+	check(r.runner.cart.count("recyclables") == int(r.runner.rig().load) and r.job.stage == "redeem", "into the cart, and on to the depot")
 
 
 func test_the_recycling_fills_with_what_people_throw_away() -> void:

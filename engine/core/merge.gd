@@ -90,7 +90,7 @@ static func settle(w: World) -> void:
 			d.sheltered_in.release(d)
 		_relevel(d.growth)
 		if d.runner != null:
-			_cap(w, d.runner.equity, d, d.runner.equity.value(Runner.CART_VALUE, d.growth.xp), d.label + "'s cart")
+			_cap(w, d.runner.equity, d, d.runner.equity.value(d.runner.book_value(), d.growth.xp), d.label + "'s cart")
 	for m in w.machines:
 		var ladder: Array = Catalog.TRADES.get(m.trade, [])
 		if m.tier < ladder.size() and ladder[m.tier] != "":

@@ -35,6 +35,9 @@ func _initialize() -> void:
 		print("\n1 FAILED: nothing else can run")
 		quit(1)
 		return
+	var gates: Array = game.world.passersby.gates.duplicate()
+	game.world.passersby.gates.clear()  # (a crowd would stoop for the money these sections drop: s25 lets them in)
+	game.set_meta("passersby_gates", gates)
 
 	var took := {}
 	for name in SECTIONS:

@@ -352,9 +352,11 @@ func _refresh_residents() -> void:
 		for i in free:
 			var empty := _label(_cards, "tent no. %d: empty" % (people.size() + i + 1), 13)
 			empty.modulate.a = 0.5
-	_add.text = "Put up a tent  $%.0f" % lodging.next_tent_cost(city)
-	_add.disabled = not world.gun_owned or room <= 0
-	_add.tooltip_text = "You need the money gun to pay for it." if not world.gun_owned else ("The money gun pays for it." if room > 0 else "No room at this tier.")
+	var price := lodging.next_tent_cost(city)
+	var short := world.ledger.player_cash < price
+	_add.text = "Put up a tent  $%.0f" % price
+	_add.disabled = room <= 0 or short
+	_add.tooltip_text = "No room at this tier." if room <= 0 else ("You have $%.2f: not enough." % world.ledger.player_cash if short else "Paid from your cash, to the tent keeper.")
 	_warm.text = "Sit by the barrels"
 	_warm.disabled = not city.working
 

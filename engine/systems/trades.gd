@@ -65,6 +65,27 @@ func step(_dt: float) -> void:
 		var up := can_build(m)
 		if up != "":
 			build(m, up)
+	for d in _w.drones:
+		if d.runner != null and d.zone not in _w.zones.asleep and can_trade_up(d):
+			trade_up(d)
+
+
+## Can runner `d` buy the next rig now: has its price and the reserve everyone keeps, and is up and about?
+func can_trade_up(d: Drone) -> bool:
+	var next := d.runner.next_rig()
+	return not next.is_empty() and d.care == "" and not d.needless and d.wallet >= float(next.cost) + Drone.RESERVE
+
+
+## `d` pays for the next rig (the money sunk, as a build's), and the bins it brings within reach are there to be had.
+func trade_up(d: Drone) -> void:
+	var next := d.runner.next_rig()
+	d.wallet -= float(next.cost)
+	_w.ledger.sunk += float(next.cost)
+	d.runner.tier += 1
+	d.speed = next.speed
+	var more := _w.open_round(d.zone, float(next.reach)) if float(next.reach) > 0.0 else []
+	_w.events.append("t=%d %s bought a %s ($%.0f): faster, carrying %d%s" % [_w.clock.time, d.label, next.name, next.cost, next.load,
+		", and %d bins further out are in reach" % more.size() if not more.is_empty() else ""])
 
 
 ## `m`'s owner pays to build it up into `up`.

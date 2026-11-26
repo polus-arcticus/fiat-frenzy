@@ -10,7 +10,6 @@
 class_name Hauling
 extends RefCounted
 
-const CART_CAPACITY := 16    # units a cart holds
 const DELIVERY_FEE := 0.4    # what the shop pays the runner for a delivery, flat
 ## The goods are free, so all a load costs the shop is the fee: a trip waits for this much (at $2 for two, a tent city's keeper
 ## went hungry paying for it), or a store smaller than that filled. Only what the next tier is built of goes as the last few of
@@ -56,7 +55,7 @@ func haul_job(d: Drone, from_zone := "", to_zone := "") -> Dictionary:
 	var shops := _w.zones.machines_in(to_zone if to_zone != "" else d.zone)
 	var sources: Array = []  # [source, item, price a unit]: the bins first, then the shelves
 	for bin in _w.zones.bins_in(here):
-		if bin.offers(bin.item):
+		if bin.offers(bin.item) and bin.far <= float(d.runner.rig().reach):
 			sources.append([bin, bin.item, 0.0])
 	for s in _w.zones.machines_in(here):
 		for item in _sold_to_runners(s, shops):
@@ -76,7 +75,7 @@ func haul_job(d: Drone, from_zone := "", to_zone := "") -> Dictionary:
 				least = mini(MIN_LOAD, dest.input.room(item))  # (the last few are worth it: a build waits on them)
 			if short < maxi(least, 1):
 				continue
-			var qty := mini(mini(short, CART_CAPACITY), source.output.count(item))
+			var qty := mini(mini(short, int(d.runner.rig().load)), source.output.count(item))
 			qty = mini(qty, affordable(_w.drone(dest.owner), item, bought if source is Machine else -1.0))
 			if source is Machine:
 				qty = mini(qty, int(spendable(d) / maxf(bought, 0.01)))  # (what the runner can pay for at the shelf)
@@ -143,7 +142,10 @@ func affordable(owner: Drone, item: String, price := -1.0) -> int:
 		return 0
 	if price < 0.0:
 		price = Catalog.base_price(item)
-	return CART_CAPACITY if price <= 0.0 else int(left / price)
+	return ANY_AMOUNT if price <= 0.0 else int(left / price)
+
+
+const ANY_AMOUNT := 100000  # (free goods: as many as can be carried)
 
 
 ## Units of `item` other runners are already bringing to `dest`.

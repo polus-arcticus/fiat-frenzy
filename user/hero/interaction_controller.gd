@@ -51,13 +51,7 @@ func setup(w: World, p: PlayerController, h: Hud, s: InventoryScreen) -> Interac
 	screen.buy_requested.connect(_on_buy)
 	screen.use_requested.connect(_on_use)
 	screen.unequip_requested.connect(func(item: String): screen.refresh(world.loadout.unequip(item).text))
-	screen.add_tent_requested.connect(func(tent: Machine):
-		var cost := world.lodging.add_tent(tent)
-		if cost <= 0.0:
-			screen.refresh("No room for another tent: build the tent city up first.")
-			return
-		world.gun.credit_hero(cost)  # (money the hero puts in is experience for them too)
-		screen.refresh("A tent is up ($%.0f, printed by the gun). %s" % [cost, "Someone will come to live in it." if tent.working else "Nobody will come while the tent city is wrecked."]))
+	screen.add_tent_requested.connect(func(tent: Machine): screen.refresh(world.commerce.put_up_tent(tent).text))
 	screen.warm_requested.connect(func(tent: Machine): screen.refresh(world.commerce.warm_at(tent)))
 	_build_verbs()
 	return self

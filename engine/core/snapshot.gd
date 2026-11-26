@@ -17,7 +17,7 @@
 class_name Snapshot
 extends RefCounted
 
-const VERSION := 10  # (10: the letter quest rides tram 11, no bus: its flags, and the bank's gate and market moved to its stop;
+const VERSION := 12  # (12: runners' tiers, and the bins out on their rounds; 11:passersby, World.visitors, and the money they bring and take; 10:the letter quest rides tram 11, no bus: its flags, and the bank's gate and market moved to its stop;
                     # 9: tram 11's cars; vehicles that go round their lines; money knows which vehicle it lies in)
                     #(3: the hero's bike is in their loadout, Drone.gear; 4: bins (WasteBin) for scrap piles, no food bank;
                     # 5: the bottle depot (Deposit) for the welfare office; 6: a runner's cart business is a component,
@@ -28,9 +28,9 @@ const VERSION := 10  # (10: the letter quest rides tram 11, no bus: its flags, a
 const SYSTEMS := World.SAVED
 ## Variables that are derived, or computed, and so are never written or read.
 const DERIVED := {"Vehicle": ["line"], "Zones": ["_index", "_dirty", "version", "regions"], "Rescue": ["on_admitted"], "Chatter": ["_said"], "Machine": ["shelter"], "Skating": ["mounted"], "Portals": ["all"],
-	"Ledger": ["player_cash", "stake_income"], "Equity": ["stake"]}
+	"Ledger": ["player_cash", "stake_income"], "Passersby": ["gates"],"Equity": ["stake"]}
 ## The world's lists of things, and the class each holds (a thing the save has and the fresh world lacks is made from it).
-const LISTS := {"drones": "Drone", "machines": "Machine", "bins": "WasteBin", "fires": "BarrelFire",
+const LISTS := {"drones": "Drone", "visitors": "Drone","machines": "Machine", "bins": "WasteBin", "fires": "BarrelFire",
 	"relief_trucks": "ReliefTruck", "hospitals": "Hospital", "ambulances": "Ambulance", "bills": "Bill", "heroes": "Drone",
 	"bottle_depots": "BottleDepot", "vehicles": "Vehicle"}
 ## The things the world holds one of, by its field, and their class.

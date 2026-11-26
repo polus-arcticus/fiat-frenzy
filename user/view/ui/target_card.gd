@@ -38,10 +38,13 @@ func _describe(d: Drone, w: World) -> String:
 	var r := d.runner
 	if r != null:
 		var load_text := ", ".join(r.cart.counts.keys().filter(func(k): return r.cart.count(k) > 0).map(func(k): return "%d %s" % [r.cart.count(k), k.replace("_", " ")]))
-		text += "\ncart: %s" % (load_text if load_text != "" else "empty")
+		text += "\n%s (holds %d): %s" % [r.rig().name, r.rig().load, load_text if load_text != "" else "empty"]
 		text += "\n%d trips, %d units, $%.2f in fees" % [r.deliveries, r.delivered_total, r.fees_earned]
-		var worth := r.equity.value(Runner.CART_VALUE, d.growth.xp)
-		text += "\ncart worth $%.0f  ·  you own %d%% of its fees" % [worth, roundi(r.equity.share(w.ledger.local) * 100.0)]
+		var worth := r.equity.value(r.book_value(), d.growth.xp)
+		text += "\nbusiness worth $%.0f  ·  you own %d%% of its fees" % [worth, roundi(r.equity.share(w.ledger.local) * 100.0)]
+		var next := r.next_rig()
+		if not next.is_empty():
+			text += "\nsaving for a %s: $%.0f of $%.0f (buys it at dawn)" % [next.name, minf(d.wallet, float(next.cost) + Drone.RESERVE), float(next.cost) + Drone.RESERVE]
 	var m := w.machine_of(d)
 	if m != null:
 		if m.working and m.residence != null:

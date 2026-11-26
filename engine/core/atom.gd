@@ -73,13 +73,13 @@ static func seed(w: World, zone: String, at: Vector2, site := {}, bins: Array = 
 	return city
 
 
-## Grows `city` through its founders at once, as the hero would by putting up a tent for each (printed and sunk, as any tent):
+## Grows `city` through its founders at once, as the hero would by putting up a tent for each (at no cost):
 ## the next `n` of them (all, unless given), but for the roles in `skip` (a town laid out without them). Returns who came.
 static func grow(w: World, city: Machine, n := -1, skip: Array = []) -> Array[Drone]:
 	var came: Array[Drone] = []
 	var left := Lodging.FOUNDERS.size() if n < 0 else n
 	while left > 0 and not w.lodging.next_founder(city, skip).is_empty():
-		if w.lodging.add_tent(city) <= 0.0:
+		if not w.lodging.add_tent(city):
 			break
 		var d := w.lodging.arrive(city, skip)
 		if d == null:

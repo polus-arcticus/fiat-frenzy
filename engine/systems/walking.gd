@@ -9,7 +9,6 @@ class_name Walking
 extends RefCounted
 
 const SPEED := 1.5         # metres a second, a drifter's pace
-const RUNNER_SPEED := 1.9  # a cart runner is a little quicker
 const SLOWEST := 0.15      # the least share of their flat pace anyone keeps, however steep (a scramble, not a stop)
 ## Metres between the points a trip's hills are read at. Trips are reckoned often (every job a drone weighs, every tick), and
 ## the land is smoothed over 40 m (Landform.SMOOTH): reading it more finely costs the sim more than it tells (measured:

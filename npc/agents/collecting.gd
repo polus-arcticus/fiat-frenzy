@@ -13,7 +13,7 @@ extends RefCounted
 ## A resident with less than this goes collecting (a few days' food and drink, about $7 a day): the deposit is for who is short,
 ## not the town's savings. (The welfare office's net was cut off at the same line: Deposit.)
 const ENOUGH := 25.0
-const CARRY := 20    # bottles one carries by hand, a bag's worth (a runner's cart takes Hauling.CART_CAPACITY)
+const CARRY := 20    # bottles one carries by hand, a bag's worth (a runner's takes what their rig holds: Runner.TIERS)
 const MIN_PICK := 2  # a bin with fewer isn't worth the walk ($2: at 4 a broke medic lost every race to the trickle)
 const ITEM := "recyclables"
 const NEVER := ["player"]  # (the hero. Whoever stands behind a counter, the depot's attendant or the story's clerks, is aloof)
@@ -99,7 +99,7 @@ func needed(d: Drone) -> int:
 
 ## How many bottles `d` can take at once.
 func capacity(d: Drone) -> int:
-	return Hauling.CART_CAPACITY if d.runner != null else CARRY
+	return int(d.runner.rig().load) if d.runner != null else CARRY
 
 
 ## Bottles others are already on their way to take from `bin`.

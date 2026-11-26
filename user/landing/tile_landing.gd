@@ -67,6 +67,7 @@ func build() -> World:
 		w.build_zone = key
 		Camp.pitch(w, camp.at, camp.toward, Camp.KEEPER_WALLET, "scrap_camp", "Camp keeper", true)
 	w.build_zone = key
+	w.rounds = SiteFinder.rounds(district, key, market, WasteBin.far_kinds(), WasteBin.FAR_MOST)
 	var line := Line.pick(district.get("rail", {}), _tram_stops())  # (a railway with stops on it: a train runs on it)
 	if line != null:
 		line.name = str(line.stops[line.stops.size() - 1].name)  # (its sign: where it goes)

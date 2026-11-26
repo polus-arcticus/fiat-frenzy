@@ -41,6 +41,8 @@ the map has neither), as any tile's is found: its tent city and keeper, its bins
 founders always in the same order (the bottle depot, a medic, a runner, the lemonade stand, the bakery, the thrift stall, the camp,
 the hot dog stand), every stand wrecked and every keeper broke: nothing runs until the hero funds it. On top, the story's own:
 - the medical tent and its ambulance, where the hero is brought when they collapse;
+- the station's passersby (`Passersby`, ENGINE.md §6.3a): from its doors (`Scenario.STATION_GATES`) to the tram's two stops
+  and back;
 - the bike shop and the skate shop;
 - tram line 11, both ways along its own tracks, coloured between the rails (`Scenario._add_trams`; the magenta is the story's
   choice): a car waits at the Hauptbahnhof for Fechenheim, past the Paulskirche and Börneplatz to the bank's end of town, and

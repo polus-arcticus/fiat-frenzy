@@ -146,6 +146,36 @@ static func bins(district: Dictionary, tile_key: String, market: Vector2, kinds:
 	return out
 
 
+const ROUND_FROM := 40.0    # a round's places are at least this far from the market (nearer ones are the town's own)...
+const ROUND_REACH := 600.0  # ...and no further than anything yet reaches
+const ROUND_APART := 12.0   # and this far from each other
+
+
+## Where more bins are to be had round a market (World.rounds): for each kind of `kinds` ({bin kind: [StreetThings kinds that
+## give it]}) in turn, the nearest places of the map not yet taken, `most` of each. [{zone, kind, at, front, walk}], the same
+## every time.
+static func rounds(district: Dictionary, zone: String, market: Vector2, kinds: Dictionary, most: int) -> Array:
+	var water: Dictionary = district.get("water", {})
+	var points: Array = district.get("street", {}).get("points", []).filter(func(p):
+		var far: float = market.distance_to(p.at)
+		return far >= ROUND_FROM and far <= ROUND_REACH and not OsmWater.wet(water, p.at))
+	points.sort_custom(func(a, b):
+		var x: float = market.distance_to(a.at)
+		var y: float = market.distance_to(b.at)
+		return x < y or (is_equal_approx(x, y) and _before(a.at, b.at)))
+	var out: Array = []
+	var counts := {}
+	for turn in most:
+		for kind in kinds:
+			for p in points:
+				if p.kind not in kinds[kind] or out.any(func(o): return (o.spot as Vector2).distance_to(p.at) < ROUND_APART):
+					continue
+				var front := _toward_street(p.at, district.roads)
+				out.append({"zone": zone, "kind": kind, "spot": p.at, "at": p.at + front * PILE_OUT, "front": front, "walk": market.distance_to(p.at)})
+				break
+	return out
+
+
 ## The tile's recycling containers near the market (`bins`' recycling).
 static func recycling(district: Dictionary, tile_key: String, market: Vector2, walk := Callable()) -> Array:
 	return _nearest(district, tile_key, market, walk, "recycling", BOTTLE_WALK)

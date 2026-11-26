@@ -212,8 +212,8 @@ func _board_prompt() -> String:
 	return ""
 
 
-## The story's first market grown through all its founders at once (Atom.grow: a tent put up for each, printed and sunk as the
-## hero's would be), with their views.
+## The story's first market grown through all its founders at once (Atom.grow: a tent put up for each, at no cost), with their
+## views.
 func grow_town() -> void:
 	if scenario == null:
 		return

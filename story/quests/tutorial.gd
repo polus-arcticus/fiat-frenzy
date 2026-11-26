@@ -111,7 +111,7 @@ func _tent_line() -> String:
 	var next: Dictionary = _w.lodging.next_founder(city) if city != null else {}
 	if next.is_empty():
 		return "The tent city is full."
-	return "The town is its tent city: press E at it and put up a tent (the gun pays $%d). The next to come and live in it: %s. Each comes with their stand, wrecked, and broke." % [int(Catalog.base_price("tent")), COMING.get(next.role, next.role)]
+	return "The town is its tent city: press E at it and put up a tent ($%d of your cash, to its keeper). The next to come and live in it: %s. Each comes with their stand, wrecked, and broke." % [int(Catalog.base_price("tent")), COMING.get(next.role, next.role)]
 
 
 func _fed_bankers() -> int:
@@ -210,7 +210,7 @@ func _sold() -> int:
 	for m in _w.zones.machines_in(city.zone):  # (the first market's: the far one at the bank is not the lesson)
 		if m.trade in ["bread", "meat", "drinks"]:  # (at whatever tier its owner has built it up to)
 			n += m.sold_total
-	return n
+	return n - _w.passersby.sales  # (the town's own: what a passerby buys on the way through feeds nobody here)
 
 
 ## Whoever of the town is shortest of money, near the market: someone to gift so they can buy.

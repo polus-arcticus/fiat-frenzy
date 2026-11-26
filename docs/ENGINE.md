@@ -151,7 +151,7 @@ cluster's **spawn factory**:
   scripted cast left out. While it stands, a tent keeps its person warm, day and night (`Lodging.is_housed`).
 - Its tier holds at most `cap` tents: the first tier an atom's worth (§8.0). A bigger layout gets `Residence.tents_cap`. Growing
   past the cap means building it up (the hostel).
-- Putting up a tent (`add_tent`, $15, the gun pays) brings the next **founder** within `ARRIVE_EVERY` seconds, while the tent
+- Putting up a tent (`add_tent`; the hero pays the keeper $15, `Commerce.put_up_tent`) brings the next **founder** within `ARRIVE_EVERY` seconds, while the tent
   city stands: always in the order of `Lodging.FOUNDERS` (bottle depot, medic, runner, lemonade stand, bakery, thrift stall,
   camp, hot dog stand). Each sets up at the place its tent city keeps for it (`Residence.slots`, laid out by the atom; beside the
   city otherwise) and moves in; a business comes wrecked, its keeper broke. Every tent city brings its own (a second one mirrors
@@ -206,9 +206,8 @@ bin on the map draws only what has gathered in front of it: the city draws the c
 The **Red Cross van** (`Relief`) brings `load_per_good` of leftovers and water twice a day, free, shared equally among the working
 assets that want it.
 
-**4.4 Hauling** (`npc/agents/hauling.gd`). A runner takes a load from a source (up to `CART_CAPACITY`: a bin's, free, or a
-shelf's, bought) and wheels it to the
-shop that wants it. **Cash on delivery:** the shop pays the goods' worth into the town's fund (`Deposit.fund`, the depot's
+**4.4 Hauling** (`npc/agents/hauling.gd`). A runner takes a load from a source (up to what their rig holds: a bin's, free, or
+a shelf's, bought) and wheels it to the shop that wants it. **Cash on delivery:** the shop pays the goods' worth into the town's fund (`Deposit.fund`, the depot's
 attendant's wallet) and a flat `DELIVERY_FEE` ($0.40) to the runner for the trip, whatever the load; the fee is the runner's
 income.
 - **Who brings an input** is the buyer's to say (`MachineDef.fetch`, `fetched_by`): "runner" or "owner". Unset, runners bring
@@ -218,9 +217,17 @@ income.
   goods to parts to products, each leg on a cart.
 - The fee goes into what the shop's inputs cost it (`cost + fee / units`), so into its floor price (§4.2): a baker's bread carries
   its share of the walk. A bigger load is cheaper a unit.
-- **A runner's cart is a business** (`Drone.runner`, a `Runner`: its cart, deliveries, fees and `equity`, worth
-  `Runner.CART_VALUE` plus its experience, like a machine's repair cost
-  plus its experience). The hero can invest in it (§5.2); every fee is then split, the heroes' shares into their pockets.
+- **A runner is a business** (`Drone.runner`, a `Runner`: its rig, load, deliveries, fees and `equity`, worth
+  `Runner.book_value` (the cart, and every rig paid for since) plus its experience, like a machine's repair cost plus its
+  experience). The hero can invest in it (§5.2); every fee is then split, the heroes' shares into their pockets.
+- **Rigs** (`Runner.TIERS`, one table): the shopping cart (1.9 m/s, holds 16) and the pedal bike with a trailer (4.5 m/s,
+  holds 40, reaches 350 m, $60). A runner with the price and the reserve buys the next at dawn (`Trades`); the money is sunk.
+  Their fees alone barely keep them fed, so in practice someone gives it them. Next in mind: a moped, a tuk tuk, a delivery
+  vehicle: a row each.
+- **Rounds.** Past walking distance the map has more to be had (`SiteFinder.rounds`: the nearest waste baskets, organics bins
+  and fountains by turns, food and water first; `WasteBin.far_kinds`). Buying a rig that reaches them puts bins there
+  (`World.open_round`), each filling at `FAR_SHARE` of its kind's rate on top of the town's own; only a rig that reaches a bin
+  fetches from it. It is how the town's supply grows past its station of bins.
 - How much a shop holds of each input is `MachineDef.stock_crafts` crafts' worth (6; the lemonade stand and coffee stop 16, a
   cartload: their two goods come on two trips, and at six of each the stand sold out all day).
 - Scrap goes to whatever has room for it: a camp's input, or a tent city's build stock (§2.5). The keeper pays only the fee.
@@ -251,7 +258,7 @@ income.
 **5.3 The invariant.** `World.total_money() == Ledger.printed`, on every tick, in every test that moves money.
 
 **5.4 Stakes** (`engine/core/equity.gd`, bought through `Gun.business_of`). A business is worth its rebuild cost plus its experience. The heroes together own at most
-49%. A sale pays each hero their share into their pocket. A runner's cart is a business too: its book is `Runner.CART_VALUE`, and
+49%. A sale pays each hero their share into their pocket. A runner is a business too: its book is `Runner.book_value`, and
 each delivery fee is split the same way (§4.4). After a merge, both are put back under the cap (`Merge._cap`).
 
 ## 6. Time and space
@@ -264,7 +271,7 @@ each delivery fee is split the same way (§4.4). After a merge, both are put bac
 5. sleepers wake;
 6. agents act, in a shuffled order (`World.shuffle`);
 7. needs decay;
-8. the end-of-tick systems, in `World._end_of_tick`: the engine's are rescue, borders, trades, lodging and chatter (the
+8. the end-of-tick systems, in `World._end_of_tick`: the engine's are rescue, borders, trades, lodging, passersby and chatter (the
    deposit has no turn of its own: it pays when bottles are handed in). The game's world puts the hero first (`Hero`: their needs, their zone, the zones' `focus`) and the bus second, and
    the story's watchers (sage, quests, attention) last.
 
@@ -289,6 +296,15 @@ through named ways: rings (`Portals`), `Zones.send`, and the borders between til
 zoom-10 region (`engine/core/tile_key.gd`). Agents walk on half-metre grids per zone that hold every footprint and building
 (`Navigation`), along streets when there is a road graph (`Walking`); a short hop the streets would make much longer (across a
 square) goes straight (`Walking.way`).
+
+**6.3a Passersby** (`npc/agents/passersby.gd`). People passing through, from gate to gate (`Passersby.gates`, the landing's to
+say: none, and nobody passes). More set out at rush hours (`Passersby.rate`), in clumps from a stop; about 25 at most. Each has
+a level, the cash that goes with it, and hunger and thirst. On the way they pick up loose money first, then call at a stand
+near their way that sells what they are short of, queuing like anyone; a stand keeps its last few for the town (`KEEP`). One who
+leaves still short of what they never had is a lost sale (counted by day, shown on the HUD). They are drones in a list of their
+own (`World.visitors`): no errands, no collapsing, no bed, nothing in the bins. Their money is new to the town
+(`Ledger.brought`), and what is left leaves with them (`Ledger.taken`). The town's balance is measured without them: they only
+add demand, and the bins' rates are what limit how much of it can be met.
 
 **6.4 Transport** (`engine/transport/`). What the hero rides is a `Vehicle` (`World.vehicles`, each by its `name`: a bus, the
 bank's golf cart, a train, a tram), driven by `Transit` along a smooth `DrivePath` (corners rounded, speed by the bend), as big

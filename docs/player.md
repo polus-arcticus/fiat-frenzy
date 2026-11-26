@@ -35,7 +35,10 @@ User space: the hero's controls, screens and vehicles. The engine's rules are in
   the hero picks it up by walking over it, and NPCs fetch it within 14 m. That is also how the hero prints money for themselves.
 - **Invest**: hold to charge ($25 up to $250 a shot) and release a contract. One that reaches a business buys a share; anywhere
   else it is void. A runner (the cart pushers) is a business too: a share of one is a share of its $0.40 delivery fees, paid as it
-  delivers. Its card (aim at it) says what the cart is worth and how much of it you own.
+  delivers. Its card (aim at it) says what they haul with, what the business is worth and how much of it you own.
+- **A bike for the runner**: give a cart runner enough ($60, on top of the $10 they keep back; the card counts it) and at dawn
+  they buy a pedal bike with a trailer: more than twice as fast, 40 units a load instead of 16, and out to bins up to 350 m
+  off (waste baskets and fountains), which is new supply for the stands.
 - Every dollar given is **experience**, for the receiver and for the hero: $50 to level 2, then 1.5× each level
   (`engine/core/growth.gd`). A business levels with its owner: +25% production and more shelf.
 - The heroes together own at most **49%** of any business (`engine/core/equity.gd`).
@@ -111,7 +114,7 @@ New Game opens the landing picker, as in Planet Crafter.
     - an ID card for each resident (`user/view/ui/id_card.gd`): name, ID number, tent number, level, role, hometown, since when,
       and whether they're home, out or in care;
     - click a card to open out their story (`npc/agents/biography.gd`, the same every time for the same person);
-    - **Put up a tent** (the gun pays: someone new comes to live in it), and **Sit by the barrels** to warm up.
+    - **Put up a tent** ($15 of your cash, to its keeper: someone new comes to live in it), and **Sit by the barrels** to warm up.
 - **Right-click in the bag** does what the item is for (`ItemDef.use`, one rule): gear is equipped, food and drink are had, a tent
   or a barrel fire is put down. Anything else is only carried.
 - **Putting things down** (`user/hero/placing.gd`, `placement_controller.gd`), as in Planet Crafter: the bag closes and a ghost
@@ -193,6 +196,10 @@ of walking by day (`Cold.DAY_BLOCKS`, a block being 110 m: about 49 s) and **thr
   16) and hands it in there: that is how money
   comes into the town, apart from you. The depot pays out of what the stalls paid for their leftovers and water first, and prints
   only when that is empty.
+- **Passersby** (the station): people cross the forecourt between the station's doors and the tram's stops, most at morning,
+  midday and evening. Each has a little cash (more at higher levels). They grab any bills in the street, and buy food or drink
+  from stands near their way. The HUD counts today's sales to them and the lost ones; each dawn the feed sums up yesterday. A
+  stand can only sell what the bins and runners can supply.
 - **Getting about**: tram 11 runs both ways, a stop each time you get on (E at a door), and past the last stop it comes round
   from the other end of town. The eastbound tram at the station waits for the letter quest. The shuttle runs between the bank's
   gate and its door.

@@ -13,10 +13,11 @@ extends RefCounted
 
 ## kind -> {item, rate (a minute; a resident's, `per_head`), cap, start, label (what its heap is called over it), map (the kind
 ## of street thing that is one on the map, StreetThings; "" if the map never has them), on_foot (people walk to it themselves,
-## so it must be nearer: Collecting), station (one of the atom's own, where the map has none near: World.add_bin_station)}.
+## so it must be nearer: Collecting), station (one of the atom's own, where the map has none near: World.add_bin_station),
+## far (the street things further out that give it to a runner whose rig reaches them: World.open_round)}.
 ## A tile's bins of one kind share its rate (SiteFinder.bins), so a town has as much of each as an atom's one bin would give.
 static var KINDS := {
-	"garbage": {"item": "scrap", "rate": 1.0, "cap": 30, "start": 10, "label": "scrap", "map": "bin", "station": true},
+	"garbage": {"item": "scrap", "rate": 1.0, "cap": 30, "start": 10, "label": "scrap", "map": "bin", "station": true, "far": ["bin"]},
 	# (the town's income: what its residents spend at the stalls comes back through the depot as deposits, about $7 a resident
 	# a day, so about 7 bottles each at Deposit.DEPOSIT. A fixed trickle didn't do: too little left an atom's fund full and its
 	# people broke, and what kept an atom going left a block of 13 collapsing daily, its fund piling up. Cut further, people
@@ -24,9 +25,14 @@ static var KINDS := {
 	# everyone short at the start: a broke medic lost the first day's race for 15.)
 	"recycling": {"item": "recyclables", "rate": 0.83, "per_head": true, "cap": 50, "start": 30, "label": "bottles", "map": "recycling", "on_foot": true, "station": true},
 	# (as much as the food bank gave of what leftovers stand for, flour 3.6 + sugar 3.0 + protein 0.8, and of bottled water)
-	"organics": {"item": "leftovers", "rate": 7.4, "cap": 60, "start": 20, "label": "leftovers", "map": "organics", "station": true},
-	"fountain": {"item": "water", "rate": 3.0, "cap": 30, "start": 10, "label": "water", "map": "fountain"},
+	# (further out, a public waste basket has food thrown in it too: few places map an organics bin)
+	"organics": {"item": "leftovers", "rate": 7.4, "cap": 60, "start": 20, "label": "leftovers", "map": "organics", "station": true, "far": ["organics", "bin"]},
+	"fountain": {"item": "water", "rate": 3.0, "cap": 30, "start": 10, "label": "water", "map": "fountain", "far": ["fountain"]},
 }
+## A bin out on a round is more of the town's supply, on top of its own: this share of its kind's rate each, and so many of
+## a kind at most.
+const FAR_SHARE := 0.6
+const FAR_MOST := 3
 
 
 ## A new raw source: `kind` with its row (as KINDS'). Its item must be in the Catalog already; it is marked salvaged.
@@ -43,6 +49,15 @@ static func remove_kind(kind: String) -> void:
 ## The kinds in an atom's own bin station, in the order they stand.
 static func station_kinds() -> Array:
 	return KINDS.keys().filter(func(k): return KINDS[k].get("station", false))
+
+
+## What a round may take in, as SiteFinder.rounds looks for it: kind -> [StreetThings kinds], the scarcest first.
+static func far_kinds() -> Dictionary:
+	var out := {}
+	for k in ["organics", "fountain", "garbage"]:
+		if KINDS.has(k):
+			out[k] = KINDS[k].get("far", [])
+	return out
 
 
 ## The kinds the map may have, as SiteFinder.bins looks for them: kind -> {point (StreetThings kind), on_foot}.
@@ -67,6 +82,7 @@ var front := Vector2(0, 1)  # (where a runner stands to gather from it: see Logi
 var output := Inventory.new()
 var rate := 1.0    # its item a minute here, or a resident's (KINDS per_head) (a tile's bins of a kind share the one bin's)
 var source := ""   # where it is on the map: "map" (a real bin there) or "" (laid out by the atom, the map has none near)
+var far := 0.0     # metres from the market, for one out on a round (only a rig that reaches it fetches there); 0: the town's own
 var _progress := 0.0
 
 

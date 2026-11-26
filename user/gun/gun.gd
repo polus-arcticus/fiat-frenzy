@@ -144,7 +144,7 @@ func business_of(d: Drone) -> Dictionary:
 	if m != null:
 		return {"equity": m.equity, "book": m.repair_cost, "xp": m.growth.xp}
 	if d.runner != null:
-		return {"equity": d.runner.equity, "book": Runner.CART_VALUE, "xp": d.growth.xp}
+		return {"equity": d.runner.equity, "book": d.runner.book_value(),"xp": d.growth.xp}
 	return {}
 
 

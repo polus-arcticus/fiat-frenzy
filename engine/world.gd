@@ -7,12 +7,18 @@ var clock := Clock.new()
 var ledger := Ledger.new()
 var drones: Array[Drone] = []
 var machines: Array[Machine] = []
+## People passing through (Passersby): drones too, but not of the town's, so nothing that counts `drones` counts them.
+var visitors: Array[Drone] = []
 ## The zone that everything added from now on belongs to. A scenario sets it before building each patch.
 var build_zone := "district"
 var relief_trucks: Array[ReliefTruck] = []
 var fires: Array[BarrelFire] = []
 var bins: Array[WasteBin] = []  # the town's base inputs: its garbage, recycling and organics bins, and its fountains
 var hospitals: Array[Hospital] = []
+## Where more bins are to be had further out than anyone walks, by the map: [{zone, kind, at, front, walk (metres from the
+## market)}] (SiteFinder.rounds). From the map, not saved: built again with it. A round is opened by a runner whose rig
+## reaches it (open_round).
+var rounds: Array = []
 var bottle_depots: Array[BottleDepot] = []  # where bottles are worth their deposit, and the town's fund (see Deposit)
 var vehicles: Array[Vehicle] = []  # what the hero can ride: the bus, the bank's golf cart, a train (Transit; each by its name)
 var ambulances: Array[Ambulance] = []
@@ -79,6 +85,7 @@ var borders: Borders
 var cash: Cash
 var rescue: Rescue
 var chatter: Chatter
+var passersby: Passersby
 # The hero's (user/) and the story's (story/): only in the game's world (see _init)
 var gun: Gun
 var gun_tree: GunTree
@@ -101,7 +108,7 @@ var _end_of_tick: Array = []
 ## rebuilds them). This is the one list: a new system with state is added here, beside its field.
 const SAVED := ["clock", "ledger", "needs", "logistics", "relief", "gun", "gun_tree", "commerce", "cash", "levels", "rescue", "chatter",
 	"hero", "riding", "sage", "portals", "transit", "skating", "quests", "attention", "zones", "borders", "deposit", "trades",
-	"lodging"]
+	"lodging", "passersby"]
 
 
 ## `game` false makes an engine-only world: the simulation and its people (engine/ and npc/), and none of the hero's or the
@@ -127,7 +134,8 @@ func _init(game := true) -> void:
 	deposit = Deposit.new(self)
 	trades = Trades.new(self)
 	lodging = Lodging.new(self)
-	_end_of_tick = [rescue, borders, trades, lodging, chatter]
+	passersby = Passersby.new(self)
+	_end_of_tick = [rescue, borders, trades, lodging, passersby, chatter]
 	if game:
 		_attach_game()
 
@@ -204,12 +212,17 @@ func thing(uid: String) -> Object:
 ## The lookup is rebuilt from the lists (after a load or a merge has replaced them).
 func reindex() -> void:
 	_lookup.clear()
-	for list in [drones, machines, heroes]:
+	for list in [drones, visitors, machines, heroes]:
 		for t in list:
 			_lookup[t.uid] = t
 	if player != null:
 		_lookup[player.uid] = player
 	zones.invalidate()
+
+
+## `thing` is gone for good (a passerby): nothing can be looked up by its uid any more.
+func forget(thing: Object) -> void:
+	_lookup.erase(thing.uid)
 
 
 # ---------------------------------------------------------------- building the town
@@ -267,7 +280,7 @@ func add_runner(at: Vector2, wallet := 15.0) -> Drone:
 	d.kind = "runner"
 	d.runner = Runner.new()
 	d.home = at
-	d.speed = Walking.RUNNER_SPEED
+	d.speed = d.runner.rig().speed
 	return d
 
 
@@ -340,6 +353,29 @@ func add_bin(kind: String, at: Vector2, start := -1) -> WasteBin:
 	return b
 
 
+## Puts down the bins of `zone`'s round within `reach` metres of its market that aren't there yet: more supply, for whoever
+## can get out to it. Returns them (the views are told: arrivals).
+func open_round(zone: String, reach: float) -> Array[WasteBin]:
+	var out: Array[WasteBin] = []
+	var was := build_zone
+	build_zone = zone
+	for r in rounds:
+		if r.zone != zone or float(r.walk) > reach or bins.any(func(b): return b.pos.distance_to(r.at) < ROUND_APART):
+			continue
+		var b := add_bin(r.kind, r.at)
+		b.front = r.front
+		b.far = r.walk
+		b.rate = float(WasteBin.KINDS[r.kind].rate) * WasteBin.FAR_SHARE
+		b.source = "map"
+		arrivals.append(b)
+		out.append(b)
+	build_zone = was
+	return out
+
+
+const ROUND_APART := 3.0  # metres: a bin this near a place on a round is that place's already
+
+
 ## The bins of every kind side by side: the atom's own, where the map has none near (Atom.LAYOUT "bins"), along `along` from
 ## `at` (WasteBin.station_kinds: garbage, recycling, organics). Returns them.
 func add_bin_station(at: Vector2, along := Vector2(1, 0), kinds: Array = []) -> Array[WasteBin]:
@@ -376,11 +412,13 @@ func in_park(p: Vector2) -> bool:
 func profession_of(d: Drone) -> String:
 	if d.profession != "":
 		return d.profession
+	if d.runner != null:
+		return d.runner.rig().keeper
 	var m := machine_of(d)
 	if m != null:
 		return Catalog.KEEPERS.get(m.kind, m.display_name() + " keeper")
 	return {"runner": "Cart runner", "attendant": "Depot attendant", "medic": "Medic",
-		"drifter": "Out of work", "player": ""}.get(d.kind, d.kind.capitalize())
+		"drifter": "Out of work", "passerby": "Passing through", "player": ""}.get(d.kind, d.kind.capitalize())
 
 
 func machine_of(d: Drone) -> Machine:
@@ -405,7 +443,7 @@ func solids() -> Array[Footprint]:
 
 
 func total_money() -> float:
-	return ledger.total(drones, bills)
+	return ledger.total(drones + visitors, bills)
 
 
 # ---------------------------------------------------------------- the tick

@@ -82,6 +82,23 @@ func buy(m: Machine, item: String) -> Dictionary:
 	return _yes("Bought 1 %s for $%.2f." % [_name(item), price])
 
 
+## The hero pays for another tent in the tent city `city`: the price comes out of their cash and goes to its keeper, as any
+## sale's takings do (the hero's own stake in it comes back to them).
+func put_up_tent(city: Machine) -> Dictionary:
+	if not can_reach(city):
+		return _no("Too far away.")
+	if _w.lodging.room_for(city) <= 0:
+		return _no("No room for another tent: build the tent city up first.")
+	var price := _w.lodging.next_tent_cost(city)
+	if _w.ledger.player_cash < price:
+		return _no("Not enough cash: a tent is $%.2f and you have $%.2f." % [price, _w.ledger.player_cash])
+	_w.lodging.add_tent(city)
+	_w.ledger.player_cash -= price
+	_w.logistics.pay_supplier(city, price)
+	_w.gun.credit_hero(price)  # (money the hero puts in is experience for them too)
+	return _yes("A tent is up: $%.2f paid to its keeper. %s" % [price, "Someone will come to live in it." if city.working else "Nobody will come while the tent city is wrecked."])
+
+
 func consume(item: String) -> Dictionary:
 	var p: Drone = _w.player
 	if p.carry.count(item) < 1:

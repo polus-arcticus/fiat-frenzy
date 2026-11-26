@@ -26,7 +26,12 @@ func day() -> int:
 	return int(time / DAY_SECONDS)
 
 
+## The hour on the wall, 0 to 24.
+func hour() -> float:
+	return fmod(6.0 + fraction() * 24.0, 24.0)
+
+
 ## Wall-clock text, e.g. "20:36".
 func text() -> String:
-	var h := fmod(6.0 + fraction() * 24.0, 24.0)
+	var h := hour()
 	return "%02d:%02d" % [int(h), int((h - floorf(h)) * 60.0)]

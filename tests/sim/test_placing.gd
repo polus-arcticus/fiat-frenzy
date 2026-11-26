@@ -57,7 +57,7 @@ func test_a_tent_put_down_founds_a_tent_city() -> void:
 	check(keeper != null and keeper.bed == city.uid and keeper.label != "" and keeper.arrived_at >= 0.0 and w.lodging.is_housed(keeper), "kept by a newcomer, %s, who lives in it" % (keeper.label if keeper else "?"))
 	check(city.front == Vector2(-1, 0) and w.arrivals.has(city) and w.arrivals.has(keeper), "its open end toward the hero, and the views are told")
 	check(is_equal_approx(w.ledger.printed - printed, Lodging.NEWCOMER_PURSE) and is_equal_approx(w.total_money(), w.ledger.printed), "nothing printed but the purse its keeper brought")
-	check(w.lodging.add_tent(city) > 0.0, "and it grows as any does: a tent put up there")
+	check(w.lodging.add_tent(city),"and it grows as any does: a tent put up there")
 	w.begin_play()
 	Fixtures.run(w, int(Lodging.ARRIVE_EVERY) + 2)
 	check(w.lodging.housed(city).size() == 2, "brings someone new to live in it")

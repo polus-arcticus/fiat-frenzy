@@ -20,6 +20,7 @@ func test_slow_the_storys_two_markets_keep_their_people_up() -> void:
 	var w := sc.build()
 	w.add_player(sc.start, 25.0)
 	w.player.make_needless()
+	w.passersby.gates.clear()  # (the town's balance is measured by itself: passersby only add to what it sells)
 	Atom.grow(w, sc.market)
 	for pair in [[Zones.HOME, sc.start], [Scenario.ECB_ZONE, sc.ecb_market.pos]]:
 		Cluster.fund(w, pair[0])

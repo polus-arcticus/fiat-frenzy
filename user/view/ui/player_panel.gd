@@ -21,6 +21,9 @@ func build(root: Control) -> void:
 func show_world(w: World, time_scale: float) -> void:
 	var moon := "  (night)" if w.clock.is_night() else ""
 	_status.text = "Day %d  %s%s   ×%d\nyour cash  $%.2f\nfrom your stakes  $%.2f\nmoney printed  $%.0f" % [w.clock.day() + 1, w.clock.text(), moon, int(time_scale), w.ledger.player_cash, w.ledger.stake_income, w.ledger.printed]
+	if not w.passersby.gates.is_empty():  # passersby today: who was sold something, and the sales missed
+		var p := w.passersby
+		_status.text += "\npassersby today  %d served\nlost sales  %d thirsty · %d hungry" % [int(p.served.food) + int(p.served.drink), int(p.lost.drink), int(p.lost.food)]
 
 
 func show_player(p: Drone, cash: float) -> void:

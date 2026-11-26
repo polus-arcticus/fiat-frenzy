@@ -58,14 +58,19 @@ func test_a_tent_city_holds_an_atoms_worth_until_it_is_built_up() -> void:
 	var city := Fixtures.grown_atom(w)
 	w.begin_play()
 	check(city.residence.tents == Atom.size() and w.lodging.room_for(city) == 0, "a grown atom's tent city is full at its first tier: %d tents, its keeper's and its founders'" % city.residence.tents)
-	var printed := w.ledger.printed
-	var sunk := w.ledger.sunk
-	check(is_equal_approx(w.lodging.add_tent(city), 0.0) and city.residence.tents == Atom.size() and is_equal_approx(w.ledger.printed, printed), "so no tent can be put up, and nothing is printed")
+	w.add_player(city.pos + city.front * 2.0, 20.0)
+	var keeper := w.drone(city.owner)
+	var had := keeper.wallet
+	check(not w.commerce.put_up_tent(city).ok and city.residence.tents == Atom.size() and w.ledger.player_cash == 20.0, "so no tent can be put up, and nothing is paid")
 	city.retier("hostel")
 	check(w.lodging.room_for(city) == Atom.size(), "built up into a hostel, it has room for an atom's worth more")
-	var cost := w.lodging.add_tent(city)
-	check(is_equal_approx(cost, Catalog.base_price("tent")) and city.residence.tents == Atom.size() + 1, "a tent costs $%.0f" % cost)
-	check(is_equal_approx(w.ledger.printed - printed, cost) and is_equal_approx(w.ledger.sunk - sunk, cost) and _accounted(w), "the gun prints it, and it is spent (sunk)")
+	var printed := w.ledger.printed
+	var sunk := w.ledger.sunk
+	var price := Catalog.base_price("tent")
+	check(w.commerce.put_up_tent(city).ok and city.residence.tents == Atom.size() + 1, "a tent costs $%.0f" % price)
+	check(is_equal_approx(w.ledger.player_cash, 20.0 - price) and is_equal_approx(keeper.wallet, had + price), "out of the hero's cash and into the keeper's wallet")
+	check(w.ledger.printed == printed and w.ledger.sunk == sunk and _accounted(w), "nothing is printed or spent away: the money only moves")
+	check(not w.commerce.put_up_tent(city).ok and city.residence.tents == Atom.size() + 1 and is_equal_approx(w.ledger.player_cash, 20.0 - price), "and with $5 left there is no second one")
 
 
 func test_the_medic_tends_whoever_is_down() -> void:

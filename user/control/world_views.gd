@@ -7,7 +7,7 @@ extends RefCounted
 
 
 static func spawn(parent: Node, world: World, facing: Dictionary) -> void:
-	for d in world.drones:
+	for d in world.drones + world.visitors:
 		drone_view(parent, world, d)
 	for m in world.machines:
 		parent.add_child(MachineView.new().setup(m, world, facing.get(m, _yaw(m.front))))
@@ -32,7 +32,7 @@ static func spawn(parent: Node, world: World, facing: Dictionary) -> void:
 ## faces the way the model says it does (its `front`, or the way it is parked). Bills draw themselves (BillsView).
 static func add(parent: Node, world: World, thing: Object) -> void:
 	if thing is Drone:
-		if thing in world.drones:
+		if thing in world.drones or thing in world.visitors:
 			drone_view(parent, world, thing)
 	elif thing is Machine:
 		parent.add_child(MachineView.new().setup(thing, world, _yaw(thing.front)))
