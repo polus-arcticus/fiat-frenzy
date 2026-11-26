@@ -1,13 +1,12 @@
 ## VIEW. A city bus you can get into, built from boxes: long along its local Z (the front is +Z), which
 ## `rotation.y` points down the road. Hollow: a floor, a roof, walls with a band of windows, rows of seats, and a
-## door in the right-hand wall (the kerb side, as traffic keeps right) with two panels that slide open. It stands at
-## its stop at the start; the quest controller moves it to the traffic jam. Its walls and floor are solid, and the door
-## is solid while it is shut.
+## door in the right-hand wall (the kerb side, as traffic keeps right) with two panels that slide open. A tile's bus
+## routes run these. Its walls and floor are solid, and the door is solid while it is shut.
 class_name BusView
 extends VehicleView
 
-const LENGTH := Bus.LENGTH
-const WIDTH := Bus.WIDTH
+const LENGTH := Vehicle.SPECS.bus.length
+const WIDTH := Vehicle.SPECS.bus.width
 const HEIGHT := 3.0
 const FLOOR := 0.35        # the top of the floor
 const CEILING := 2.6       # the underside of the roof
@@ -21,8 +20,15 @@ const SEAT := Color(0.24, 0.3, 0.5)
 const INSIDE := Color(0.82, 0.78, 0.68)
 const ROWS := [-4.2, -3.0, -1.8, -0.6, 0.6, 1.8]  # where the seat rows are, along the bus
 
+## What the bus is painted like, unless its maker says: `livery` {body, stripe, sign}, its sign its line's (Line.name).
+const STRIPE := Color(0.78, 0.2, 0.18)
+const SIGN := ""
+
 var door_open := false
 
+var _body := BODY
+var _stripe := STRIPE
+var _sign := SIGN
 var _glass_material: StandardMaterial3D = null
 var _solid: StaticBody3D
 var _door_block: CollisionShape3D
@@ -30,13 +36,15 @@ var _panels: Array[Node3D] = []
 var _tween: Tween
 
 
-func setup(at: Vector2, yaw: float) -> BusView:
+func setup(at: Vector2, yaw: float, livery := {}) -> BusView:
 	name = "Bus"
+	_body = livery.get("body", BODY)
+	_stripe = livery.get("stripe", STRIPE)
+	_sign = livery.get("sign", SIGN)
 	place(at, yaw)
 	_solid = StaticBody3D.new()
 	_solid.name = "Solid"
-	_solid.set_meta("bus", self)  # (so a bill fired inside knows it has hit the bus)
-	add_to_group("bus")
+	_solid.set_meta(CABIN, self)  # (so a bill fired inside knows it has hit the vehicle)
 	_solid.collision_layer = 1
 	_solid.collision_mask = 0
 	add_child(_solid)
@@ -56,10 +64,10 @@ func setup(at: Vector2, yaw: float) -> BusView:
 ## Floor, roof, the two ends and the two walls.
 func _shell() -> void:
 	_part(Vector3(WIDTH, FLOOR, LENGTH), Vector3(0, FLOOR * 0.5, 0), INSIDE)                       # the floor
-	_part(Vector3(WIDTH + 0.1, 0.16, LENGTH + 0.1), Vector3(0, CEILING + 0.08, 0), BODY)            # the roof
-	_part(Vector3(WIDTH, CEILING - FLOOR, WALL), Vector3(0, (CEILING + FLOOR) * 0.5, -LENGTH * 0.5 + WALL * 0.5), BODY)  # the back
-	_part(Vector3(WIDTH, 0.8, WALL), Vector3(0, FLOOR + 0.4, LENGTH * 0.5 - WALL * 0.5), BODY, false)  # the front: below the windscreen...
-	_part(Vector3(WIDTH, 0.3, WALL), Vector3(0, CEILING - 0.15, LENGTH * 0.5 - WALL * 0.5), BODY, false)  # ...above it...
+	_part(Vector3(WIDTH + 0.1, 0.16, LENGTH + 0.1), Vector3(0, CEILING + 0.08, 0), _body)            # the roof
+	_part(Vector3(WIDTH, CEILING - FLOOR, WALL), Vector3(0, (CEILING + FLOOR) * 0.5, -LENGTH * 0.5 + WALL * 0.5), _body)  # the back
+	_part(Vector3(WIDTH, 0.8, WALL), Vector3(0, FLOOR + 0.4, LENGTH * 0.5 - WALL * 0.5), _body, false)  # the front: below the windscreen...
+	_part(Vector3(WIDTH, 0.3, WALL), Vector3(0, CEILING - 0.15, LENGTH * 0.5 - WALL * 0.5), _body, false)  # ...above it...
 	_slab(Vector3(WIDTH, CEILING - FLOOR, WALL), Vector3(0, (CEILING + FLOOR) * 0.5, LENGTH * 0.5 - WALL * 0.5))
 	_glass(Vector3(WIDTH - 0.1, CEILING - FLOOR - 1.1, 0.05), Vector3(0, FLOOR + 0.8 + (CEILING - FLOOR - 1.1) * 0.5, LENGTH * 0.5 - 0.04))  # ...the windscreen
 	_part(Vector3(WIDTH - 0.2, 0.4, 0.6), Vector3(0, FLOOR + 0.5, LENGTH * 0.5 - 0.5), Color(0.18, 0.18, 0.2), false)  # the dashboard (low: you look over it from the front seat)
@@ -72,9 +80,9 @@ func _shell() -> void:
 func _side(x: float, z0: float, z1: float) -> void:
 	var len := z1 - z0
 	var mid := (z0 + z1) * 0.5
-	_part(Vector3(WALL, 0.75, len), Vector3(x, FLOOR + 0.375, mid), BODY, false)
+	_part(Vector3(WALL, 0.75, len), Vector3(x, FLOOR + 0.375, mid), _body, false)
 	_glass(Vector3(WALL, 1.2, len), Vector3(x, FLOOR + 0.75 + 0.6, mid))
-	_part(Vector3(WALL, CEILING - FLOOR - 1.95, len), Vector3(x, FLOOR + 1.95 + (CEILING - FLOOR - 1.95) * 0.5, mid), BODY, false)
+	_part(Vector3(WALL, CEILING - FLOOR - 1.95, len), Vector3(x, FLOOR + 1.95 + (CEILING - FLOOR - 1.95) * 0.5, mid), _body, false)
 	_slab(Vector3(WALL, CEILING - FLOOR, len), Vector3(x, (FLOOR + CEILING) * 0.5, mid))
 
 
@@ -95,7 +103,7 @@ func _door() -> void:
 		var panel := Node3D.new()
 		panel.position = Vector3(x, 0.0, DOOR_Z + (-1.0 if k == 0 else 1.0) * DOOR_WIDTH * 0.25)
 		add_child(panel)
-		Look.box(panel, Vector3(0.06, 0.75, DOOR_WIDTH * 0.5), Vector3(0, FLOOR + 0.375, 0), BODY)
+		Look.box(panel, Vector3(0.06, 0.75, DOOR_WIDTH * 0.5), Vector3(0, FLOOR + 0.375, 0), _body)
 		Look.box(panel, Vector3(0.06, CEILING - FLOOR - 0.75, DOOR_WIDTH * 0.5 - 0.06), Vector3(0, FLOOR + 0.75 + (CEILING - FLOOR - 0.75) * 0.5, 0), GLASS)
 		_panels.append(panel)
 	_door_block = _slab(Vector3(WALL, CEILING - FLOOR, DOOR_WIDTH), Vector3(x, (FLOOR + CEILING) * 0.5, DOOR_Z))
@@ -105,7 +113,7 @@ func _door() -> void:
 
 ## Wheels, a stripe, the destination board.
 func _exterior() -> void:
-	var red := Color(0.78, 0.2, 0.18)  # a red stripe down each side (not across: the bus is hollow), broken by the door
+	var red := _stripe  # a stripe down each side (not across: the bus is hollow), broken by the door
 	Look.box(self, Vector3(0.04, 0.18, LENGTH + 0.04), Vector3(-DOOR_SIDE * (WIDTH * 0.5 + 0.035), FLOOR + 0.5, 0), red)
 	var side_x := DOOR_SIDE * (WIDTH * 0.5 + 0.035)
 	var behind := DOOR_Z - DOOR_WIDTH * 0.5 + LENGTH * 0.5
@@ -116,7 +124,7 @@ func _exterior() -> void:
 		for x in [-WIDTH * 0.5, WIDTH * 0.5]:
 			Look.box(self, Vector3(0.3, 0.9, 0.9), Vector3(x, 0.45, z), Color(0.12, 0.12, 0.14))
 	Look.box(self, Vector3(1.2, 0.35, 0.06), Vector3(0, 2.95, LENGTH * 0.5 - 0.05), Color(0.1, 0.1, 0.12))  # the destination board
-	var l := Look.label3d(self, "EZB  Ostend", Vector3(0, 3.5, LENGTH * 0.5), 26, 25.0)
+	var l := Look.label3d(self, _sign, Vector3(0, 3.5, LENGTH * 0.5), 26, 25.0)
 	l.billboard = BaseMaterial3D.BILLBOARD_DISABLED
 	l.fixed_size = false
 	l.pixel_size = 0.004
@@ -201,27 +209,9 @@ func seat_local() -> Vector3:
 	return SEAT_LOCAL
 
 
-## A car stuck in the jam: a body, a cabin and four wheels.
-static func car(at: Vector2, yaw: float, color: Color) -> Node3D:
-	var c := Node3D.new()
-	c.name = "StuckCar"
-	c.add_to_group("stuck_cars")
-	c.position = Vector3(at.x, 0.0, at.y)
-	c.rotation.y = yaw
-	Look.box(c, Vector3(1.8, 0.7, 4.2), Vector3(0, 0.65, 0), color)
-	Look.box(c, Vector3(1.6, 0.6, 2.2), Vector3(0, 1.3, -0.2), GLASS)
-	Look.box(c, Vector3(1.64, 0.1, 2.3), Vector3(0, 1.62, -0.2), color.darkened(0.15))
-	for z in [-1.3, 1.3]:
-		for x in [-0.9, 0.9]:
-			Look.box(c, Vector3(0.2, 0.6, 0.6), Vector3(x, 0.3, z), Color(0.1, 0.1, 0.12))
-	var body := StaticBody3D.new()
-	body.collision_layer = 1
-	body.collision_mask = 0
-	var cs := CollisionShape3D.new()
-	var box := BoxShape3D.new()
-	box.size = Vector3(1.8, 1.6, 4.2)
-	cs.shape = box
-	cs.position.y = 0.8
-	body.add_child(cs)
-	c.add_child(body)
-	return c
+func floor_height() -> float:
+	return FLOOR
+
+
+func ceiling_height() -> float:
+	return CEILING

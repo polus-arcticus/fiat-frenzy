@@ -185,9 +185,10 @@ func set_level(new_level: int) -> void:
 	for raw in raws:
 		input.caps[raw] = per_craft(raw) * (d.stock_crafts + level - 1)
 	var up := Catalog.next_tier(kind)
-	if up != "" and Catalog.machine(up).build_scrap > 0:  # its next tier is built of pooled scrap: room for it, on top
-		var crafts: int = per_craft("scrap") * (d.stock_crafts + level - 1)
-		input.caps["scrap"] = crafts + Catalog.machine(up).build_scrap
+	if up != "":  # its next tier is built of pooled goods: room for them, on top of its own crafts'
+		var goods := Catalog.machine(up).build_goods
+		for g in goods:
+			input.caps[g] = per_craft(g) * (d.stock_crafts + level - 1) + int(goods[g])
 	refresh()
 
 

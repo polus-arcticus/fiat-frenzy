@@ -112,9 +112,9 @@ func plan(d: Drone) -> Dictionary:
 				if bill != null:
 					job = {"for": "cash", "target": bill, "item": ""}
 			_:
-				var m := supply.best_supply(d, cls)
-				if m:
-					job = {"for": cls, "target": m, "item": m.item}
+				var offer := supply.best_offer(d, cls)
+				if not offer.is_empty():
+					job = {"for": cls, "target": offer.machine, "item": offer.item}
 		if not job.is_empty():
 			job["stand"] = stand_point(d, job)
 			return job

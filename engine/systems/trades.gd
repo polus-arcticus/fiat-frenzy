@@ -33,14 +33,22 @@ static func float_for(kind: String) -> float:
 	return Drone.RESERVE + stock * d.stock_crafts
 
 
+## A tier's build goods in words: "320 scrap", "60 scrap, 12 planks".
+static func goods_text(goods: Dictionary) -> String:
+	return ", ".join(goods.keys().map(func(g): return "%d %s" % [int(goods[g]), str(g).replace("_", " ")]))
+
+
 ## Can `m`'s owner build it up now? Returns the next tier's id, or "".
 func can_build(m: Machine) -> String:
 	var up := Catalog.next_tier(m.kind)
 	if up == "" or not m.working:
 		return ""
-	var scrap := Catalog.machine(up).build_scrap
-	if scrap > 0:  # built of the scrap the runners have pooled into it
-		return up if m.input.count("scrap") - m.per_craft("scrap") * Catalog.machine(m.kind).stock_crafts >= scrap else ""
+	var goods := Catalog.machine(up).build_goods
+	if not goods.is_empty():  # built of the goods the runners have pooled into it (over what its own crafts keep in hand)
+		for g in goods:
+			if m.input.count(g) - m.per_craft(g) * Catalog.machine(m.kind).stock_crafts < int(goods[g]):
+				return ""
+		return up
 	var owner := _w.drone(m.owner)
 	if owner == null or owner.needless or owner.care != "":
 		return ""
@@ -62,11 +70,12 @@ func step(_dt: float) -> void:
 ## `m`'s owner pays to build it up into `up`.
 func build(m: Machine, up: String) -> void:
 	var was := m.display_name()
-	var scrap := Catalog.machine(up).build_scrap
-	if scrap > 0:
-		m.input.take("scrap", scrap)
+	var goods := Catalog.machine(up).build_goods
+	if not goods.is_empty():
+		for g in goods:
+			m.input.take(g, int(goods[g]))
 		m.retier(up)
-		_w.events.append("t=%d the %s was built up into a %s (%d scrap)" % [_w.clock.time, was, m.display_name(), scrap])
+		_w.events.append("t=%d the %s was built up into a %s (%s)" % [_w.clock.time, was, m.display_name(), Trades.goods_text(goods)])
 		return
 	var cost := Catalog.machine(up).build
 	var owner := _w.drone(m.owner)

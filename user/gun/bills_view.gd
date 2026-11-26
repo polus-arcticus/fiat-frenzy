@@ -37,10 +37,10 @@ func _process(_delta: float) -> void:
 
 func _build(b: Bill) -> Node3D:
 	var pile := Node3D.new()
-	var bus: Node3D = get_tree().get_first_node_in_group("bus") if b.aboard else null
-	if bus != null:  # money on the bus's floor is drawn in the bus, so it rides with it and does not jitter against it
-		pile.position = Vector3(b.local.x, BusView.FLOOR + 0.03, b.local.y)
-		bus.add_child(pile)
+	var cabin: VehicleView = get_tree().get_first_node_in_group(VehicleView.CABIN + "_" + b.ride) if b.aboard else null
+	if cabin != null:  # money on a vehicle's floor is drawn in it, so it rides with it and does not jitter against it
+		pile.position = Vector3(b.local.x, cabin.floor_height() + 0.03, b.local.y)
+		cabin.add_child(pile)
 	else:
 		pile.position = Ground.at(b.pos, 0.04)
 		add_child(pile)

@@ -38,7 +38,7 @@ func _run() -> void:
 	game.gun.set_enabled(false)
 	game.hud.visible = false
 	p.camera.far = 900.0
-	var dir: Vector2 = sc._frame.dir
+	var dir: Vector2 = sc.street_dir()
 	p.teleport(Vector3(sc.start.x, 0.1, sc.start.y), atan2(-dir.x, -dir.y))
 	p.look_toward(Vector3(sc.start.x + dir.x * 50.0, 22.0, sc.start.y + dir.y * 50.0))
 	for pair in [["1_dawn", 0.033], ["2_morning", 0.2], ["3_noon", 0.5], ["4_dusk", 0.585], ["5_night", 0.9]]:

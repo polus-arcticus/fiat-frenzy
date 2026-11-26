@@ -1,59 +1,60 @@
-# Code review (2026-11-23)
+# Code review (2026-11-25)
 
-The whole codebase is about 34,000 lines: the four spaces 22,000, tests and tools the rest. The core mechanics are in place;
-what comes next is story and gameplay. This is what holds up, how the code is split, and what is still open. (The first review,
-2026-11-18, and the work it led to are in the git history.)
+About 38,000 lines: the four spaces 24,500 (engine 10,200, npc 2,200, user 8,800, story 3,200), tests 9,100, tools 4,700. What holds
+up, how the code is split, what is still owed. How it got here is in the git history (the reviews of 11-18 and 11-23, and the
+refoundation of 11-25: tests, the economy as data, the atom's founders, the transport, the story on the atom).
 
-## What holds up well
+## What holds up
 
-- **The model is headless and deterministic.** It never touches a node, and rolls only the world's dice; `test_architecture`
-  checks both. Saves and merges rest on it.
-- **Money has one invariant** (`total_money == printed`), and almost every test that moves money checks it. It has caught every
-  leak so far.
-- **Each fact is defined once.** The Catalog is data (and `WasteBin.KINDS` the bins'), systems are rules, and per-class `MERGE`
-  tables state how saves combine. `World.SAVED` is the one list of saved systems.
-- **The engine runs on its own** (`World.new(false)`): the benches, a map of anywhere and the epoch sim run without the hero or
-  the story.
-- **Zones and the summary** let hundreds of NPCs exist cheaply.
-- **The benches** found what unit tests could not: the price ratchet, the fund that filled while the town went broke, runners
-  setting out on trips they could not last.
-- **Little dead code.** A scan of every function, constant and class (2026-11-23) found four unused definitions, now removed;
-  every class is used by the game but `Merge`, which waits for co-op (`docs/coop.md`).
+- **The model is headless and deterministic.** It never touches a node and rolls only the world's dice (`test_architecture`).
+  Saves and merges rest on it.
+- **Money has one invariant** (`total_money == printed`), checked by nearly every test that moves money.
+- **Each fact is defined once, as data:** items and businesses (Catalog), raw sources (`WasteBin.KINDS`), needs (`Drone.BARS`),
+  the atom's founders and their order (`Lodging.FOUNDERS`), the atom's street layout (`Atom.LAYOUT`), how saves combine (per-class
+  `MERGE`), what is saved (`World.SAVED`). A new resource, recipe and business is rows only (`test_chains`).
+- **One town layout, one transport.** Every town is an atom grown by its founders (a tile's, the story's, the bank's market, the
+  bench cluster). Everything ridden is a `Vehicle` on a `Line` or sent, with one ride controller.
+- **The engine runs on its own** (`World.new(false)`): benches, a map of anywhere, the epoch sim.
+- **The benches** catch what unit tests cannot (the price ratchet, runners setting out on trips they could not last, a medic and
+  an ambulance both taking the hero).
 
-## The four spaces
+## The spaces and the concerns
 
 | space | holds | may use |
 |---|---|---|
-| `engine/` (simulation) | World, the Catalog and data types, assets, ledger, clock, zones, navigation, walking, summary, the economy (trades, the bins, the deposit, relief, lodging, salvage), clusters and the atom, snapshot and merge, map geometry and the map's frames, the views of assets and the city | nothing above it |
-| `npc/` | what agents decide and do: needs and demands, logistics, supply, queueing, hauling, collecting, borders, chatter, rescue, loose cash; drone views | `engine/` |
-| `user/` | the hero, gun, commerce, riding, skating, transit, portals, inspector, landing on a tile, saves, HUD, screens, `GameController` | `engine/`, `npc/` |
-| `story/` | scenario and places, quests, tutorial, intro, dev stages, the sage, the ECB, dialogue, the cast registry | anything |
+| `engine/` | World, the Catalog and data types, assets, ledger, clock, zones, navigation, walking, summary, the economy, the atom and the cluster, transport, snapshot and merge, map geometry, the views of assets and the city | nothing above it |
+| `npc/` | what agents decide and do: needs, logistics, supply, queueing, hauling, collecting, borders, chatter, rescue; drone views | `engine/` |
+| `user/` | the hero, gun, commerce, riding, skating, the hero's rides, portals, inspector, landings, saves, HUD, screens, `GameController` | `engine/`, `npc/` |
+| `story/` | the scenario, quests, tutorial, intro, dev stages, the sage, the bank, dialogue, the cast, the landmark styles | anything |
 
-`test_architecture` maps every `class_name` to its space and fails on a reference upward. Two composition roots may name every
-space: `engine/world.gd` and `user/control/game_controller.gd`.
-
-## Done (2026-11-23)
-
-- **Role components.** A cart runner's business is a `Runner` (`Drone.runner`: cart, deliveries, fees, the heroes' stakes),
-  null on everyone else; what people said is the chatter's (`Chatter.of`, a `Speech`), not saved at all. A tent city's homes are
-  a `Residence` (`Machine.residence`: the row, its tents and their `Shelter`, `bed_pos`, the footprint), null on every stall;
-  `Machine.shelter` is a read-only view of it, so whatever treats a fire and a tent alike still can. Each has its own `MERGE`.
-  Save version 6. The benches gave the same numbers before and after.
-- What stays on `Drone` on purpose: `care_rate` and `wake_at` (what the medical tent reads of anyone), `aura` and `face_to`
-  (the shapes the story writes and the views read, so neither names the other), and `home` (a runner's and a medic's).
+Two composition roots may name every space: `engine/world.gd` and `user/control/game_controller.gd`. Across the spaces,
+`test_architecture` keeps three concerns apart: world building (the map's model, the city's views) and the economy name no part of
+each other, and nothing below the story reads its state (`.quests`, `.sage`, `.cast`, `.attention`) or names its places (OSM ids,
+Frankfurt's streets). What is still owed is listed in the test; a new debt fails it, and so does one paid off but left listed:
+- `SiteFinder` lays its street site out by the atom's `LAYOUT` (the atom should be handed the site);
+- `HudPresenter` reads `world.quests.objective()` (an `Objectives` stack handed in instead).
 
 ## Open
 
-Structural, each changing what a save holds or what the story looks like, so each is planned on its own:
-1. **`Scenario` lays the first market out by hand** (551 lines, the biggest file) instead of with `Cluster` on a street site, as
-   a tile's atom is. Moving it moves the story's stalls a little.
-2. **`World` still holds hero and story state**: `bus`, `shuttle`, `bus_stop`, `gun_owned`. They move with the hero's own state.
+1. **The hero's cold** (Cold) was tuned against fires every 60 m down Kaiserstraße, gone with the hand-made market: away from the
+   market's one fire it is harsh. The scene suite hardens the hero. A decision for the story.
+2. **A full town is flat**, not weakly growing: no business builds up with money in a season. Wants a lever (docs/balance.md).
+3. **The story reads the economy's internals** (`Tutorial`, `Quests`: `Machine.working`, `Ledger`, `Residence`): a small read-only
+   facade would let them change apart.
+4. **`GameController` wires the story by hand** (`scenario != null` branches): a story bootstrap could take them.
+5. **`Snapshot.DERIVED` names fields as strings.** A leading underscore could mark them instead.
+6. **`tools/` is one drawer** of about 70 scripts; captures move onto `CaptureTool` as they are touched (most already take the
+   story's town grown: `--grown`).
+7. Parked, kept with their tests in the slow tier: merging saves (co-op), dormant zones, crossing between tiles.
+8. **Logistics at scale: the horizon.** Planet Crafter's autocrafter (every recipe automated, machines pull their inputs) meets
+   Factorio's logistic network (requesters and providers with priorities, carriers dispatched to the best match). Today each idle
+   runner scans every source against every shop (`Hauling.haul_job`: roughly cubic in a zone, `bench_zones`), greedy and tuned by
+   hand (`need × 10 − distance`, `MIN_LOAD`). Before the second or third supply chain: a board of requests and offers, matched in
+   batches (sorted once by value, greedy, no reuse), distances cached per source (Dijkstra over the road graph, refreshed with
+   navigation), and urgency as data on the request. Walking stays as it is.
 
-Small:
-3. **The bus and shuttle service lives in `QuestController`** (451 lines), though it is not quest logic: a story transit
-   controller of its own.
-4. **`Snapshot.DERIVED` names fields as strings** (now also `Chatter._said` and `Machine.shelter`). A leading underscore could
-   mark them instead.
-5. **Story tests sit with the engine's** (`test_ecb_market`, `test_saves`, `test_story_land`): `tests/story/`.
-6. **`tools/` is one drawer** of about 70 scripts (55 of them captures). Folders (`capture/`, `probe/`, `bench/`) would mean
-   changing 121 references to their paths. Captures move onto `CaptureTool` as they are touched.
+## Tests
+
+`tools/test.sh` runs the sim, story, scene and intro suites at once in about 27 s; the scene suite sets the pace. The slow tier
+(`test_slow_*`, `tools/test.sh slow`) holds the long simulations and the parked machinery. `tests/expected_checks.json` counts
+both. Known broken tools, untouched for a while: `capture_skate.gd`, `fetch_relief.gd`.

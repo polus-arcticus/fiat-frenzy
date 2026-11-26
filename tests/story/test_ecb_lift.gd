@@ -13,7 +13,7 @@ func _world() -> Array:
 func _deliver(w: World, sc: Scenario) -> void:
 	w.quests.state[QuestBook.LETTER] = "active"
 	w.player.carry.add("letter", 1)
-	for k in ["rode_bus", "jam_cleared", "rode_on", "cleared_gate", "rode_shuttle"]:
+	for k in ["rode_tram", "repaired", "rode_on", "cleared_gate", "rode_shuttle"]:
 		w.quests.set_flag(k)
 	w.quests.deliver()
 

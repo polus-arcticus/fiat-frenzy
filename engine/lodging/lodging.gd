@@ -5,10 +5,10 @@
 ##   a tent added   the hero pays for it with the money gun: a tent's price (Catalog "tent"), printed and spent (sunk): the
 ##                  canvas and the cot. (The keeper also sells tents, of scrap, to take away: one put down in the street
 ##                  founds a tent city of its own, see `found`.)
-##   a free tent    while the tent city stands (repaired), someone comes for it: one every ARRIVE_EVERY seconds, with
-##                  NEWCOMER_PURSE dollars (new money, counted as printed: they brought it), who moves in and stays. Who
-##                  comes is a weighted roll of the kinds of people there are (NEWCOMERS): the cluster's base set is laid out
-##                  by Atom; it is growth that is left to the dice, but for the first two, who are founders (FOUNDERS).
+##   a free tent    while the tent city stands (repaired), the next of its founders comes for it, one every ARRIVE_EVERY
+##                  seconds, in their order (FOUNDERS: the town itself, see Atom), and moves in and stays. Once they have all
+##                  come, nobody else does: a filled tent city's economy grows on its own trades, slowly. (Mouths with no
+##                  trade outgrew the producers: 2026-11-25.)
 ## Nobody is turned out: there is no taking a tent away. A wrecked tent city keeps its tents and its people, but nobody new comes,
 ## and it warms nobody.
 ## (Barrel fires are things the tent keeper sells, for the hero to place: not part of the tent city.)
@@ -16,15 +16,23 @@ class_name Lodging
 extends RefCounted
 
 const MERGE := {"waiting": "max"}  # (see Merge)
-## Who a newcomer is, by weight: every kind of person there is so far that needs no premises of their own.
-const NEWCOMERS := {"drifter": 3.0, "runner": 1.0}
-## The first arrivals to a tent city are not mouths but makers, in this order: each pitches a stall beside it and keeps it, in the
-## tent that was waiting (Camp.pitch). After them the weighted roll above.
-const FOUNDERS := [{"kind": "thrift_stall", "label": "Thrift seller"}, {"kind": "scrap_camp", "label": "Camp keeper"}]
+## The first arrivals to a tent city are not mouths but the town, always in this order: each sets up what it keeps (`role`: a
+## premises, a business, or a runner's cart) and moves into the tent that was waiting. A business comes wrecked and its keeper
+## broke: the hero's money gets it going. Every tent city brings its own (a second one mirrors the first). After them, nobody.
+const FOUNDERS := [
+	{"role": "bottle_depot"},
+	{"role": "first_aid"},
+	{"role": "runner"},
+	{"role": "lemonade_stand"},
+	{"role": "bakery"},
+	{"role": "thrift_stall", "label": "Thrift seller", "camp": true},  # (a stall that works the street's scrap: Camp.pitch, its pile beside it)
+	{"role": "scrap_camp", "label": "Camp keeper", "camp": true},
+	{"role": "hot_dog_stand"},
+]
+const RUNNER_PURSE := 20.0  # (a runner's cart is no stall to mend: they come with enough to buy a load off a shelf)
 const STALL_ROOM := 2.5      # metres a founder's stall needs clear round it
-const ARRIVE_EVERY := 30.0   # seconds between newcomers, while a tent stands empty
-const NEWCOMER_PURSE := 15.0
-const NEWCOMER_FROM := 28.0  # metres down the street from the tents that a newcomer walks in from
+const ARRIVE_EVERY := 30.0   # seconds between founders, while a tent stands empty
+const NEWCOMER_PURSE := 15.0  # what the keeper of a tent city put down in the street brings (`found`)
 
 var waiting := {}  # tent city uid -> seconds an empty tent has waited for its newcomer
 
@@ -131,58 +139,121 @@ func step(dt: float) -> void:
 			_newcomer(m)
 
 
-## Who the next newcomer is: a weighted roll of NEWCOMERS, with the world's dice.
-func _roll() -> String:
-	var total := 0.0
-	for k in NEWCOMERS:
-		total += NEWCOMERS[k]
-	var r := _w.rng.randf() * total
-	for k in NEWCOMERS:
-		r -= NEWCOMERS[k]
-		if r < 0.0:
-			return k
-	return NEWCOMERS.keys().back()
-
-
-## Someone turns up for an empty tent in `city`: they walk in from down the street, with a little money.
+## Someone turns up for an empty tent in `city`: the next founder.
 func _newcomer(city: Machine) -> void:
-	if city.residence.founded < FOUNDERS.size() and _found_stall(city):
-		return
-	var was := _w.build_zone
-	_w.build_zone = city.zone
-	var down_the_street := Vector2(-city.front.y, city.front.x) * city.residence.wing * NEWCOMER_FROM
-	var role := _roll()
-	var at := city.pos + down_the_street
-	var d := _w.add_runner(at, NEWCOMER_PURSE) if role == "runner" else _w.add_drifter(at, NEWCOMER_PURSE)
-	_w.build_zone = was
-	d.bed = city.uid
-	d.arrived_at = _w.clock.time
-	_w.arrivals.append(d)
-	_w.events.append("t=%d %s came to live in the %s" % [_w.clock.time, d.label, city.display_name()])
+	arrive(city)
 
 
-## The next founder pitches their stall beside `city` and moves into the waiting tent. False if there is nowhere clear to put it
-## (then an ordinary newcomer comes instead, and the founder waits for the next free tent).
-func _found_stall(city: Machine) -> bool:
+## Whoever comes for `city`'s empty tent comes now (Atom.grow does not wait for them): the next founder, unless a role in `skip`.
+## Returns who came (null if there is no empty tent, no founder left, or nowhere clear for theirs yet: they wait).
+func arrive(city: Machine, skip: Array = []) -> Drone:
+	if free_tents(city) <= 0:
+		return null
+	var f := next_founder(city, skip)
+	return null if f.is_empty() else _found(city, f)
+
+
+## The next of FOUNDERS that `city` has not brought yet (nor in `skip`), or {} once it has them all. Every tent city brings its
+## own, the same way: a second one is a second town of its own (its own bottle depot too).
+func next_founder(city: Machine, skip: Array = []) -> Dictionary:
+	var brought := {}
+	for d in housed(city):
+		brought[role_of(d)] = true
+	for f in FOUNDERS:
+		if not brought.has(f.role) and not skip.has(f.role):
+			return f
+	return {}
+
+
+## Who in `city` holds founder role `role` ("bakery", "runner", ...: Lodging.FOUNDERS), or null if they have not come yet.
+func founder(city: Machine, role: String) -> Drone:
+	for d in housed(city):
+		if role_of(d) == role:
+			return d
+	return null
+
+
+## Which founder's role `d` holds: the trade's bottom tier for a business (a bakery built up into a bake shop is still the
+## bakery the founder brought), the premises' kind, or "runner".
+func role_of(d: Drone) -> String:
+	match d.kind:
+		"runner":
+			return "runner"
+		"attendant":
+			return "bottle_depot"
+		"medic":
+			return "first_aid"
+	var m = _w.machine_of(d)
+	if m == null:
+		return ""
+	var ladder: Array = Catalog.TRADES.get(Catalog.machine(m.kind).trade, [m.kind])
+	return ladder[0] if ladder[0] != "" else m.kind
+
+
+## Where `city`'s next founder sets up: its slot (Atom.seed laid one out for each), or beside the city along its own street.
+func _place_for(city: Machine, role: String) -> Dictionary:
 	var res := city.residence
-	var f: Dictionary = FOUNDERS[res.founded]
+	if res.slots.has(role):
+		return res.slots[role]
 	var along := Vector2(-city.front.y, city.front.x) * res.wing
-	var at: Vector2 = city.pos + along * float(res.stall_offsets[res.founded])
-	if _w.nav.blocked(city.zone, at) or not _clear(city.zone, at):
-		return false
+	return {"at": city.pos - along * Residence.FOUNDER_STEP * float(res.founded + 1), "front": city.front}
+
+
+## Founder `f` sets up at their place and moves into `city`'s waiting tent. Null if there is nowhere clear to put it (then an
+## ordinary newcomer comes instead, and the founder waits for the next free tent).
+func _found(city: Machine, f: Dictionary) -> Drone:
+	var place := _place_for(city, f.role)
+	var at: Vector2 = place.at
+	var front: Vector2 = place.front
+	var laid_out := city.residence.slots.has(f.role)  # (a place the atom laid out is clear by design: Atom.LAYOUT)
+	if not laid_out and f.role != "runner" and (_w.nav.blocked(city.zone, at) or not _clear(city.zone, at)):
+		return null
 	var was := _w.build_zone
 	_w.build_zone = city.zone
-	var stall := Camp.pitch(_w, at, city.front, NEWCOMER_PURSE, f.kind, f.label, false, city)
+	var keeper: Drone
+	var made: Variant = null  # (what they set up, for the views)
+	match f.role:
+		"bottle_depot":
+			keeper = _w.add_bottle_depot(at, front)
+			made = _w.bottle_depots[_w.bottle_depots.size() - 1]
+		"first_aid":
+			keeper = _w.add_first_aid(at, front)
+			made = _w.hospitals[_w.hospitals.size() - 1]
+		"runner":
+			keeper = _w.add_runner(at, RUNNER_PURSE)
+		_:
+			if f.get("camp", false):
+				var stall := Camp.pitch(_w, at, front, 0.0, f.role, f.label, false, city)
+				stall.working = false  # (found wrecked, like any business: the hero's money mends it)
+				stall.refresh()
+				keeper = _w.drone(stall.owner)
+				made = stall
+				_w.arrivals.append(_w.bins[_w.bins.size() - 1])  # (its pile)
+				_share(city.zone, "garbage")
+			else:
+				keeper = _w.add_vendor(f.role, at, 0.0, false, true)
+				var m := _w.machine_of(keeper)
+				m.front = front
+				keeper.pos = m.post()
+				made = m
 	_w.build_zone = was
-	var keeper := _w.drone(stall.owner)
+	keeper.bed = city.uid
 	keeper.arrived_at = _w.clock.time
-	res.founded += 1
-	_w.arrivals.append(stall)
+	city.residence.founded += 1
+	if made != null:
+		_w.arrivals.append(made)
 	_w.arrivals.append(keeper)
-	_w.arrivals.append(_w.bins[_w.bins.size() - 1])
 	_w.zones.invalidate()
-	_w.events.append("t=%d %s came to live in the %s and pitched a %s" % [_w.clock.time, keeper.label, city.display_name(), stall.display_name().to_lower()])
-	return true
+	_w.events.append("t=%d %s came to live in the %s: %s" % [_w.clock.time, keeper.label, city.display_name(), _w.profession_of(keeper).to_lower()])
+	return keeper
+
+
+## The bins of `kind` in `zone` share one bin's rate (WasteBin.KINDS): a stall's pile beside it shows where the scrap lies, but
+## the street throws away no more for it. (Three piles at a full rate each had the hostel built of scrap by day 14.)
+func _share(zone: String, kind: String) -> void:
+	var same := _w.zones.bins_in(zone).filter(func(b): return b.kind == kind)
+	for b in same:
+		b.rate = float(WasteBin.KINDS[kind].rate) / same.size()
 
 
 ## Is there room for a stall at `at`: nothing else of the street's within STALL_ROOM of it?

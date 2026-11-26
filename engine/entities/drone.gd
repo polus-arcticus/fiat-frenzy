@@ -10,7 +10,16 @@
 class_name Drone
 extends RefCounted
 
-const NEEDS := ["hunger", "thirst", "warmth"]
+## The survival bars, in one table (Maslow's lowest rung), most basic first: bar -> {cls: the class of goods or errand that answers
+## it (ItemDef.cls, Needs.demands), seconds: how long a full bar lasts (0: its own rule, as the cold's: Needs.decay), eaten: a
+## bought item of its class is used up to refill it (Needs.eat)}. A new need is a row here; what drains, demands, eats, and
+## shows the bar reads it.
+const BARS := {
+	"hunger": {"cls": "food", "seconds": 600.0, "eaten": true},
+	"thirst": {"cls": "drink", "seconds": 420.0, "eaten": true},
+	"warmth": {"cls": "warmth", "seconds": 0.0, "eaten": false},  # (fires and tent beds, by the clock and the clothes: Needs)
+}
+const NEEDS := ["hunger", "thirst", "warmth"]  # (BARS' keys, in order: a constant, so anything may name it)
 const RESERVE := 10.0  # dollars an agent keeps back for groceries before it spends on stock, repairs or building up
 ## How two saves of the same drone combine (see Merge): what each save added to these is added up; anything not listed is
 ## taken from the host's save.
@@ -28,7 +37,7 @@ var gear := Inventory.new()  # what they have on and ride: the hero's loadout (s
 ## Seconds a full warmth bar lasts in the open without clothes, for this one: x by day, y at night. Zero: the street's usual
 ## (Needs.DAY_COOLING, NIGHT_COOLING). The hero's is much shorter (Cold).
 var cold_spans := Vector2.ZERO
-var bars := {"hunger": 1.0, "thirst": 1.0, "warmth": 1.0}
+var bars := Drone.full_bars()
 var rep := 0.0         # how much this one thinks of the player
 var growth := Growth.new()  # the money the player has given them, and the level that adds up to
 
@@ -69,9 +78,33 @@ func _init(at := Vector2.ZERO, start_wallet := 0.0) -> void:
 	wallet = start_wallet  # (World.add_drifter desyncs the bars, with the world's dice)
 
 
-## The lowest of the three survival bars.
+## Every survival bar full.
+static func full_bars() -> Dictionary:
+	var out := {}
+	for n in NEEDS:
+		out[n] = 1.0
+	return out
+
+
+## The class of goods (or errand) that answers each bar: {"food": "hunger", ...} (Needs.NEED_OF).
+static func need_of() -> Dictionary:
+	var out := {}
+	for n in BARS:
+		out[BARS[n].cls] = n
+	return out
+
+
+## The classes of goods that are bought and used up to refill a bar: food and drink (ItemDef.use).
+static func eaten_classes() -> Array:
+	return NEEDS.filter(func(n): return BARS[n].eaten).map(func(n): return BARS[n].cls)
+
+
+## The lowest of the survival bars.
 func neediest() -> float:
-	return minf(bars.hunger, minf(bars.thirst, bars.warmth))
+	var low := 1.0
+	for n in NEEDS:
+		low = minf(low, bars[n])
+	return low
 
 
 ## Collapsed, being carried or in a bed: out of action until they are well again.

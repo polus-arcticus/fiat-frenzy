@@ -19,9 +19,7 @@ const RESERVE := Drone.RESERVE   # (an agent's: see Drone)
 const RESTOCK_BELOW := 3         # a vendor tops up an input when it holds fewer than this many crafts' worth
 const SLOWEST_PACE := 0.55       # how fast, against their usual walk, someone barely in need strolls to a stand...
 const FASTEST_PACE := 1.35       # ...and someone nearly out hurries. So the thirstiest reach a thin shelf first.
-const NEED_OF := {"food": "hunger", "drink": "thirst", "warmth": "warmth"}  # the bar each kind of errand answers
-const HUNGER_SECONDS := 600.0    # seconds for a full hunger bar to run out
-const THIRST_SECONDS := 420.0    # and a full thirst bar
+static var NEED_OF := Drone.need_of()  # the bar each kind of errand answers: {"food": "hunger", ...} (Drone.BARS, with how fast each runs down)
 
 var _w: World
 
@@ -33,8 +31,10 @@ func _init(world: World) -> void:
 func decay(d: Drone, dt: float) -> void:
 	if d.unconscious() or d.needless:
 		return  # out cold: nothing drains until the hospital has them up
-	d.bars.hunger = maxf(0.0, d.bars.hunger - dt / HUNGER_SECONDS)
-	d.bars.thirst = maxf(0.0, d.bars.thirst - dt / THIRST_SECONDS)
+	for bar in Drone.NEEDS:  # the bars that run down by the clock (Drone.BARS seconds)
+		var span: float = Drone.BARS[bar].seconds
+		if span > 0.0:
+			d.bars[bar] = maxf(0.0, d.bars[bar] - dt / span)
 	if _w.lodging.is_housed(d):
 		d.bars.warmth = 1.0  # a tent of their own in a standing tent city keeps them warm (see Lodging)
 	else:
@@ -45,7 +45,7 @@ func decay(d: Drone, dt: float) -> void:
 		var feel := usual / span  # (one who feels the cold harder warms as much faster by a fire: the hero, see Cold)
 		var cooling := dt / (span / (1.0 - d.insulation()))  # clothes make a bar last longer in the open
 		d.bars.warmth = clampf(d.bars.warmth + warmth_gain(d) * feel * dt - cooling, 0.0, 1.0)
-	if d.bars.hunger <= 0.0 or d.bars.thirst <= 0.0 or d.bars.warmth <= 0.0:
+	if d.neediest() <= 0.0:
 		d.starved_ticks += 1
 	_own_shelf(d)
 
@@ -53,13 +53,13 @@ func decay(d: Drone, dt: float) -> void:
 ## A vendor in need of what their own stand makes takes one off their own shelf: it is theirs, so no money moves, and
 ## nobody else's stand is needed (the lemonade seller is often the only drink in town, and cannot buy from themselves).
 func _own_shelf(d: Drone) -> void:
-	if d.bars.hunger >= NEED_BELOW and d.bars.thirst >= NEED_BELOW:
+	if not Drone.NEEDS.any(func(n): return Drone.BARS[n].eaten and d.bars[n] < NEED_BELOW):
 		return
 	var m = _w.machine_of(d)
 	if m == null or not m.offers(m.item):
 		return
 	var bar: String = NEED_OF.get(Catalog.class_of(m.item), "")
-	if bar in ["hunger", "thirst"] and d.bars[bar] < NEED_BELOW:
+	if bar != "" and Drone.BARS[bar].eaten and d.bars[bar] < NEED_BELOW:
 		m.output.take(m.item, 1)
 		m.refresh()
 		eat(d, m.item)
@@ -99,13 +99,10 @@ func eat(d: Drone, item: String) -> float:
 	if not Catalog.is_consumable(item):
 		return 0.0
 	var amount: float = Catalog.restores(item)
-	match Catalog.class_of(item):
-		"food":
-			d.bars.hunger = minf(1.0, d.bars.hunger + amount)
-		"drink":
-			d.bars.thirst = minf(1.0, d.bars.thirst + amount)
-		_:
-			return 0.0
+	var bar: String = NEED_OF.get(Catalog.class_of(item), "")
+	if bar == "" or not Drone.BARS[bar].eaten:
+		return 0.0
+	d.bars[bar] = minf(1.0, d.bars[bar] + amount)
 	return amount
 
 
@@ -128,7 +125,11 @@ func wake_sleepers(zones: Array = []) -> void:
 func lasts(d: Drone) -> float:
 	if d.needless:
 		return INF
-	return minf(d.bars.hunger * HUNGER_SECONDS, d.bars.thirst * THIRST_SECONDS)
+	var first := INF
+	for bar in Drone.NEEDS:
+		if Drone.BARS[bar].seconds > 0.0:
+			first = minf(first, d.bars[bar] * float(Drone.BARS[bar].seconds))
+	return first
 
 
 ## Would `d` last a walk of `metres` on the flat (a trip they are planning: Walking.effort reckons its hills in), with some to
@@ -147,12 +148,10 @@ const DETOUR := 1.8       # the walk through the streets, against the straight l
 ## then the vocation. Logistics.plan takes the first one a supply exists for.
 func demands(d: Drone) -> Array:
 	var survival: Array = []
-	if d.bars.hunger < NEED_BELOW:
-		survival.append(["food", d.bars.hunger])
-	if d.bars.thirst < NEED_BELOW:
-		survival.append(["drink", d.bars.thirst])
-	if d.bars.warmth < NEED_BELOW or (_w.clock.is_night() and d.bars.warmth < NIGHT_SEEKS_WARMTH):
-		survival.append(["warmth", d.bars.warmth])
+	for bar in Drone.NEEDS:  # (in the table's order: the sort below keeps ties as they come)
+		var below := NIGHT_SEEKS_WARMTH if bar == "warmth" and _w.clock.is_night() else NEED_BELOW
+		if d.bars[bar] < below:
+			survival.append([Drone.BARS[bar].cls, d.bars[bar]])
 	survival.sort_custom(func(a, b): return a[1] < b[1])
 	var out: Array = survival.map(func(x): return x[0])
 	var m = _w.machine_of(d)
@@ -171,14 +170,15 @@ func demands(d: Drone) -> Array:
 	return out
 
 
-## The input a working machine is most short of (fewest crafts' worth in hand) among those it has to
-## buy from another business, or "".
+## The input a working machine is most short of (fewest crafts' worth in hand) among those its owner goes and buys
+## (MachineDef.fetched_by), or "".
 func short_input(m: Machine) -> String:
 	var worst := ""
 	var low := float(RESTOCK_BELOW)
+	var def := Catalog.machine(m.kind)
 	for raw in m.recipe:
-		if raw in Catalog.scavenged_goods():
-			continue  # salvaged from the bins by runners (or brought by the van): nothing for the vendor to go and fetch
+		if def.fetched_by(raw) != "owner":
+			continue  # the runners bring it (from the bins, or another business's shelf), or the van: nothing to go and fetch
 		var crafts: float = float(m.input.count(raw)) / float(m.recipe[raw])
 		if crafts < low:
 			low = crafts

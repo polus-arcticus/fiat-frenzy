@@ -75,7 +75,11 @@ func _drive(a: Ambulance, dt: float) -> void:
 				a.speed = Ambulance.SPEED
 				_w.walking.step(a, a.hospital.bay(), dt)  # back to the bay to wait
 		Ambulance.Job.TO_PATIENT:
-			if a.pos.distance_to(a.patient.pos) > LOAD_RANGE:
+			if a.patient.care != "down":  # (someone else got to them first: a medic's first aid post nearby. Back to the bay)
+				a.patient = null
+				a.route = PackedVector2Array()
+				a.job = Ambulance.Job.IDLE
+			elif a.pos.distance_to(a.patient.pos) > LOAD_RANGE:
 				_w.walking.step(a, a.patient.pos, dt)
 			else:
 				a.route = PackedVector2Array()
@@ -118,7 +122,7 @@ func _tend(h: Hospital) -> void:
 		var best: Drone = null
 		var best_d := INF
 		for d in _everyone():
-			if d.care == "down" and d.zone == h.zone and d.pos.distance_squared_to(h.pos) < best_d:
+			if d.care == "down" and d.zone == h.zone and d.pos.distance_squared_to(h.pos) < best_d and not _fetching(d):
 				best_d = d.pos.distance_squared_to(h.pos)
 				best = d
 		if best == null:
@@ -127,6 +131,11 @@ func _tend(h: Hospital) -> void:
 		if on_admitted.is_valid():
 			on_admitted.call(best)
 		_w.events.append("t=%d %s in the %s" % [_w.clock.time, _who(best, "are now", "is now"), h.display_name().to_lower()])
+
+
+## Is an ambulance already on its way for `d` (a medic nearby leaves them to it)?
+func _fetching(d: Drone) -> bool:
+	return _w.ambulances.any(func(a): return a.patient == d)
 
 
 func _next_patient(a: Ambulance) -> Drone:

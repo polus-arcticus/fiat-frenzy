@@ -1,8 +1,8 @@
-## The bus's way along the streets, made smooth: the street polyline with its corners rounded off into curves a bus
-## can take, and a speed for every point on it (up to a top speed on the straight, slower through a bend, gently
-## up from rest at the start and down to rest at the end). The bus moves by distance along it, so its position,
-## heading and speed all change smoothly.
-class_name BusPath
+## A vehicle's way (Vehicle), made smooth: the polyline with its corners rounded off into curves it can take, and a speed for
+## every point on it (up to a top speed on the straight, slower through a bend, gently up from rest at the start and down to
+## rest at the end). The vehicle moves by distance along it, so its position, heading and speed all change smoothly. The
+## defaults are the bus's.
+class_name DrivePath
 extends RefCounted
 
 const RADIUS := 9.0        # how tightly it will turn a corner (metres): corners are rounded off with this
@@ -12,7 +12,8 @@ const MIN_SPEED := 2.5     # through the tightest bend
 const LATERAL := 2.2       # sideways acceleration it will put up with: this sets the speed in a bend
 const ACCEL := 1.8         # speeding up
 const BRAKE := 2.6         # slowing down
-const MAX_GAP := 3.0       # the path has a point at least this often, so the speed is worked out this often
+const BEND_OVER := 4.0     # metres either side of a point over which its bend is read
+const MAX_GAP := 3.0      # the path has a point at least this often, so the speed is worked out this often
 
 var pts := PackedVector2Array()
 var cum := PackedFloat32Array()   # distance along the path to each point
@@ -25,8 +26,8 @@ var _brake := BRAKE
 
 ## The path through `route` (its first point is where the vehicle is now), for a vehicle with these limits (the bus's by
 ## default).
-static func build(route: PackedVector2Array, top := MAX_SPEED, accel := ACCEL, brake := BRAKE, radius := RADIUS) -> BusPath:
-	var p := BusPath.new()
+static func build(route: PackedVector2Array, top := MAX_SPEED, accel := ACCEL, brake := BRAKE, radius := RADIUS) -> DrivePath:
+	var p := DrivePath.new()
 	p._top = top
 	p._accel = accel
 	p._brake = brake
@@ -105,11 +106,15 @@ func _profile() -> void:
 	for i in n:
 		var v := _top
 		if i > 0 and i < n - 1:
-			var a := pts[i] - pts[i - 1]
-			var b := pts[i + 1] - pts[i]
+			# The bend is read over a few metres either side, not from one point to the next: a mapped way wobbles, and a kink
+			# of a few degrees between two points close together is no bend to slow for.
+			var from := maxf(cum[i] - BEND_OVER, 0.0)
+			var to := minf(cum[i] + BEND_OVER, length)
+			var a := pts[i] - pos_at(from)
+			var b := pos_at(to) - pts[i]
 			var turn := acos(clampf(a.normalized().dot(b.normalized()), -1.0, 1.0))
 			if turn > 0.001:
-				var radius := (a.length() + b.length()) * 0.5 / turn
+				var radius := (to - from) * 0.5 / turn
 				v = clampf(sqrt(LATERAL * radius), minf(MIN_SPEED, _top), _top)
 		speeds[i] = v
 	if n == 0:

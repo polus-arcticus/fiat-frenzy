@@ -30,5 +30,5 @@ func _miss(at: Vector2) -> void:
 	world.gun.land(bill, at)
 
 
-func _miss_aboard(local: Vector2) -> void:
-	world.gun.land_aboard(bill, local)
+func _miss_aboard(v: Vehicle, local: Vector2) -> void:
+	world.gun.land_aboard(bill, v, local)

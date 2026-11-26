@@ -107,5 +107,6 @@ func test_the_two_layers_asked_for() -> void:
 	check(land.contains("riverbank") and land.contains("waterway") and land.contains("leisure") and not land.contains("building"), "the land: water and green")
 	check(land.contains("out geom(") and land.ends_with("out geom;"), "its areas cut to the box, its waterways' centre lines whole")
 	check(not land.contains("\"natural\"=\"tree\"") and land.contains("node[\"highway\"") and land.contains("recycling"), "the street's furniture as points, and no single trees asked for")
+	check(land.contains("light_rail") and land.contains("\"railway\"") and land.contains("station|halt"), "the railway's tracks and stations (OsmRail)")
 	check(TileSource.BEFORE_LANDING == ["osm", "land"], "both before landing: two requests a tile, ever")
 	check(TileSource.path(key, "user://x", "land").ends_with(".land%d.json" % TileSource.VERSIONS.land), "each kept in a file of its own, the land's by the version of its query")

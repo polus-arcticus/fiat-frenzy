@@ -139,3 +139,26 @@ func test_a_collapse_far_from_the_tent_is_not_a_long_wait_in_the_dark() -> void:
 			break
 	check(in_bed_at > 0 and in_bed_at < 110, "1.4 km out, they are in a bed within two minutes (%d s)" % in_bed_at)
 	check(up_at > 0 and up_at < 140, "and up again soon after (%d s in all)" % up_at)
+
+
+## A medic's first aid post and a medical tent with its ambulance in one zone (the story's market: Atom's founder and the story's
+## own): whoever reaches the hero first has them, and the other lets go. (The ambulance once kept its patient after the medic had
+## them in bed, and carried them off again once they were up.)
+func test_a_medic_and_an_ambulance_do_not_both_take_the_hero() -> void:
+	var w := Fixtures.clinic()
+	w.add_first_aid(Vector2(40, 0), Vector2(0, -1), 10.0)
+	w.drones[0].make_needless()  # (the medic: fit for this)
+	w.add_player(Vector2(36, 0), 25.0)
+	w.player.bars = {"hunger": 0.001, "thirst": 1.0, "warmth": 1.0}
+	Fixtures.run(w, 2)
+	var tended := false
+	for t in 300:
+		w.tick(1.0)
+		tended = tended or w.player.care == "patient"
+		if tended and w.player.care == "":
+			break
+	check(tended and w.player.care == "", "the hero is taken in, mended and up again")
+	var up_at := w.player.pos
+	for t in 30:
+		w.tick(1.0)
+	check(w.player.pos.distance_to(up_at) < 0.01 and w.ambulances.all(func(a): return a.patient == null), "and nobody carries them off afterwards: the ambulance let go")

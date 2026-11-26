@@ -1,4 +1,5 @@
-## Sim tests: solid things. Drones don't walk through tent walls or counters.
+## Sim tests: footprints (Machine.solid, what each thing takes up on the ground). Drones don't walk through tent walls or
+## counters. (The Solids class is something else: the shapes of tree crowns, test_dressing.)
 extends TestCase
 
 

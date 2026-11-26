@@ -17,6 +17,10 @@ const SIDE := -1.0   # the side (local x) you get on from: the right, facing the
 const SEAT_LOCAL := Vector3(SIDE * 0.28, FLOOR, 0.3)
 
 
+func floor_height() -> float:
+	return FLOOR
+
+
 func setup(at: Vector2, yaw: float) -> ShuttleView:
 	name = "Shuttle"
 	place(at, yaw)

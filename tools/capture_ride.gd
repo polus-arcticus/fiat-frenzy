@@ -55,14 +55,14 @@ func _run() -> void:
 	while game.quest_controller.riding_the_bus and t < 240.0:
 		await process_frame
 		t += 1.0 / 60.0
-		var state: int = w.bus.state
-		if state == Bus.State.AT_STOP and t > 1.2:
+		var state: int = w.transit.vehicle("bus").state
+		if state == Vehicle.State.AT_STOP and t > 1.2:
 			await _shot("1_door_open_walking_in")
-		if game.player.is_seated() and state == Bus.State.AT_STOP:
+		if game.player.is_seated() and state == Vehicle.State.AT_STOP:
 			await _shot("2_seated_before_leaving")
-		if state == Bus.State.DRIVING:
-			var gone: float = w.bus.pos.distance_to(stop)
-			var left: float = w.bus.pos.distance_to(dest)
+		if state == Vehicle.State.DRIVING:
+			var gone: float = w.transit.vehicle("bus").pos.distance_to(stop)
+			var left: float = w.transit.vehicle("bus").pos.distance_to(dest)
 			if gone > 120.0 and not asked_window:
 				asked_window = true
 				var bs := bus.to_global(Vector3(-6.0, 1.6, 2.0))  # out of the right-hand windows
@@ -74,7 +74,7 @@ func _run() -> void:
 				await _shot("4_the_queue_ahead")
 			if left < 40.0:
 				await _shot("5_nearly_there")
-		if state == Bus.State.ARRIVED:
+		if state == Vehicle.State.ARRIVED:
 			await _shot("6_stopped_in_traffic")
 	await _frames(10)
 	game.hud.visible = true

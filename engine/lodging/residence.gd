@@ -11,10 +11,11 @@ const TENT_WIDTH := 2.0  # the tents stand side by side, each this wide
 var shelter: Shelter
 var tents := 0       # one person to each (at most its tier's `cap`, or `tents_cap`)
 var tents_cap := 0   # more room than its tier gives, if a scenario laid it out bigger (0: just the tier's)
-var founded := 0     # how many of Lodging.FOUNDERS this city has brought (the first arrivals found stalls, not just mouths)
-## Where the founders' stalls go, in metres from the city along its own street, on the side the row does not grow (a tent city
-## put down in the street has the default; an atom lays its stalls out further along, clear of its fire: Atom.seed).
-var stall_offsets: Array = [-4.0, -8.0]
+var founded := 0     # how many founders this city has brought (Lodging.FOUNDERS: the first arrivals make the town, not just mouths)
+## Where each founder sets up, by role: {role: {at, front}} (an atom lays them out on its street: Atom.seed). A role with no place
+## here goes beside the city along its own street, on the side the row does not grow, a step further for each (FOUNDER_STEP).
+var slots := {}
+const FOUNDER_STEP := 4.0
 var wing := 1.0      # the side the row goes on, along its machine's own x (+1 or -1: down the street, away from the market)
 
 

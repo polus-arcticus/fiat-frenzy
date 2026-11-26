@@ -60,29 +60,77 @@ func build() -> World:
 		if m.residence != null:
 			for i in Catalog.machine("hostel").cap + 1:
 				taken.append(m.residence.bed_pos(m, i))
-			for off in m.residence.stall_offsets:  # (and where its first arrivals will pitch their stalls: Lodging.FOUNDERS)
-				taken.append(m.pos + Vector2(-m.front.y, m.front.x) * m.residence.wing * float(off))
+			for role in m.residence.slots:  # (and where its founders will set up: Lodging.FOUNDERS)
+				taken.append(m.residence.slots[role].at)
 	camp = SiteFinder.camp(district, key, market, func(at: Vector2) -> float: return walked(w, market, at), taken, landform)
 	if not camp.is_empty():  # the park nearest the market has a homeless camp, with its own fire: its keeper lives by it
 		w.build_zone = key
 		Camp.pitch(w, camp.at, camp.toward, Camp.KEEPER_WALLET, "scrap_camp", "Camp keeper", true)
-	for m in w.machines:
-		facing[m] = _yaw(m.front)
-	for list in [w.hospitals, w.bottle_depots]:
-		for o in list:
-			facing[o] = _yaw(o.front)
-	start = _landing_spot(w)
+	w.build_zone = key
+	var line := Line.pick(district.get("rail", {}), _tram_stops())  # (a railway with stops on it: a train runs on it)
+	if line != null:
+		line.name = str(line.stops[line.stops.size() - 1].name)  # (its sign: where it goes)
+		w.transit.add_on("train", "train", line)
+	var route := _bus_line(w)  # (and the map's bus stops: a bus runs between them, along the streets)
+	if route != null:
+		w.transit.add_on("bus", "bus", route)
+	start =_landing_spot(w)
 	var way := w.nav.path(key, start, market)  # (face the way there, not the market through a building)
 	var to := (way[0] if not way.is_empty() else market) - start
 	start_yaw = atan2(-to.x, -to.y)
 	return w
 
 
+## The stops of the tile's trams, from its street furniture ([{at, name}]): places a train on its line stops at, besides its stations.
+## A bus line through the tile's own bus stops (StreetThings' points): from the stop nearest the market, along the streets
+## (RoadGraph) to the stop furthest from it on foot, stopping at every stop it passes. Null if the map has fewer than two stops
+## on the tile, or they make no line worth riding.
+const BUS_STOP_REACH := 15.0  # a stop this near the route is on it (mapped on the pavement, beside the carriageway)
+const BUS_STOPS_APART := 40.0  # stops nearer than this along it are one (the two sides of the road)
+const BUS_LINE_SHORTEST := 120.0
+
+
+func _bus_line(w: World) -> Line:
+	var rect := TileKey.rect(key)
+	var stops: Array = []
+	for p in district.get("street", {}).get("points", []):
+		if p.kind == "bus_stop" and rect.has_point(p.at):
+			stops.append({"at": p.at, "name": str((p.get("tags", {}) as Dictionary).get("name", ""))})
+	if stops.size() < 2 or w.roads == null:
+		return null
+	stops.sort_custom(func(a, b): return (a.at as Vector2).distance_to(market) < (b.at as Vector2).distance_to(market))
+	var first: Vector2 = stops[0].at
+	var route := PackedVector2Array()
+	var longest := 0.0
+	for s in stops.slice(1):
+		var way := PackedVector2Array([first])
+		way.append_array(w.roads.route(first, s.at))
+		var metres := 0.0
+		for k in way.size() - 1:
+			metres += way[k].distance_to(way[k + 1])
+		if metres > longest:
+			longest = metres
+			route = way
+	var line := Line.through(route, stops, "", BUS_STOP_REACH, BUS_STOPS_APART, BUS_LINE_SHORTEST)
+	if line == null or line.stops.size() < 2:
+		return null
+	line.name = str(line.stops[line.stops.size() - 1].name)
+	return line
+
+
+func _tram_stops() -> Array:
+	var out: Array = []
+	for p in district.get("street", {}).get("points", []):
+		if p.kind == "tram_stop":
+			out.append({"at": p.at, "name": str((p.get("tags", {}) as Dictionary).get("name", ""))})
+	return out
+
+
 ## The tile's bins are its real ones, of each kind that has any near the market (SiteFinder.bins: its waste baskets, recycling
 ## containers, organics bins and drinking fountains): the atom's own bin of that kind is taken away and one is put at each,
 ## sharing its rate (so the town has as much of everything as ever). A kind the map has none of near enough keeps the atom's.
 func _place_bins(w: World) -> void:
-	bins = SiteFinder.bins(district, key, market, func(at: Vector2) -> float: return walked(w, market, at))
+	bins = SiteFinder.bins(district, key, market, WasteBin.map_kinds(), func(at: Vector2) -> float: return walked(w, market, at))
 	w.build_zone = key
 	for kind in bins:
 		var found: Array = bins[kind]
@@ -131,6 +179,10 @@ func landmarks(w: World) -> Array:
 	for m in w.machines:
 		if m.kind in ["scrap_camp", "bike_camp", "thrift_stall", "clothing_shop"]:
 			marks.append({"pos": m.pos, "label": "camp" if m.kind.ends_with("camp") else "stall", "color": Color(0.45, 0.6, 0.35)})
+	for v in w.vehicles:
+		if v.line != null:
+			for s in v.line.stops:
+				marks.append({"pos": s.at, "label": str(s.name) if str(s.name) != "" else v.name, "color": Color(0.25, 0.45, 0.75)})
 	return marks
 
 
@@ -141,7 +193,3 @@ func title() -> String:
 
 func spec() -> Dictionary:
 	return {"kind": "tile", "key": key, "lat": lat, "lon": lon}
-
-
-static func _yaw(dir: Vector2) -> float:
-	return atan2(-dir.x, -dir.y)

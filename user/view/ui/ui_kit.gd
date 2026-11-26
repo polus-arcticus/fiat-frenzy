@@ -89,5 +89,10 @@ static func bars(parent: Node, names: Array) -> Dictionary:
 			m.steps = Wealth.MAX_TIER
 			out[k] = m
 		else:
-			out[k] = level_row(parent) if k == "level" else bar(parent, k, BAR_COLORS[k])
+			out[k] = level_row(parent) if k == "level" else bar(parent, k, bar_color(k))
 	return out
+
+
+## A bar's colour (a need with none of its own yet: grey).
+static func bar_color(key: String) -> Color:
+	return BAR_COLORS.get(key, Color(0.7, 0.7, 0.7))

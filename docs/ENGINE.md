@@ -85,17 +85,19 @@ changes, the old stock goes and the new tier opens with one unit.
 
 **2.4** Nothing comes back down. There is no rent, no tax, no loan, no repossession.
 
-**2.5 Built of scrap.** A tier may instead cost scrap (`MachineDef.build_scrap`): the hostel (320) and the bike camp (60).
-- The tier below then has room for that scrap in its input (`Machine.set_level`), on top of its recipe's.
-- Runners pool scrap into it (§4.4); the keeper pays only their fee.
-- At dawn, once that much is in hand beyond what its recipe keeps, the scrap is used and the asset climbs (`Trades.build`).
-  No money is sunk.
+**2.5 Built of goods.** A tier may instead cost goods (`MachineDef.build_goods`, item -> units): the hostel (320 scrap) and the
+bike camp (60 scrap).
+- The tier below then has room for those goods in its input (`Machine.set_level`), on top of its recipe's.
+- Runners pool them into it (§4.4); the keeper pays only their fee. The last few of a build's goods are worth a trip
+  (`Hauling.builds`).
+- At dawn, once that much of each is in hand beyond what its recipe keeps, the goods are used and the asset climbs
+  (`Trades.build`). No money is sunk.
 
 Commercial stands are paid in money (2.2); residential assets and camps are paid in scrap. *(A tier costing both is not used yet.)*
 
 ## 3. Agents: what they want and do
 
-**3.1 Needs** (`npc/agents/needs.gd`). Bars fall with time: hunger in `HUNGER_SECONDS`, thirst in `THIRST_SECONDS`, warmth
+**3.1 Needs** (`npc/agents/needs.gd`). Bars fall with time: hunger and thirst in their `Drone.BARS` seconds, warmth
 `NIGHT_COOLING / DAY_COOLING` times faster at night. Heat sources add warmth: every barrel fire in range by an inverse-square
 falloff (`Shelter.gain_at_sq`), being indoors (`Heating`: shops, houses, the bus and the shuttle), and lying in one's own bed
 (`Shelter.warm_rate`). A bar at 0 is a collapse (§3.6).
@@ -106,9 +108,14 @@ falloff (`Shelter.gain_at_sq`), being indoors (`Heating`: shops, houses, the bus
   `MAX_INSULATION`).
 - Every atom has a barrel fire by its market (§8.0); its own people are housed, so it is for strangers. A vendor in need takes one of their own stand's items, free (`Needs._own_shelf`).
 
+The bars are one table, `Drone.BARS`: each bar's class of goods (or errand) that answers it, how long a full one lasts, and
+whether a bought item is used up to refill it. A new need is a row there: what drains, demands, eats, and the bars on the screen
+read it.
+
 **3.2 Demands** (`Needs.demands`), in order:
-1. **survival**: `food`, `drink`, `warmth` for each bar below `NEED_BELOW` (warmth also below `NIGHT_SEEKS_WARMTH` at night),
-   lowest bar first;
+1. **survival**: `food`, `drink`, `warmth` (each bar's class, `Drone.BARS`) for each bar below `NEED_BELOW` (warmth also below
+   `NIGHT_SEEKS_WARMTH` at night), lowest bar first. What answers one may be a stand's item or one of its wares
+   (`Supply.best_offer`);
 2. **vocation**: `repair` (a vendor whose stand is wrecked, who can pay for the repair and keep `RESERVE`), else `restock` (their
    stand is short of a bought input);
 3. `haul` for a runner;
@@ -144,8 +151,11 @@ cluster's **spawn factory**:
   scripted cast left out. While it stands, a tent keeps its person warm, day and night (`Lodging.is_housed`).
 - Its tier holds at most `cap` tents: the first tier an atom's worth (§8.0). A bigger layout gets `Residence.tents_cap`. Growing
   past the cap means building it up (the hostel).
-- Putting up a tent (`add_tent`, $15, the gun pays) brings a **newcomer** within `ARRIVE_EVERY` seconds, while the tent city
-  stands (§5.3). Who comes is a weighted roll (`Lodging.NEWCOMERS`: drifters and runners for now; more kinds as they exist).
+- Putting up a tent (`add_tent`, $15, the gun pays) brings the next **founder** within `ARRIVE_EVERY` seconds, while the tent
+  city stands: always in the order of `Lodging.FOUNDERS` (bottle depot, medic, runner, lemonade stand, bakery, thrift stall,
+  camp, hot dog stand). Each sets up at the place its tent city keeps for it (`Residence.slots`, laid out by the atom; beside the
+  city otherwise) and moves in; a business comes wrecked, its keeper broke. Every tent city brings its own (a second one mirrors
+  the first, its own bottle depot too). Once all have come, **nobody else does**: a filled tent city grows on its own trades.
 - So the number of tents is the population. Nobody is turned out.
 
 - Its keeper makes **tents** and **barrel fires** from scrap and sells them (its wares, §4.1). A tent put down in the street
@@ -182,6 +192,11 @@ street has them, and a fountain, each gathering its item at its rate (a minute),
 - **organics**: leftovers, the food stalls' one input;
 - **fountain**: water, the lemonade stand's.
 
+`WasteBin.KINDS` is the table of the town's raw sources: each row its item, rate, cap, label, the street thing that is one on
+the map (`SiteFinder.bins` is handed `WasteBin.map_kinds()`), and whether it is in the atom's own station. A new raw good is a
+Catalog item and a row here (`WasteBin.add_kind`); the Catalog marks what the rows give as salvaged. `tests/sim/test_chains.gd`
+adds wood, a carpenter and a joiner this way and runs the chain.
+
 An atom lays out a station of the three and a fountain (`World.add_bin_station`). On a tile, each kind is at the map's own where
 it has one near the market (`SiteFinder.bins`, `TileLanding._place_bins`): waste baskets, recycling containers, organics bins
 (recycling that takes food or compost), drinking fountains, at most `RECYCLE_MOST` of a kind, sharing the one bin's rate. The
@@ -191,10 +206,16 @@ bin on the map draws only what has gathered in front of it: the city draws the c
 The **Red Cross van** (`Relief`) brings `load_per_good` of leftovers and water twice a day, free, shared equally among the working
 assets that want it.
 
-**4.4 Hauling** (`npc/agents/hauling.gd`). A runner takes a load from a bin (up to `CART_CAPACITY`, free) and wheels it to the
+**4.4 Hauling** (`npc/agents/hauling.gd`). A runner takes a load from a source (up to `CART_CAPACITY`: a bin's, free, or a
+shelf's, bought) and wheels it to the
 shop that wants it. **Cash on delivery:** the shop pays the goods' worth into the town's fund (`Deposit.fund`, the depot's
 attendant's wallet) and a flat `DELIVERY_FEE` ($0.40) to the runner for the trip, whatever the load; the fee is the runner's
 income.
+- **Who brings an input** is the buyer's to say (`MachineDef.fetch`, `fetched_by`): "runner" or "owner". Unset, runners bring
+  what the bins give and the owner walks to buy the rest a unit at a time (`restock`, §3). An input the runners bring may also
+  come off another business's shelf: the runner **buys the load there** out of their own pocket (a sale like any other,
+  `Logistics.pay_supplier`), and the shop pays it back on delivery with the fee (`Runner.paid`). That is a supply chain: raw
+  goods to parts to products, each leg on a cart.
 - The fee goes into what the shop's inputs cost it (`cost + fee / units`), so into its floor price (§4.2): a baker's bread carries
   its share of the walk. A bigger load is cheaper a unit.
 - **A runner's cart is a business** (`Drone.runner`, a `Runner`: its cart, deliveries, fees and `equity`, worth
@@ -249,8 +270,8 @@ each delivery fee is split the same way (§4.4). After a merge, both are put bac
 
 **6.1a The engine alone.** `World.new(false)` has only the engine's and the people's systems. A headless run needs nothing
 else: a bench, the epoch sim, a map of anywhere. Nothing in `engine/` or `npc/` needs a hero. Where one is about, the hero is an
-agent like the others (they can collapse, people talk to them), and which zone runs in full detail is `Zones.focus`, which the
-hero's system sets.
+agent like the others (they can collapse, people talk to them), and the zone they are in wakes when they walk into it
+(`Zones.zone_for`, `Zones.wake`, from the hero's system).
 
 A game day is `Clock.DAY_SECONDS` (600 s); night falls at `NIGHT_FROM` of it.
 
@@ -266,7 +287,29 @@ through named ways: rings (`Portals`), `Zones.send`, and the borders between til
 
 **6.3 Places.** Positions are metres on the ground plane. A tile is a zoom-16 web-map tile, and positions are metres in its
 zoom-10 region (`engine/core/tile_key.gd`). Agents walk on half-metre grids per zone that hold every footprint and building
-(`Navigation`), along streets when there is a road graph (`Walking`).
+(`Navigation`), along streets when there is a road graph (`Walking`); a short hop the streets would make much longer (across a
+square) goes straight (`Walking.way`).
+
+**6.4 Transport** (`engine/transport/`). What the hero rides is a `Vehicle` (`World.vehicles`, each by its `name`: a bus, the
+bank's golf cart, a train, a tram), driven by `Transit` along a smooth `DrivePath` (corners rounded, speed by the bend), as big
+and as able as its kind (`Vehicle.SPECS`: bus, cart, train, tram; heating, the floor money lies on and a shot fired aboard go by
+its size). It goes one of two ways:
+- **on a line** (`Line`: a polyline and its stops by distance along it; `Transit.add_on`, `ride`): stop to stop. Most go round
+  (`Vehicle.wraps`): from the last stop off the line's end and on at its start, off one edge of the map and in at the other. The
+  others (the golf cart) go back and forth, turning in the road. A tile's lines come from its map
+  (`TileLanding`): its railway (`Line.pick`, OsmRail) and a bus route through its own bus stops along the streets
+  (`Line.through`). A mapped route (`OsmRoute`: a route relation's ways and stops, kept in a district's `routes`) makes a line
+  too, with a number and a colour: the colour is drawn between its rails (`RailBuilder`). Pavements are cut clear of a tram's
+  track (`Kerbs`). The line is made again with the map on every build, so a save keeps only where each vehicle is on it.
+- **sent** (`Transit.board`): somewhere, through places on the way, by the streets or straight (a route laid out by hand).
+A landing may keep a vehicle to itself: wholly (`Landing.own_rides`: the story's golf cart), or while it says so
+(`Landing.held`: the story's tram, until the letter quest has used it). `Transit.ride` takes it to its next stop, or straight
+through to a named one.
+Arriving is a signal (`Transit.arrived`) with the vehicle's `flag`; the composition root gives it to the story's quests. The
+hero's side (the door, the walk in, the seat, the walk off) is one `RideController` for every ride; a line's vehicles are
+boarded through a `LineRideController`, the story's through `QuestController`. A vehicle's sign is its line's name. A bus is drawn
+by `BusView`; a tram or train by `TramView` (doors on both sides: whoever gets on uses the side they stand on, and off the side
+with a platform); a tram's stops get a sign in its colour (`TramStopView`).
 
 ## 7. Determinism, names, saves
 
@@ -285,25 +328,18 @@ room, tiers, levels). The merged world holds exactly host + guest − seed in mo
 
 ## 8. Clusters
 
-**8.0 The atom** (`Atom`, `engine/core/atom.gd`). The seed of every new tile, the smallest town that keeps itself going. It has
-one of each role, each with a tent:
-- the tent keeper (the tent city);
-- a bakery and a lemonade stand;
-- two runners;
-- the bottle depot's attendant;
-- a medic with a one-bed first aid post;
-- and its bins: a station of garbage, recycling and organics, and a fountain (on a tile, the map's own where it has them, §4.3).
+**8.0 The atom** (`Atom`, `engine/core/atom.gd`). The seed of every new tile, the smallest town that keeps itself going.
+`Atom.seed(w, zone, at, site)` puts down only the tent city and its keeper (standing, one tent), its bins (a station of garbage,
+recycling and organics, and a fountain; on a tile, the map's own where it has them, §4.3) and a barrel fire, and keeps a place
+on its street for each founder (`Atom.LAYOUT`). It grows by the one mechanic: each tent the hero puts up brings the next founder
+(§5.3), in the fixed order; `Atom.grow` does it at once (tests, benches). Grown, it is nine people: the keeper, the depot's
+attendant, a medic with a one-bed first aid post, a runner, and the keepers of the lemonade stand, bakery, thrift stall, camp
+and hot dog stand. No drifters, no van. Its tent city's first tier holds exactly them (`Atom.size`). The story's town is a special case: the atom
+plus the story (docs/story.md).
 
-There are no drifters and no van. `Atom.seed(w, zone, at, site)` puts one down, found: the tent city standing, the stands
-wrecked, the owners broke. On its own it has no collapses in 120 days. Growth by mouths alone does not hold (§5.3), so growth must
-roll producers too. The tutorial's town is a special case: a grown cluster (8.1) plus the story.
-
-**8.1 The standard cluster** (`Cluster`, `engine/core/cluster.gd`). The people a block starts with, defined once:
-- four trades at tier 0;
-- its bins (garbage, recycling, two organics bins sharing `Cluster.ORGANICS` bins' worth, a fountain) and two runners;
-- six drifters;
-- a barrel fire and a medical tent;
-- the van's stop and a bottle depot.
+**8.1 The standard cluster** (`Cluster`, `engine/core/cluster.gd`). The atom grown, with a block's worth more: a second runner,
+two organics bins sharing `Cluster.ORGANICS` bins' worth, and the van's stop. (`DRIFTERS`, residents with no trade, is 0: six
+of them beside the founders were 100+ collapses a season.)
 
 It is laid out along a street site, everyone housed. It is found wrecked and broke (`found`), and the hero gets it going
 (`fund`).

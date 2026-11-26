@@ -147,11 +147,19 @@ static func _in_building(p: Vector2, walls: Array) -> bool:
 ## A relation's outer ways joined end to end into closed rings (a chain that doesn't close, cut off by the box, is dropped).
 ## (Also OsmWater's.)
 static func rings(members: Array, frame: MapFrame) -> Array:
+	return rings_by(members, frame.local)
+
+
+## The same, in any frame (`local`: lat, lon -> metres).
+static func rings_by(members: Array, local: Callable) -> Array:
 	var chains: Array = []
 	for m in members:
 		if m.get("type", "") != "way" or m.get("role", "outer") == "inner":
 			continue
-		var pts := points(m.get("geometry", []), frame)
+		var pts := PackedVector2Array()
+		for p in m.get("geometry", []):
+			if p is Dictionary and p.has("lat"):
+				pts.append(local.call(float(p.lat), float(p.lon)))
 		if pts.size() >= 2:
 			chains.append(pts)
 	var closed: Array = []

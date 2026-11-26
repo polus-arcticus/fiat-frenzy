@@ -1,5 +1,5 @@
 ## CONTROLLER (geometry only). Questions the starting scenario asks of the real map: where the street is, where a door
-## should go in a building, and where the traffic jam stands. Pure functions of the district data: no state, no nodes.
+## should go in a building. Pure functions of the district data: no state, no nodes.
 class_name MapSites
 extends RefCounted
 
@@ -106,35 +106,6 @@ static func neighbour(district: Dictionary, layout: Dictionary, street: String, 
 			best_d = gap
 			best = id
 	return best
-
-
-## A traffic jam on `street` in front of a house (a plan_door layout; the story's is Mr. Nobody's on Battonnstraße): the bus
-## arrives in its own (right-hand) lane and joins the tail of a queue of cars nose to tail ahead of it (`fwd` is the way it is
-## travelling), with a few cars stuck the other way. Its door is on its right, so the hero steps off onto the far kerb and
-## crosses to the house.
-static func plan_jam(district: Dictionary, sage_house: Dictionary, street_name: String, fwd := Vector2.ZERO) -> Dictionary:
-	if sage_house.is_empty():
-		return {}
-	var door: Vector2 = sage_house.door
-	var out: Vector2 = sage_house.out
-	var street := street_frame(district, street_name, door)
-	if street.is_empty():
-		return {}
-	var dir: Vector2 = fwd.normalized() if fwd != Vector2.ZERO else street.dir
-	var centre: Vector2 = street.point
-	var lane := float(street.width) * 0.25
-	var yaw := atan2(dir.x, dir.y)
-	var cars: Array = []
-	var colors := [Color(0.7, 0.2, 0.2), Color(0.85, 0.82, 0.7), Color(0.25, 0.35, 0.55), Color(0.3, 0.3, 0.32), Color(0.8, 0.6, 0.2), Color(0.35, 0.5, 0.35)]
-	var right := Vector2(-dir.y, dir.x)  # the right-hand side of the way it is going
-	# [along the street, lane]: lane 1 is its own (right-hand) lane, -1 the one coming the other way
-	var spots := [[11.5, 1], [16.8, 1], [22.0, 1], [27.5, 1], [33.0, 1], [-13.0, -1], [-6.0, -1], [3.0, -1], [11.0, -1], [20.0, -1]]
-	for k in spots.size():
-		cars.append({"pos": centre + dir * spots[k][0] + right * (lane * spots[k][1]), "yaw": yaw if spots[k][1] > 0 else yaw + PI, "color": colors[k % colors.size()]})
-	return {
-		"bus": {"pos": centre + right * lane, "yaw": yaw}, "cars": cars, "fwd": dir,
-		"arrival": door + out * 4.0 + (sage_house.along as Vector2) * 4.0,
-	}
 
 
 static func pts(flat: Array) -> PackedVector2Array:

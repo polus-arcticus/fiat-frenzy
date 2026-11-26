@@ -71,7 +71,8 @@ func test_scrap_builds_the_camp_up_into_a_bike_camp_and_its_bike_is_slow() -> vo
 	var pooled := camp.input.count("scrap")
 	w.trades.day = -1
 	w.trades.step(1.0)
-	check(camp.kind == "bike_camp" and camp.input.count("scrap") == pooled - Catalog.machine("bike_camp").build_scrap, "with %d scrap pooled into it, the camp is built up into a bike camp, and the scrap is used" % Catalog.machine("bike_camp").build_scrap)
+	var built_of: int = Catalog.machine("bike_camp").build_goods.scrap
+	check(camp.kind == "bike_camp" and camp.input.count("scrap") == pooled - built_of, "with %d scrap pooled into it, the camp is built up into a bike camp, and the scrap is used" % built_of)
 	check(w.events.back().contains("scrap") and is_equal_approx(w.ledger.sunk, 0.0), "of scrap, not money")
 	Fixtures.run(w, 900, true)
 	check(camp.offers("old_bike"), "it puts an old bike together")
@@ -81,13 +82,13 @@ func test_scrap_builds_the_camp_up_into_a_bike_camp_and_its_bike_is_slow() -> vo
 	check(on.ok and w.riding.speed_factor() > 1.0 and w.riding.speed_factor() < Riding.RIDE_FACTOR, "it is faster than walking but slower than a shop's bike (x%.2f; %s)" % [w.riding.speed_factor(), on.text])
 
 
-func test_runners_build_a_tent_city_up_with_scrap() -> void:
+func test_slow_runners_build_a_tent_city_up_with_scrap() -> void:
 	var w := World.new(false)
-	var city := Atom.seed(w, "atom", Vector2.ZERO)
+	var city := Fixtures.grown_atom(w)
 	w.begin_play()
 	Cluster.fund(w, "atom")
 	var wares := city.per_craft("scrap") * Catalog.machine("tent").stock_crafts
-	check(city.input.caps.get("scrap", 0) == Catalog.machine("hostel").build_scrap + wares, "a tent city wants the scrap its hostel is built of, and its tents' and barrels' (%d)" % city.input.caps.get("scrap", 0))
-	var day := Fixtures.until(w, func(): return city.kind == "hostel", int(Clock.DAY_SECONDS) * 50)  # (about day 41: docs/balance.md)
+	check(city.input.caps.get("scrap", 0) == Catalog.machine("hostel").build_goods.scrap + wares, "a tent city wants the scrap its hostel is built of, and its tents' and barrels' (%d)" % city.input.caps.get("scrap", 0))
+	var day := Fixtures.until(w, func(): return city.kind == "hostel", int(Clock.DAY_SECONDS) * 60)  # (about day 51: docs/balance.md)
 	check(day > 0, "the runner pools it in from the street, and it is built up into a hostel (day %d)" % (day / int(Clock.DAY_SECONDS) + 1))
-	check(w.lodging.room_for(city) == Atom.ROLES.size() and _accounted(w), "with room for an atom's worth more")
+	check(w.lodging.room_for(city) == Atom.size() and _accounted(w), "with room for an atom's worth more")

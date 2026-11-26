@@ -15,6 +15,7 @@ func _initialize() -> void:
 	root.size = Vector2i(1280, 720)
 	game = load("res://main.tscn").instantiate()
 	game.skip_intro = true  # tools/capture_intro.gd takes the intro
+	game.grown_at_start = true  # (the town with its founders: GameController.grow_town)
 	root.add_child(game)
 	aerial = Camera3D.new()
 	aerial.far = 1500.0
@@ -104,7 +105,7 @@ func _run() -> void:
 
 	# survival bars over the NPCs' heads
 	var d: Drone = w.drones[5]
-	var back: Vector2 = d.pos - (sc._frame.dir as Vector2) * 7.0
+	var back: Vector2 = d.pos - sc.street_dir() * 7.0
 	game.player.teleport(Vector3(back.x, 0.1, back.y), 0.0)
 	game.player.look_toward(Vector3(d.pos.x, 1.7, d.pos.y))
 	w.drones[5].bars.hunger = 0.35
@@ -135,7 +136,7 @@ func _run() -> void:
 			carrying = true
 			break
 	game.sim.speed = 1.0
-	var behind: Vector2 = runner.pos - (sc._frame.dir as Vector2) * 6.0
+	var behind: Vector2 = runner.pos - sc.street_dir() * 6.0
 	game.player.teleport(Vector3(behind.x, 0.1, behind.y))
 	game.player.look_toward(Vector3(runner.pos.x, 1.0, runner.pos.y))
 	await _frames(6)
@@ -157,7 +158,7 @@ func _run() -> void:
 	# a burst of bills: in the air, then lying in the street
 	game.sim.speed = 1.0
 	_player_view()
-	var ahead: Vector2 = sc.start + (sc._frame.dir as Vector2) * 7.0
+	var ahead: Vector2 = sc.start + sc.street_dir() * 7.0
 	game.player.teleport(Vector3(sc.start.x, 0.1, sc.start.y), sc.start_yaw)
 	game.player.look_toward(Vector3(ahead.x, 0.0, ahead.y))
 	await _frames(5)

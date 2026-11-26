@@ -22,7 +22,7 @@ const AGENT := "FiatFrenzy/0.1 (game; tile import)"
 
 ## Which version of a layer's query the cache holds: when a layer asks for more (the land's street furniture, say), its number
 ## goes up, and a tile cached with the older answer fetches it once more, the next time anyone lands there.
-const VERSIONS := {"land": 3}  # (3: drinking fountains, for the town's water)
+const VERSIONS := {"land": 4}  # (3: drinking fountains, for the town's water; 4: railways and stations: OsmRail)
 
 
 ## The cached raw answer's file for `key` and `layer` ("osm" or "land").
@@ -135,6 +135,7 @@ static func district(key: String, dir := CACHE) -> Dictionary:
 		d["water"] = OsmWater.tile(land, key, d)
 		d["green"] = OsmDressing.tile(land, key, d)
 		d["street"] = StreetThings.points(land, key)  # (its lamps, stops, signs, benches, recycling, hedges: StreetThings)
+		d["rail"] = OsmRail.tile(land, key)           # (its tracks and stations: OsmRail)
 	return d
 
 
@@ -163,7 +164,11 @@ static func land_query(box: String, timeout := TIMEOUT) -> String:
 		areas += "node%s(%s);" % [f, box]
 	for f in StreetThings.LINES:
 		areas += "way%s(%s);" % [f, box]
+	for f in OsmRail.NODES:  # (stations and halts)
+		areas += "node%s(%s);" % [f, box]
 	var ways := "way[\"waterway\"~\"^(%s)$\"](%s);" % ["|".join(OsmWater.RIVER_WIDTH.keys()), box]
+	for f in OsmRail.WAYS:  # (a track whole too: OsmRail cuts it to the tile)
+		ways += "way%s(%s);" % [f, box]
 	# (the areas cut to the box; a waterway's centre line whole, so its band reaches the tile's edge: a way is a few km)
 	return "[out:json][timeout:%d];(%s);out geom(%s);%sout geom;" % [timeout, areas, box, ways]
 

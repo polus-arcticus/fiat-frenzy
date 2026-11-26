@@ -53,18 +53,18 @@ func _run(game: Node, dir: String) -> void:
 	# the shuttle at the door, as the first ride left it
 	var plan: Dictionary = sc.ecb_gate
 	var route: PackedVector2Array = plan.route
-	w.shuttle.pos = plan.entrance
-	w.shuttle.heading = ((plan.entrance as Vector2) - route[route.size() - 1]).angle()
-	w.shuttle.prev_pos = w.shuttle.pos
-	w.shuttle.prev_heading = w.shuttle.heading
-	game.shuttle.place(w.shuttle.pos, VehicleView._yaw_of(w.shuttle.heading))
+	w.transit.vehicle("shuttle").pos = plan.entrance
+	w.transit.vehicle("shuttle").heading = ((plan.entrance as Vector2) - route[route.size() - 1]).angle()
+	w.transit.vehicle("shuttle").prev_pos = w.transit.vehicle("shuttle").pos
+	w.transit.vehicle("shuttle").prev_heading = w.transit.vehicle("shuttle").heading
+	game.shuttle.place(w.transit.vehicle("shuttle").pos, VehicleView._yaw_of(w.transit.vehicle("shuttle").heading))
 	# and the bus at the bank's stop, as the ride on left it
-	w.bus.pos = sc.ecb_stop.bus
-	w.bus.heading = ((sc.ecb_stop.bus as Vector2) - (sc.ecb_stop.via[0] as Vector2)).angle()
-	w.bus.prev_pos = w.bus.pos
-	w.bus.prev_heading = w.bus.heading
-	w.bus.state = Bus.State.ARRIVED
-	game.bus.place(w.bus.pos, VehicleView._yaw_of(w.bus.heading))
+	w.transit.vehicle("bus").pos = sc.ecb_stop.bus
+	w.transit.vehicle("bus").heading = ((sc.ecb_stop.bus as Vector2) - (sc.ecb_stop.via[0] as Vector2)).angle()
+	w.transit.vehicle("bus").prev_pos = w.transit.vehicle("bus").pos
+	w.transit.vehicle("bus").prev_heading = w.transit.vehicle("bus").heading
+	w.transit.vehicle("bus").state = Vehicle.State.ARRIVED
+	game.bus.place(w.transit.vehicle("bus").pos, VehicleView._yaw_of(w.transit.vehicle("bus").heading))
 	_cam = Camera3D.new()
 	_cam.fov = 60.0
 	game.add_child(_cam)
@@ -80,8 +80,8 @@ func _run(game: Node, dir: String) -> void:
 	for t in [3.0, 1.5, 1.5, 1.5, 2.0]:
 		await create_timer(t).timeout
 		_cam.current = true
-		await _shot("2_shuttle_turning_%.0f_m" % w.shuttle.s, dir)
-	while w.shuttle.state == Bus.State.DRIVING:
+		await _shot("2_shuttle_turning_%.0f_m" % w.transit.vehicle("shuttle").s, dir)
+	while w.transit.vehicle("shuttle").state == Vehicle.State.DRIVING:
 		await create_timer(1.0).timeout
 	await create_timer(4.0).timeout
 	_cam.current = true
@@ -98,11 +98,11 @@ func _run(game: Node, dir: String) -> void:
 	for t in [3.5, 2.0, 2.0, 2.0, 3.0]:
 		await create_timer(t).timeout
 		_cam.current = true
-		await _shot("5_bus_turning_%.0f_m" % w.bus.s, dir)
-	while w.bus.state == Bus.State.DRIVING:
+		await _shot("5_bus_turning_%.0f_m" % w.transit.vehicle("bus").s, dir)
+	while w.transit.vehicle("bus").state == Vehicle.State.DRIVING:
 		await create_timer(1.0).timeout
 	await create_timer(5.0).timeout
 	_cam.current = true
 	await _shot("6_bus_at_kaiserstrasse", dir)
-	print("bus at %s, stop %s, width %.1f" % [w.bus.pos, sc.bus_stop.pos, sc.bus_stop.width])
+	print("bus at %s, stop %s, width %.1f" % [w.transit.vehicle("bus").pos, sc.bus_stop.pos, sc.bus_stop.width])
 	quit()

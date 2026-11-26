@@ -11,8 +11,9 @@
 class_name TileSummary
 extends RefCounted
 
-## Errands a summary carries out. (Warmth would move people into berths, and loose cash would have them walk to it.)
-const ERRANDS := ["food", "drink", "repair", "restock", "haul", "collect"]
+## Errands a summary carries out: buying what is eaten (Drone.BARS), and the vocations. (Warmth would move people into berths, and
+## loose cash would have them walk to it.)
+static var ERRANDS: Array = Drone.eaten_classes() + ["repair", "restock", "haul", "collect"]
 const MAX_ERRANDS := 6  # the most one person does in one coarse step
 
 var _w: World

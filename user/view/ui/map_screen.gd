@@ -225,7 +225,7 @@ func _draw_map() -> void:
 	for m in landmarks:
 		_draw_landmark(m)
 	_draw_objective(size)
-	_draw_bus()
+	_draw_vehicles()
 	_draw_player()
 	_draw_frame(size)
 
@@ -253,26 +253,32 @@ func _draw_landmark(m: Dictionary) -> void:
 		_root.draw_string(_font, at + Vector2(12, 5), m.label, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, INK)
 
 
-## The bus, a small yellow rectangle pointing the way it is going, wherever it is: you can watch it cross town.
-func _draw_bus() -> void:
-	if world.bus == null:
-		return
-	var at := to_screen(world.bus.pos)
-	if not Rect2(Vector2.ZERO, _root.size).grow(40).has_point(at):
-		return
-	var fwd := Vector2.from_angle(world.bus.heading)
-	var side := fwd.rotated(PI * 0.5)
-	var length := clampf(12.0 * _scale, 16.0, 44.0)
-	var half_l := fwd * length * 0.5
-	var half_w := side * length * 0.2
-	var hull := PackedVector2Array([at - half_l - half_w, at + half_l - half_w, at + half_l + half_w, at - half_l + half_w])
-	_root.draw_colored_polygon(hull, Color(0.96, 0.78, 0.2))
-	var outline := hull.duplicate()
-	outline.append(hull[0])
-	_root.draw_polyline(outline, INK, 2.0)
-	_root.draw_circle(at + half_l * 0.8, 2.5, INK)  # (the front)
-	if _scale >= 1.2:
-		_root.draw_string(_font, at + Vector2(length * 0.5 + 6.0, 5.0), "BUS", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, INK)
+const UNNUMBERED := Color(0.96, 0.78, 0.2)  # a vehicle whose line has no colour of its own
+
+
+## Everything that runs on a line, a small rectangle in its line's colour pointing the way it is going, wherever it is: you can
+## watch it cross town. (The golf cart is part of the bank's grounds, not of the town's transport.)
+func _draw_vehicles() -> void:
+	for v in world.vehicles:
+		if v.line == null or v.kind == "cart":
+			continue
+		var at := to_screen(v.pos)
+		if not Rect2(Vector2.ZERO, _root.size).grow(40).has_point(at):
+			continue
+		var fwd := Vector2.from_angle(v.heading)
+		var side := fwd.rotated(PI * 0.5)
+		var length := clampf(float(v.spec().length) * _scale, 16.0, 60.0)
+		var half_l := fwd * length * 0.5
+		var half_w := side * clampf(length * 0.16, 3.0, 8.0)
+		var hull := PackedVector2Array([at - half_l - half_w, at + half_l - half_w, at + half_l + half_w, at - half_l + half_w])
+		_root.draw_colored_polygon(hull, v.line.colour if v.line.colour.a > 0.0 else UNNUMBERED)
+		var outline := hull.duplicate()
+		outline.append(hull[0])
+		_root.draw_polyline(outline, INK, 2.0)
+		_root.draw_circle(at + half_l * 0.8, 2.5, INK)  # (the front)
+		if _scale >= 1.2:
+			var label: String = v.line.number if v.line.number != "" else v.kind.to_upper()
+			_root.draw_string(_font, at + Vector2(length * 0.5 + 6.0, 5.0), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, INK)
 
 
 ## A gold diamond where the tutorial wants you to go; if it is off the map, an arrow at the edge pointing to it.

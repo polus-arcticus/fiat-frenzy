@@ -1,16 +1,22 @@
-## Sim tests: saving and loading. A saved world, laid over a fresh build of the same scenario, is the same world.
+## Sim tests: saving and loading. A saved world, laid over a fresh build of the same landing, is the same world. (On a tile, the
+## way every new game lands; the story's own save is the scene suite's s21_saves.)
 extends TestCase
 
 const DIR := "user://test_saves"
 
 
-func _scenario() -> Scenario:
-	return Fixtures.scenario()
+func _scenario() -> Landing:
+	return Fixtures.tile_landing()
+
+
+# The tile's town grown (on both sides of a save: these are about what a save carries, not what growth adds).
+func _build(sc: Landing) -> World:
+	return Fixtures.grown_tile(sc)
 
 
 func _started() -> World:
 	var sc := _scenario()
-	var w := sc.build()
+	var w := _build(sc)
 	w.add_player(sc.start, 25.0)
 	for i in 600:
 		w.tick(0.1)
@@ -36,7 +42,7 @@ func _through_json(data: Dictionary) -> Dictionary:
 func test_a_snapshot_survives_json_and_comes_back_the_same() -> void:
 	var w := _started()
 	var data := _through_json(Snapshot.new(w).capture())
-	var fresh := _scenario().build()
+	var fresh := _build(_scenario())
 	fresh.add_player(Vector2.ZERO, 0.0)
 	var made := Snapshot.new(fresh).apply(data)
 	check(made.size() == 1 and made[0].label == "Latecomer", "it says which drones it had to make: the latecomer (%d)" % made.size())
@@ -73,9 +79,9 @@ func test_someone_in_a_tent_bed_is_still_in_it_after_loading() -> void:
 
 func test_a_bill_that_was_picked_up_is_gone_after_loading() -> void:
 	var sc := _scenario()
-	var w := sc.build()
+	var w := _build(sc)
 	w.add_player(sc.start, 25.0)
-	var fresh := _scenario().build()
+	var fresh := _build(_scenario())
 	fresh.add_player(Vector2.ZERO, 0.0)
 	fresh.bills.append(Bill.new(3.0, "cash"))  # one the fresh world has and the save does not
 	Snapshot.new(fresh).apply(_through_json(Snapshot.new(w).capture()))
@@ -85,7 +91,7 @@ func test_a_bill_that_was_picked_up_is_gone_after_loading() -> void:
 func test_a_loaded_world_goes_on_exactly_like_the_one_that_was_saved() -> void:
 	var w := _started()
 	var data := _through_json(Snapshot.new(w).capture())
-	var fresh := _scenario().build()
+	var fresh := _build(_scenario())
 	fresh.add_player(Vector2.ZERO, 0.0)
 	Snapshot.new(fresh).apply(data)
 	seed(99)

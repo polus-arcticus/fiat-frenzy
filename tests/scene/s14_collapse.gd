@@ -8,11 +8,10 @@ func run() -> void:
 	var screen: InventoryScreen = game.inventory
 	# passing out: the hero blacks out, an ambulance takes them to the tent, they wake with control back
 	game.collapse.instant = true
-	var hospital: Hospital = w.hospitals[0]
+	var hospital: Hospital = game.scenario.hospital
 	var gun_was_on: bool = game.gun.enabled
 	var shade: ColorRect = game.collapse._shade
-	var story := w.hospitals
-	check(story.size() == 2 and story.all(func(h): return w.ambulances.any(func(a): return a.hospital == h)) and hospital.pos.distance_to(game.scenario.start) < 70.0, "there is a medical tent and an ambulance near the market (and another at the bank)")
+	check(w.ambulances.size() == 1 and w.ambulances[0].hospital == hospital and hospital.pos.distance_to(game.scenario.start) < 70.0, "the story's medical tent and its ambulance are near the market (the first aid posts the founders brought have none)")
 	w.player.bars.hunger = 0.0
 	game.advance(1.0)
 	check(w.player.care != "" and not game.player.controls_enabled and not game.gun.enabled, "when a bar runs out the hero collapses: controls and the gun stop (care '%s', controls %s, gun %s)" % [w.player.care, game.player.controls_enabled, game.gun.enabled])

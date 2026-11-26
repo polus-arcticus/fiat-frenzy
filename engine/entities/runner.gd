@@ -7,7 +7,8 @@ extends RefCounted
 const MERGE := {"delivered_total": "sum", "deliveries": "sum", "fees_earned": "sum"}
 const CART_VALUE := 20.0  # what a cart is worth on the books, before its runner's experience (Equity.value)
 
-var cart := Inventory.new()  # what is in it (salvaged goods on their way, a runner's bottles)
+var cart := Inventory.new()  # what is in it (salvaged goods on their way, goods bought off a shelf, a runner's bottles)
+var paid := {}               # item -> what each of those in the cart cost the runner, bought off another business's shelf (Hauling)
 var delivered_total := 0     # units delivered
 var deliveries := 0          # in how many trips
 var fees_earned := 0.0       # what the deliveries paid in fees (the heroes' shares included)

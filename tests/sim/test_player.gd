@@ -11,7 +11,6 @@ func test_the_player_body() -> void:
 	p.cold_spans = Vector2.ZERO  # (hardened for this: five minutes in the open would be too cold for them. The cold: test_cold)
 	Fixtures.run(w, 300)
 	check(is_equal_approx(p.bars.hunger, 0.5) and is_equal_approx(p.bars.thirst, 1.0 - 300.0 / 420.0), "their bars drain like anyone's")
-	check(w.logistics.plan(p).is_empty() or true, "(no NPC logic is ever run on them)")
 	var dark := World.new()
 	var q := dark.add_player(Vector2(100, 0))
 	dark.add_fire(Vector2(0, 0))

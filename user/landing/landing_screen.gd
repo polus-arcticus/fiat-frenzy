@@ -12,7 +12,7 @@ signal chosen(spec: Dictionary)
 signal back
 
 const PANEL := 420.0
-const STORY := Vector2(50.1086307, 8.6687641)  # the story's Frankfurt (its map's origin: tools/osm_to_district.py)
+const STORY := Vector2(50.1086307, 8.6687641)  # the story's Frankfurt (its map's origin: tools/story_district.gd)
 const STORY_K := 120000.0  # how close the planet comes to the story (its region about 500 px across)
 const PICK_TILE_PX := 140.0  # how big a game tile is drawn when a typed place is flown to
 const CLICK_SLOP := 5.0  # pixels a press may move and still be a click

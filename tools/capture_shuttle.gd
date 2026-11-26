@@ -34,7 +34,7 @@ func _run(game: Node, dir: String) -> void:
 		w.player.bars[need] = 1.0
 	w.quests.state[QuestBook.LETTER] = "active"
 	w.player.carry.add("letter", 1)
-	for f in ["rode_bus", "jam_cleared", "rode_on", "cleared_gate"]:
+	for f in ["rode_tram", "repaired", "rode_on", "cleared_gate"]:
 		w.quests.set_flag(f)
 	w.sage.tell(Stories.FIRST)
 	var cart: ShuttleView = game.shuttle
@@ -47,10 +47,10 @@ func _run(game: Node, dir: String) -> void:
 	await _shot("1_setting_off", dir)
 	for t in [14.0, 14.0, 14.0, 14.0]:
 		await create_timer(t).timeout
-		await _shot("2_en_route_%d" % int(w.shuttle.s), dir)
-		if w.shuttle.state != Bus.State.DRIVING:
+		await _shot("2_en_route_%d" % int(w.transit.vehicle("shuttle").s), dir)
+		if w.transit.vehicle("shuttle").state != Vehicle.State.DRIVING:
 			break
-	while w.shuttle.state == Bus.State.DRIVING:
+	while w.transit.vehicle("shuttle").state == Vehicle.State.DRIVING:
 		await create_timer(1.0).timeout
 	await create_timer(5.0).timeout
 	await _shot("3_arrived", dir)

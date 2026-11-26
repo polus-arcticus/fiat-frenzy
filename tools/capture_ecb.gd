@@ -51,7 +51,7 @@ func _run() -> void:
 	await _shot("building")
 	w.quests.state[QuestBook.LETTER] = "active"
 	w.player.carry.add("letter", 1)
-	w.quests.set_flag("rode_bus")
+	w.quests.set_flag("rode_tram")
 	w.sage.tell(Stories.FIRST)
 	_stand(d.pos + out * 2.5, d.pos)
 	game.hud.visible = true

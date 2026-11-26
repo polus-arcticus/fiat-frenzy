@@ -123,7 +123,8 @@ func test_the_truck_keeps_shops_running() -> void:
 	Fixtures.run(without, int(Clock.DAY_SECONDS) * 3)
 	note("    things made over three days: with the truck %d, without %d" % [Fixtures.made(with_truck), Fixtures.made(without)])
 	check(Fixtures.made(with_truck) > 2 * Fixtures.made(without), "with deliveries the town makes more than twice as much")
-	check(with_truck.machines[0].crafted_total > 4 * maxi(without.machines[0].crafted_total, 1), "the bakery most of all: it can't bake without leftovers (%d loaves against %d)" % [with_truck.machines[0].crafted_total, without.machines[0].crafted_total])
+	var baked := func(w: World) -> int: return w.machines.filter(func(m): return m.kind == "bakery")[0].crafted_total
+	check(baked.call(with_truck) > 4 * maxi(baked.call(without), 1), "the bakery most of all: it can't bake without leftovers (%d loaves against %d)" % [baked.call(with_truck), baked.call(without)])
 	check(is_equal_approx(with_truck.total_money(), with_truck.ledger.printed) and is_equal_approx(without.total_money(), without.ledger.printed), "money is conserved in both")
 
 
@@ -133,7 +134,7 @@ func test_a_small_town_runs() -> void:
 	Cluster.build(w, "t", Vector2.ZERO, Cluster.DRIFTERS, true, 200.0)
 	w.add_player(Vector2(0, -20), 0.0).make_needless()  # (out in the cold three days, the hero would be carried off and robbed)
 	w.begin_play()
-	w.gun.invest(w.drones[0], 30.0)
+	w.gun.invest(w.drone(w.machines.filter(func(m): return m.kind == "bakery")[0].owner), 30.0)
 	Fixtures.run(w, int(Clock.DAY_SECONDS) * 3)
 	var drifters := w.drones.filter(func(d): return d.kind == "drifter")
 	var hunger := 0.0
@@ -144,9 +145,9 @@ func test_a_small_town_runs() -> void:
 	var s := w.machines.map(func(m): return "%s %d" % [m.kind, m.sold_total])
 	note("    sold: %s | fire berths now %d | avg drifter hunger %.2f | starved-ticks %d | player cash %.2f" % [s, w.fires[0].shelter.berths.size(), hunger, starved, w.ledger.player_cash])
 	note("    prices now: %s" % [w.machines.map(func(m): return "%s %.2f (floor %.2f)" % [m.kind, m.price, m.floor_price()])])
-	# The tent is not counted: the free barrel fire answers the same need, so whether anyone pays for a bed is
-	# down to the dice (its own test: night_is_colder_and_tent_docks_drones).
-	check(w.machines.all(func(m): return m.kind == "tent" or m.sold_total > 0), "bakery, hot dogs and lemonade all did trade")
+	# The food and drink stands: the tent city's beds are free, and the thrift stall and the camp sell to the hero only.
+	var food := w.machines.filter(func(m): return Catalog.class_of(m.item) in Drone.eaten_classes())
+	check(food.size() == 3 and food.all(func(m): return m.sold_total > 0), "bakery, hot dogs and lemonade all did trade")
 	check(w.ledger.player_cash > 0.0, "the player's share of the bakery paid out")
 	check(is_equal_approx(w.total_money(), w.ledger.printed), "money is conserved over three days")
 	check(w.machines.all(func(m): return m.price >= m.floor_price() - 0.0001), "no price ever fell below its input cost")

@@ -44,7 +44,7 @@ const KICKFLIP_BILLS := 5   # ...in this many bills...
 const KICKFLIP_STREW := Vector2(2.0, 4.0)  # ...this many metres round where it landed
 const TRAIL_BEHIND := Vector2(1.7, 2.7)    # a grind's bills land this far behind the board...
 const TRAIL_ACROSS := Vector2(0.4, 1.4)    # ...and this far across the pavement
-## Grinding a kerb (Kerbs.edges): come down from an ollie onto a kerb line, running along it, and the board locks onto its
+## Grinding a kerb or a rail (Kerbs.grindable): come down from an ollie onto the line, running along it, and the board locks onto its
 ## edge and slides, a $1 bill dropping onto the pavement every GRIND_EVERY metres. Jump to pop off; it ends by itself where
 ## the kerb does, or when the board has slowed too much.
 const GRIND_REACH := 0.5    # metres from a kerb line the board snaps onto it
@@ -75,9 +75,10 @@ var grinding := false
 var grinds := 0
 var grind_metres := 0.0      # how far the grind under way has gone
 var grind_paid := 0.0        # and what it has dropped
+var grind_kind := ""         # what the grind under way (or the last) is on: "kerb" or "rail"
 
 var _w: World
-var _edge := -1              # the kerb line being ground (an index into kerbs.edges)
+var _edge := -1              # the line being ground (an index into kerbs.grindable)
 var _along := 0.0            # metres from its start
 var _dir := 1.0              # +1 toward its end, -1 toward its start
 var _since_bill := 0.0
@@ -245,13 +246,13 @@ func _glide(dt: float, pull: float, coasting: bool) -> float:
 func _catch(at: Vector2, height: float, heading: Vector2) -> bool:
 	if kerbs == null or speed < GRIND_MIN_SPEED or heading == Vector2.ZERO:
 		return false
-	var above := height - Kerbs.HEIGHT
-	if above < -0.05 or above > GRIND_ABOVE:
-		return false
 	var best := -1
 	var best_d := INF
-	for i in kerbs.edges_near(at, GRIND_REACH):
-		var e: Dictionary = kerbs.edges[i]
+	for i in kerbs.grind_near(at, GRIND_REACH):
+		var e: Dictionary = kerbs.grindable[i]
+		var above := height - float(e.top)  # (a kerb's top, a rail's: each its own height)
+		if above < -0.05 or above > GRIND_ABOVE:
+			continue
 		var along: Vector2 = (e.b - e.a).normalized()
 		if absf(along.dot(heading)) < GRIND_ALIGN:
 			continue
@@ -261,7 +262,7 @@ func _catch(at: Vector2, height: float, heading: Vector2) -> bool:
 			best = i
 	if best < 0:
 		return false
-	var e: Dictionary = kerbs.edges[best]
+	var e: Dictionary = kerbs.grindable[best]
 	_edge = best
 	_dir = 1.0 if (e.b - e.a).dot(heading) >= 0.0 else -1.0
 	_along = (Geometry2D.get_closest_point_to_segment(at, e.a, e.b) - e.a).length()
@@ -272,14 +273,15 @@ func _catch(at: Vector2, height: float, heading: Vector2) -> bool:
 	grind_metres = 0.0
 	grind_paid = 0.0
 	_since_bill = 0.0
-	last_trick = "Grind"
+	grind_kind = str(e.kind)
+	last_trick = "Rail grind" if grind_kind == "rail" else "Grind"
 	return true
 
 
 # A step along the kerb line: slower for the edge's drag, a bill every GRIND_EVERY metres, onto the next line where this one
 # ends, and off with a jump or when it has run out (of kerb or speed).
 func _grind(dt: float, input: Dictionary) -> Dictionary:
-	var e: Dictionary = kerbs.edges[_edge]
+	var e: Dictionary = kerbs.grindable[_edge]
 	var out := {"speed": speed, "turn": 0.0, "jump": 0.0, "flip": false, "grind": true}
 	if input.get("jump_pressed", false):
 		return _off(out, OLLIE_MIN)
@@ -298,7 +300,7 @@ func _grind(dt: float, input: Dictionary) -> Dictionary:
 		var next := _linked(end, (e.b - e.a).normalized() * _dir)
 		if next < 0:
 			return _off(out, 0.0)
-		var n: Dictionary = kerbs.edges[next]
+		var n: Dictionary = kerbs.grindable[next]
 		_edge = next
 		_dir = 1.0 if n.a.distance_to(end) <= n.b.distance_to(end) else -1.0
 		_along = 0.0 if _dir > 0.0 else (n.b - n.a).length()
@@ -309,6 +311,7 @@ func _grind(dt: float, input: Dictionary) -> Dictionary:
 	var at: Vector2 = e.a + dir * _along
 	out.grind_at = at
 	out.grind_heading = dir * _dir
+	out.grind_top = float(e.top)  # (how high up the body rides: a kerb's edge, a rail's)
 	return out
 
 
@@ -327,10 +330,12 @@ func _strew_behind(e: Dictionary, length: float) -> void:
 
 # The kerb line that carries on from `end`, going `heading` (-1 if none).
 func _linked(end: Vector2, heading: Vector2) -> int:
-	for i in kerbs.edges_near(end, GRIND_LINK):
+	for i in kerbs.grind_near(end, GRIND_LINK):
 		if i == _edge:
 			continue
-		var n: Dictionary = kerbs.edges[i]
+		var n: Dictionary = kerbs.grindable[i]
+		if absf(float(n.top) - float(kerbs.grindable[_edge].top)) > 0.05:
+			continue  # (a rail does not carry on into a kerb: the board is at another height)
 		var near_a: bool = n.a.distance_to(end) <= n.b.distance_to(end)
 		if minf(n.a.distance_to(end), n.b.distance_to(end)) > GRIND_LINK:
 			continue
@@ -344,7 +349,7 @@ func _linked(end: Vector2, heading: Vector2) -> int:
 func _off(out: Dictionary, jump: float) -> Dictionary:
 	grinding = false
 	in_air = true
-	last_trick = "Grind  %d m  +$%d" % [roundi(grind_metres), int(grind_paid)]
+	last_trick = "%s  %d m  +$%d" % ["Rail grind" if grind_kind == "rail" else "Grind", roundi(grind_metres), int(grind_paid)]
 	out.grind = false
 	out.jump = jump
 	out.ended = true

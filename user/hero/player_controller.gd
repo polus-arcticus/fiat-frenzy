@@ -219,7 +219,7 @@ func _physics_process(delta: float) -> void:
 		if out.get("grind", false):  # on a kerb's edge: the board follows the kerb line, on top of it (Skating)
 			var at: Vector2 = out.grind_at
 			var h: Vector2 = out.grind_heading
-			global_position = Vector3(at.x, Ground.land(at) + Kerbs.HEIGHT, at.y)  # (on the hills, up on the kerb)
+			global_position = Vector3(at.x, Ground.land(at) + float(out.get("grind_top", Kerbs.HEIGHT)), at.y)  # (on the hills, up on the kerb or the rail)
 			rotation.y = atan2(-h.x, -h.y)
 			velocity = Vector3(h.x, 0.0, h.y) * float(out.speed)
 			if third_person:

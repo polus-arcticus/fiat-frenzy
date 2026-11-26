@@ -3,6 +3,7 @@
 ##   recycling  a blue and a green container, bottles lying in front
 ##   organics   a brown bin, scraps of food heaped beside it
 ##   fountain   a stone basin with a spout, the water in it rising with what is there
+##   any other  a grey crate, its heap in front (a source with no look of its own yet still shows, and says what it is)
 class_name WasteBinView
 extends Node3D
 
@@ -12,7 +13,7 @@ const FOOD := [Color(0.42, 0.62, 0.28), Color(0.85, 0.55, 0.2), Color(0.62, 0.42
 const STONE := Color(0.66, 0.64, 0.6)
 const WATER := Color(0.42, 0.62, 0.78)
 const SHOWN := 24  # pieces of a heap drawn, at the most (more just makes it full)
-const LABEL := {"garbage": "scrap", "recycling": "bottles", "organics": "leftovers", "fountain": "water"}
+const PLAIN := [Color(0.5, 0.48, 0.44), Color(0.6, 0.56, 0.5), Color(0.42, 0.42, 0.42)]
 
 var bin: WasteBin
 var _pieces: Array[MeshInstance3D] = []
@@ -54,6 +55,10 @@ func setup(b: WasteBin) -> WasteBinView:
 				Look.box(self, Vector3(0.2, 1.1, 0.2), Vector3(0, 0.55, 0.45), STONE.darkened(0.1))   # the column
 				Look.box(self, Vector3(0.08, 0.08, 0.3), Vector3(0, 1.0, 0.3), Color(0.5, 0.48, 0.44))  # the spout
 				_water = Look.box(self, Vector3(1.0, 0.04, 1.0), Vector3(0, 0.1, 0), WATER)
+		_:
+			if own:
+				Look.box(self, Vector3(0.8, 0.8, 0.7), Vector3(0, 0.4, 0.45), Color(0.4, 0.4, 0.38))
+			_heap(dice, PLAIN, Vector3(0, 0, -0.45), 0.65, Vector2(0.12, 0.25))
 	_label = Look.label3d(self, "", Vector3(0, 1.7, 0), 24)
 	_process(0.0)
 	return self
@@ -102,4 +107,4 @@ func _process(_delta: float) -> void:
 		_pieces[i].visible = i < shown
 	if _water != null:
 		_water.position.y = 0.1 + 0.32 * float(n) / float(maxi(cap, 1))
-	_label.text = "%s · %d" % [LABEL[bin.kind], n]
+	_label.text = "%s · %d" % [WasteBin.label_of(bin.kind), n]

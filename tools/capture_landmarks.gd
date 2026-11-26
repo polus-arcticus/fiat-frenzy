@@ -48,10 +48,16 @@ func _run() -> void:
 	# the Paulskirche and the Einheitsdenkmal, the Dom
 	await _shot("paulskirche", Vector3(790, 22.0, -380), Vector3(853, 14, -284))
 	await _shot("einheitsdenkmal", Vector3(868, 3.0, -240), Vector3(885, 2.5, -257))
-	await _shot("dom", Vector3(1100, 25.0, -150), Vector3(1181, 30, -226))
+	await _shot("roemerberg_ostzeile", Vector3(930, 2.4, -170), Vector3(990, 8, -200))
+	await _shot("roemerberg_roemer", Vector3(975, 2.4, -205), Vector3(915, 9, -205))
+	await _shot("roemerberg_wide", Vector3(945, 35.0, -90), Vector3(955, 6, -200))
+	await _shot("justitia", Vector3(946, 3.0, -190), Vector3(955, 3.2, -198))
+	await _shot("dom",Vector3(1100, 25.0, -150), Vector3(1181, 30, -226))
 	await _shot("dom_close", Vector3(1130, 6.0, -300), Vector3(1170, 30, -240))
 	# the Hauptbahnhof: the reception building from the square, and the halls from above the platforms
 	await _shot("hbf_front", Vector3(-250, 8.0, 260), Vector3(-330, 18, 235))
+	await _shot("hbf_forecourt", Vector3(-240, 2.0, 130), Vector3(-345, 16, 120))
+	await _shot("hbf_forecourt_wide", Vector3(-200, 25.0, 100), Vector3(-380, 14, 130))
 	await _shot("hbf_halls", Vector3(-250, 70.0, 150), Vector3(-450, 10, 200))
 	await _shot("hbf_side", Vector3(-380, 40.0, 420), Vector3(-450, 10, 250))
 	quit(0)

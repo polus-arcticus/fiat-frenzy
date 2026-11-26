@@ -1,7 +1,7 @@
 ## Quests: a small questing system. A quest is offered once its conditions are met, accepted, and then walked
 ## through its objectives in order. The quests themselves are data (QuestBook); this holds who has what:
 ## `state` maps a quest id to "offered", "active" or "done", and `flags` are things that happened that a quest cares
-## about (the bus ride). It watches the world and never changes it, except to hand over the letter on acceptance.
+## about (the tram ride). It watches the world and never changes it, except to hand over the letter on acceptance.
 class_name Quests
 extends RefCounted
 
@@ -96,7 +96,7 @@ func accept(id: String) -> bool:
 	return true
 
 
-## Can the doorman at the gate wave the hero through? On the letter quest, at the bank (the bus has been all the way), still
+## Can the doorman at the gate wave the hero through? On the letter quest, at the bank (the tram has been all the way), still
 ## carrying the letter and not yet through.
 func can_clear_gate() -> bool:
 	return active() == QuestBook.LETTER and done("rode_on") and not done("cleared_gate") and _w.player.carry.count("letter") > 0
@@ -138,13 +138,13 @@ func meet_technician() -> void:
 		_w.events.append("Quest complete: %s" % QuestBook.quest(QuestBook.UPGRADE).title)
 
 
-## The hero has said farewell to Mr. Nobody. If they came in on the bus and are on the letter quest, the traffic jam
-## clears, and the bus can go on. (Returns whether it did.)
+## The hero has said farewell to Mr. Nobody. If the tram brought them and they are on the letter quest, its fault is mended,
+## and it can go on. (Returns whether it was.)
 func farewell_to_sage() -> bool:
-	if active() != QuestBook.LETTER or not done("rode_bus") or not _w.sage.met or done("jam_cleared"):
+	if active() != QuestBook.LETTER or not done("rode_tram") or not _w.sage.met or done("repaired"):
 		return false
-	flags["jam_cleared"] = true
-	_w.events.append("The traffic starts to move again, and the bus waits at the kerb.")
+	flags["repaired"] = true
+	_w.events.append("Tram %s hums back to life, and waits at the stop." % Scenario.TRAM)
 	return true
 
 
@@ -185,20 +185,27 @@ func objective() -> Dictionary:
 
 func _place(name: String) -> Variant:
 	match name:
-		"bus_stop":
-			return _w.bus_stop if _w.bus_stop.is_finite() else null
+		"tram_stop":
+			var stopped := _vehicle(Scenario.TRAM_QUEST)
+			return stopped.home if stopped != null else null
 		"sage":
 			return _w.cast.sage.pos if _w.cast.sage != null else null
 		"ecb":
 			return _w.cast.doorman.pos if _w.cast.doorman != null else null
 		"shuttle":
-			return _w.shuttle.pos if _w.shuttle != null else null
+			var cart := _vehicle("shuttle")
+			return cart.pos if cart != null else null
 		"reception":
 			return _w.cast.receptionist.pos if _w.cast.receptionist != null else null
 		"lift":
 			return _w.cast.lift.pos if _w.cast.lift != null else null
 		"technician":
 			return _w.cast.technician.pos if _w.cast.technician != null else null
-		"bus":
-			return _w.bus.pos if _w.bus != null else null
+		"tram":
+			var tram := _vehicle(Scenario.TRAM_QUEST)
+			return tram.pos if tram != null else null
 	return null
+
+
+func _vehicle(called: String) -> Vehicle:
+	return _w.transit.vehicle(called) if _w.transit != null else null

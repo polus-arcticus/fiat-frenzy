@@ -43,6 +43,25 @@ static func tile_landing() -> TileLanding:
 	return TileLanding.new(tile_key(), tile_district(), TILE_LAT, TILE_LON)
 
 
+## An atom in `zone` grown through all its founders (as the hero would, a tent at a time: Atom.grow). Returns its tent city.
+static func grown_atom(w: World, zone := "atom", at := Vector2.ZERO) -> Machine:
+	var city := Atom.seed(w, zone, at)
+	Atom.grow(w, city)
+	return city
+
+
+## The tile's world, its atom grown through all its founders.
+static func grown_tile(landing: TileLanding) -> World:
+	var w := landing.build()
+	Atom.grow(w, tent_city(w, landing.key))
+	return w
+
+
+## The tent city of `zone` (its first).
+static func tent_city(w: World, zone: String) -> Machine:
+	return w.zones.machines_in(zone).filter(func(m): return m.residence != null)[0]
+
+
 static func run(w: World, seconds: int, keep_fed := false) -> void:
 	for i in seconds:
 		if keep_fed:

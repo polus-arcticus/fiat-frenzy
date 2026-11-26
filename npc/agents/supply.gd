@@ -13,16 +13,37 @@ func _init(world: World) -> void:
 ## The open machine whose output answers `cls`, that this drone can afford: best value, which is
 ## dollars per unit of the bar plus a little for the walk. In its own zone, or in `zone` (Borders asks about the next tile).
 func best_supply(d: Drone, cls: String, zone := "") -> Machine:
-	var best: Machine = null
+	return best_offer(d, cls, zone).get("machine")
+
+
+## The same, with what to buy there: {machine, item} ({} if nothing answers it). A machine's item, or one of its wares (what else
+## it makes and sells: MachineDef.wares), whichever answers `cls`.
+func best_offer(d: Drone, cls: String, zone := "") -> Dictionary:
+	var best := {}
 	var best_value := INF
 	for m in _w.zones.machines_in(zone if zone != "" else d.zone):
-		if m.owner == d.uid or Catalog.class_of(m.item) != cls or not m.offers(m.item) or m.price > d.wallet:
+		if m.owner == d.uid:
 			continue
-		var value: float = m.price / Catalog.restores(m.item) + Logistics.DISTANCE_COST * d.pos.distance_to(m.pos) + Queueing.WAIT_COST * _w.logistics.queues.length(m)
-		if value < best_value:
-			best_value = value
-			best = m
+		for it in _answering(m, cls):
+			var price: float = m.price_of(it)
+			if not m.offers(it) or price > d.wallet:
+				continue
+			var value: float = price / Catalog.restores(it) + Logistics.DISTANCE_COST * d.pos.distance_to(m.pos) + Queueing.WAIT_COST * _w.logistics.queues.length(m)
+			if value < best_value:
+				best_value = value
+				best = {"machine": m, "item": it}
 	return best
+
+
+# What `m` sells that answers `cls`: its item first, then its wares.
+func _answering(m: Machine, cls: String) -> Array:
+	var out: Array = []
+	if Catalog.class_of(m.item) == cls:
+		out.append(m.item)
+	for ware in m.wares:
+		if Catalog.class_of(ware) == cls:
+			out.append(ware)
+	return out
 
 
 ## Their own bed, if they have one in a tent that is standing (it is free: see Lodging); otherwise the nearest barrel fire with

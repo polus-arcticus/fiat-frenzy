@@ -34,16 +34,16 @@ func test_indoors_is_warm_and_outdoors_is_cold_at_night() -> void:
 
 func test_the_bus_is_warm_while_you_are_in_it() -> void:
 	var w := _night_world()
-	w.transit.add_bus(Vector2(50, 50), 0.0)  # pointing along +x
+	var bus := w.transit.add("bus", "bus", Vector2(50, 50), 0.0)  # pointing along +x
 	w.player.pos = Vector2(50, 50)
 	check(w.heating.is_warm(Vector2(54, 50)) and w.heating.is_warm(Vector2(46, 50.8)), "inside the bus's length and width")
 	check(not w.heating.is_warm(Vector2(50, 53)) and not w.heating.is_warm(Vector2(57, 50)), "and not beside it or past its ends")
 	var aboard := _cool(w, w.player, 60)
 	check(aboard > 0.5, "riding it, the hero warms up (%.2f)" % aboard)
-	w.bus.pos = Vector2(300, 300)  # the bus drives away without them
+	bus.pos = Vector2(300, 300)  # the bus drives away without them
 	check(not w.heating.is_warm(w.player.pos) and _cool(w, w.player, 60) < 0.5, "left behind in the street, they are cold again")
-	w.bus.pos = Vector2(100, 100)
-	w.bus.heading = PI * 0.5  # turned: its length now runs along y
+	bus.pos = Vector2(100, 100)
+	bus.heading = PI * 0.5  # turned: its length now runs along y
 	check(w.heating.is_warm(Vector2(100, 104)) and not w.heating.is_warm(Vector2(104, 100)), "it is warm along the bus's own length, however it is turned")
 
 

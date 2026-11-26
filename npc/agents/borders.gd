@@ -75,7 +75,7 @@ func _migrate(a: String, b: String) -> void:
 
 
 func _better_across(d: Drone, a: String, b: String) -> bool:
-	for cls in ["food", "drink"]:
+	for cls in Drone.eaten_classes():
 		if d.bars[Needs.NEED_OF[cls]] >= Needs.NEED_BELOW:
 			continue
 		var there := _w.logistics.supply.best_supply(d, cls, b)

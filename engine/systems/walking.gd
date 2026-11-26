@@ -15,6 +15,11 @@ const SLOWEST := 0.15      # the least share of their flat pace anyone keeps, ho
 ## the land is smoothed over 40 m (Landform.SMOOTH): reading it more finely costs the sim more than it tells (measured:
 ## tools/bench_hills.gd, 8 m was 2 ms a game second of 14 for 200 walkers, with nobody walking differently).
 const EFFORT_STEP := 32.0
+## A walk no longer than this, straight, leaves the streets when they would make it more than DETOUR times as long (and
+## DETOUR_FREE metres besides: round a corner is not worth leaving the pavement for).
+const SHORT_HOP := 60.0
+const DETOUR := 1.5
+const DETOUR_FREE := 15.0
 
 var _w: World
 
@@ -50,6 +55,24 @@ func effort(points: Array) -> float:
 	return total
 
 
+## The waypoints from `from` to `to`: along the streets, unless it is a short hop that the streets make a long way round
+## (across a square with no street in it): then straight, round whatever stands in the way (_plan_leg).
+func way(from: Vector2, to: Vector2) -> PackedVector2Array:
+	var direct := PackedVector2Array([to])
+	if _w.roads == null:
+		return direct
+	var streets := _w.roads.route(from, to)
+	var straight := from.distance_to(to)
+	if straight > SHORT_HOP:
+		return streets
+	var length := 0.0
+	var at := from
+	for p in streets:
+		length += at.distance_to(p)
+		at = p
+	return direct if length > straight * DETOUR + DETOUR_FREE else streets
+
+
 ## `d` is anything with a position, route and speed: a drone, or the ambulance.
 func step(d, goal: Vector2, dt: float) -> void:
 	if d is Drone:
@@ -74,7 +97,7 @@ func _walk(d: Drone, goal: Vector2, dt: float) -> void:
 		d.route = PackedVector2Array()
 		return
 	if d.route.is_empty() or d.route_goal.distance_to(goal) > 0.5:
-		d.route = _w.roads.route(d.pos, goal) if _w.roads != null else PackedVector2Array([goal])
+		d.route = way(d.pos, goal)
 		d.route_goal = goal
 		d.route_nav = -1
 	var budget: float = d.speed * dt

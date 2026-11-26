@@ -42,7 +42,7 @@ func _run(dir: String) -> void:
 	game.sim_paused = true
 	game.gun.set_enabled(false)
 	game.hud.visible = false
-	var stop: Vector2 = sc.ecb_stop.bus
+	var stop: Vector2 = sc.ecb_stop.at
 	var guard: Vector2 = g.guard
 	# from the street, where the bus stops, looking at the gate
 	_stand(stop + (g.along as Vector2) * 6.0 - (g.into as Vector2) * 3.0, Vector3(guard.x, 1.6, guard.y) + Vector3((g.into as Vector2).x, 0, (g.into as Vector2).y) * 6.0)

@@ -24,11 +24,11 @@ func _init() -> void:
 	name = "Bars"
 	position = Vector3(0, STANDING_Y, 0)
 	var row := 0
-	for key in ["money", "hunger", "thirst", "warmth"]:
+	for key in ["money"] + Drone.NEEDS:
 		var y := -row * (BAR_H + 0.03)
 		_quad(Vector3(0, y, 0), 0.0, BORDER, -1, BAR_W + 0.08, BAR_H + 0.07)
 		_quad(Vector3(0, y, 0), 0.0, Color(0.1, 0.09, 0.14, 1.0), 0, BAR_W + 0.04, BAR_H + 0.03)
-		_fills[key] = _quad(Vector3(-BAR_W * 0.5, y, 0.002), BAR_W * 0.5, COLORS[key], 1, BAR_W, BAR_H)
+		_fills[key] = _quad(Vector3(-BAR_W * 0.5, y, 0.002), BAR_W * 0.5, COLORS.get(key, Color(0.7, 0.7, 0.7)), 1, BAR_W, BAR_H)
 		row += 1
 	var ty := BAR_H * 0.5 + 0.045
 	_tier_border = _quad(Vector3(0, ty, 0), 0.0, BORDER, -1, BAR_W + 0.08, 0.09)

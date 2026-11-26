@@ -16,7 +16,7 @@ const ENOUGH := 25.0
 const CARRY := 20    # bottles one carries by hand, a bag's worth (a runner's cart takes Hauling.CART_CAPACITY)
 const MIN_PICK := 2  # a bin with fewer isn't worth the walk ($2: at 4 a broke medic lost every race to the trickle)
 const ITEM := "recyclables"
-const NEVER := ["attendant", "clerk", "player"]  # (behind the counter, the story's own, the hero)
+const NEVER := ["player"]  # (the hero. Whoever stands behind a counter, the depot's attendant or the story's clerks, is aloof)
 
 var _w: World
 
@@ -38,14 +38,24 @@ func wants(d: Drone) -> bool:
 		return true
 	if not m.working:
 		return false  # (a wrecked stand: its keeper waits by it for the money to mend it, the hero's; a few dollars won't)
+	if not _sells_to_the_town(m):  # (nobody here buys what it makes, only the hero: no takings to live on, so the bottles keep them
+		return d.wallet < Drone.RESERVE  # fed; only when they are short of food money, so they leave the bottles to the town's trades)
 	return m.stock() == 0 or not _can_restock(d, m)
 
 
-## Can `d` pay for a runner's load of each salvaged input their stand makes its wares of? (If not, the stand will run dry: the
-## bottles are what pays for it.)
+## Does anyone in `m`'s zone buy what it makes: it answers a need (food, drink, a bed), or another business takes it in?
+func _sells_to_the_town(m: Machine) -> bool:
+	if Drone.need_of().has(Catalog.class_of(m.item)):
+		return true
+	return _w.zones.machines_in(m.zone).any(func(o): return o != m and o.input.caps.has(m.item))
+
+
+## Can `d` pay for a runner's load of each input the runners bring their stand? (If not, the stand will run dry: the bottles are
+## what pays for it.)
 func _can_restock(d: Drone, m: Machine) -> bool:
+	var def := Catalog.machine(m.kind)
 	for raw in m.recipe:
-		if raw in Catalog.scavenged_goods() and _w.logistics.hauling.affordable(d, raw) < Hauling.MIN_LOAD:
+		if def.fetched_by(raw) == "runner" and _w.logistics.hauling.affordable(d, raw) < Hauling.MIN_LOAD:
 			return false
 	return true
 

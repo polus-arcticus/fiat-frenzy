@@ -34,7 +34,7 @@ func run() -> void:
 	mp._unhandled_input(c_key)
 	check(mp._center.distance_to(here) < 0.5, "C brings you back to the middle")
 	var objective: Variant = mp.objective.call()
-	check(objective == null or objective is Vector2, "it knows where the tutorial wants you to go")
+	check(objective is Vector2, "it knows where the tutorial wants you to go (%s)" % [objective])
 	await tree.process_frame
 	game._unhandled_input(map_key)  # does nothing while it is already open
 	mp._unhandled_input(map_key)

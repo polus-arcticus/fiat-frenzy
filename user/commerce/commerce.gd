@@ -34,11 +34,11 @@ func pick_up_cash() -> float:
 	return got
 
 
-## The hero gets off the bus with whatever is lying on its floor. Returns the total.
-func scoop_aboard() -> float:
+## The hero gets off `v` with whatever is lying on its floor. Returns the total.
+func scoop_aboard(v: Vehicle) -> float:
 	var got := 0.0
 	for b in _w.bills.duplicate():
-		if b.aboard:
+		if b.aboard and b.ride == v.name:
 			got += b.value
 			_w.bills.erase(b)
 	_w.ledger.player_cash += got
@@ -90,7 +90,7 @@ func consume(item: String) -> Dictionary:
 		return _no("You can't eat or drink that.")
 	var amount: float = _w.needs.eat(p, item)
 	p.carry.take(item, 1)
-	var bar := "hunger" if Catalog.class_of(item) == "food" else "thirst"
+	var bar: String = Drone.need_of().get(Catalog.class_of(item), "")
 	return _yes("Had 1 %s: %s +%d%%." % [_name(item), bar, roundi(amount * 100.0)])
 
 

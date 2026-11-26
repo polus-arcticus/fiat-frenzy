@@ -1,5 +1,5 @@
 ## Headless probe: can people walk between the places they actually go (every stand, the bins, the tent door, the
-## bus stop), in the real scenario with its street graph? Reports the trips that never arrive.
+## tram stop), in the real scenario with its street graph? Reports the trips that never arrive.
 ##   godot --headless --path . --script tools/probe_routes.gd
 extends SceneTree
 
@@ -14,12 +14,10 @@ func _initialize() -> void:
 	for b in w.bins:
 		spots["%s bin" % b.kind] = b.pos + b.front * 1.6
 	spots["Medical tent door"] = w.hospitals[0].solid().door
-	spots["Bus stop"] = w.bus_stop
+	spots["Tram stop"] = w.transit.vehicle(Scenario.TRAM_QUEST).home
 	for k in IntroController.BANKER_SPOTS.size():  # where the helicopter's bankers land: east of the medical tent
 		var spot: Vector2 = IntroController.BANKER_SPOTS[k]
 		spots["banker %d" % k] = sc.offset_on_street(sc.wreck_pos, spot.x, spot.y)
-	spots["Medical tent door"] = w.hospitals[0].solid().door
-	spots["Bus stop"] = w.bus_stop
 	for d in w.drones:
 		if d.look == "banker":
 			spots["banker %s" % d.uid] = d.pos

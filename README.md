@@ -54,7 +54,7 @@ honoured). Nothing about the player is sent.
 - **The engine runs on its own.** `World.new(false)` is the simulation and its people only. It has none of the hero's or the
   story's systems, and it is what the benches and a map of anywhere run on (`test_the_engine_runs_without_the_hero_or_the_story`).
   The game's world, `World.new()`, adds the hero's and the story's systems. The hero's own turn (their needs, their zone) is the
-  `Hero` system's. The engine only knows which zone is watched (`Zones.focus`).
+  `Hero` system's. The engine only knows which zone they are in (`Zones.zone_for`).
 - Composition, not inheritance: components (Equity, Shelter, Growth, a runner's `Runner`, a tent city's `Residence`) are held
   by things, null where a thing has no such role, and systems by the world. Money is a
   number, never an item.
@@ -95,16 +95,23 @@ The world holds the story's scripted cast (`World.cast`, a story `Cast`) without
 
 ## Tests
 
-	tools/test.sh                    # everything, about 11 s: 4 sim shards, the scene and the intro, all at once
+	tools/test.sh                    # everything, about 26 s (the scene suite; the sim shards take under 10): all at once
 	tools/test.sh sim --only=trades  # the sim tests whose name contains "trades", in one process
 	tools/test.sh scene | intro      # one suite
-	godot --headless --path . --script tests/run.gd -- [--only=x] [--verbose] [--update-manifest] [--shard=i/n]
+	tools/test.sh slow               # the slow tier (test_slow_*), about 5 s
+	godot --headless --path . --script tests/run.gd -- [--only=x] [--verbose] [--update-manifest] [--shard=i/n] [--slow]
 
-- **The sim suite** (`tests/sim/test_*.gd`): one method per test, extending `TestCase` and calling `check(ok, what)`, with the
-  builders in `tests/support/fixtures.gd` and the standard cluster (`Cluster`). The runner reseeds the RNG before each test, so
-  any test can run alone.
-- **`tests/expected_checks.json`** holds how many checks each test makes. A test that dies partway fails by name. After adding
-  tests, run with `--update-manifest` and read the diff.
+- **The sim suite** (`tests/sim/test_*.gd`, and the story's own in `tests/story/`): one method per test, extending `TestCase` and
+  calling `check(ok, what)`, with the builders in `tests/support/fixtures.gd`. The runner reseeds the RNG before each test, so any
+  test can run alone, and prints each one's time.
+- **The slow tier**: a method named `test_slow_*` runs only with `--slow`. It holds the long simulations (a season, a hostel built
+  of scrap) and the machinery the game does not call yet (merging saves, dormant towns in summary, crossing between tiles).
+- **`tests/expected_checks.json`** holds how many checks each test makes, both tiers. A test that dies partway fails by name. After
+  adding tests, run with `--update-manifest` (and `--slow --update-manifest` for the slow tier) and read the diff.
+- **The architecture guards** (`test_architecture`): the spaces only reach down; the world building (engine/map, the city's
+  views) and the economy name no part of each other; nothing below the story reads its state (`world.quests`...) or names its
+  places (OSM ids, Frankfurt's streets). Each has a list of the debts still owed: a new one fails, and so does one paid off but
+  left on the list.
 - **The scene suite** (`tests/smoke_scene.gd`, sections `tests/scene/s*.gd`) drives the real game headless, and prints its slowest
   sections. **The intro suite** (`smoke_intro.gd`) plays the helicopter crash.
 - **Timing.** Both run with `--fixed-fps 60`, so frames don't wait on the clock. Each process has a 120 s timeout, because a
@@ -117,7 +124,9 @@ The world holds the story's scripted cast (`World.cast`, a story `Cast`) without
   (`tools/capture_tool.gd`) and writes only its `_run()`.
 - `tools/probe_*.gd`: one question each, asked of the model.
 - `tools/check_stages.gd`: every developer jump.
-- `tools/osm_to_district.py`: the story's map (buildings and streets) from OpenStreetMap. It names its Overpass URLs before
-  fetching anything. `tools/story_land.gd` fetches the story's land (water, green, street furniture) in one request.
+- The story's map, from OpenStreetMap (the public Overpass API; each fetch says so first): `tools/story_map.gd` fetches its
+  buildings, parts and streets and tram line 11; `tools/story_district.gd` makes `data/bahnhofsviertel.json` of them by the
+  game's own importer; `tools/story_land.gd` fetches its land (water, green, street furniture, tracks). (`osm_to_district.py`
+  is the old converter, no longer used.)
 - `tools/make_tile.gd -- lat=… lon=… [days=N] [offline]`: fetch (or read from the cache) a tile, put its atom on it and run it.
 - `tools/capture_globe.gd`, `tools/capture_newgame.gd`: the landing picker, and starting a game from the title on a tile.

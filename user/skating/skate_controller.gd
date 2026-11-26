@@ -131,7 +131,7 @@ func drive(delta: float, grounded: bool) -> Dictionary:
 		"steer": Input.get_axis("move_right", "move_left") if held else 0.0,
 		"jump_down": held and Input.is_action_pressed("jump"),
 		"jump_pressed": held and Input.is_action_just_pressed("jump"),
-		"height": player.global_position.y,
+		"height": player.global_position.y - Ground.land(player.ground_pos()),  # (above the land under the board: on a hill, not above the sea)
 		"heading": Vector2(-player.transform.basis.z.x, -player.transform.basis.z.z).normalized(),
 		"falling": player.velocity.y < 0.0,
 		"rough": world.skating.kerbs != null and world.skating.kerbs.rough_at(player.ground_pos()),  # (cobbles: slower)
@@ -143,12 +143,13 @@ func drive(delta: float, grounded: bool) -> Dictionary:
 	if world.skating.bails > bails:
 		hud.show_caption("Bail", 1.0)
 	if world.skating.grinds > grinds:
-		hud.show_caption("Grind", 0.8)
+		hud.show_caption(world.skating.last_trick, 0.8)  # ("Grind" on a kerb, "Rail grind" on a rail)
 		_board.pitch(0.0)
 	elif out.get("ended", false):
 		hud.show_caption(world.skating.last_trick, 1.4)
 		if world.skating.grind_paid > 0.0:
-			hud.notify("Grind! %d m along the kerb, $%d on the pavement." % [roundi(world.skating.grind_metres), int(world.skating.grind_paid)])
+			var rail := world.skating.grind_kind == "rail"
+			hud.notify("Grind! %d m along the %s, $%d on the %s." % [roundi(world.skating.grind_metres), "rail" if rail else "kerb", int(world.skating.grind_paid), "ballast" if rail else "pavement"])
 	if out.flip:
 		_board.kickflip()
 		hud.show_caption(world.skating.last_trick, 1.2)

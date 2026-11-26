@@ -6,7 +6,8 @@
 ## a stake in it costs). warm: warmth a second for a drone sheltering there (tents). flat_price: it sells at the
 ## item's price and never changes it (the bike shop). rich: its owner has no needs.
 ## trade, tier: where it stands on the ladder of its trade (filled in from Catalog.TRADES, the one place that says so).
-## build: what its owner pays (sunk, like a repair) to build it up from the tier below (see Trades); 0 for a tier 0.
+## build: what its owner pays (sunk, like a repair) to build it up from the tier below (see Trades); 0 for a tier 0. Or
+## build_goods: what it is built of instead.
 ##
 ## footprint: [x, z, half-width, half-depth] boxes and [x, z, radius] circles in its own frame (x across the
 ## front, z back; the front is -z); a tent is "tent": [half-width, z of the open end, z of the back wall].
@@ -27,7 +28,13 @@ var rich := false
 var trade := ""
 var tier := 0
 var build := 0.0
-var build_scrap := 0  # or the scrap pooled into it by runners that builds it up from the tier below (and then no money: Trades)
+## Or the goods pooled into it by runners that build it up from the tier below (and then no money: Trades): item -> units, e.g.
+## the hostel's {"scrap": 320}. The tier below keeps room for them in its input store, on top of its recipe's (Machine).
+var build_goods := {}
+## Who brings each input in: "runner" (the cart runners haul it, from a bin or from another business's shelf: Hauling) or
+## "owner" (the owner walks over and buys it, a unit at a time: Supply.restock_job). An input not named here: the runners bring
+## what the bins give, the owner buys the rest (fetched_by).
+var fetch := {}
 ## How many crafts' worth of each input it holds (one more per level). Six, so a van visit or a runner's trip goes further; more
 ## where a craft takes two goods that come on two trips (lemonade: one load of each makes a cart's worth).
 var stock_crafts := 6
@@ -42,3 +49,11 @@ func _init(machine_id: String, display_name: String, made: String) -> void:
 	id = machine_id
 	name = display_name
 	item = made
+
+
+## Who brings `raw` in: "runner" or "owner" (see `fetch`).
+func fetched_by(raw: String) -> String:
+	if fetch.has(raw):
+		return fetch[raw]
+	var def := Catalog.item(raw)
+	return "runner" if def != null and def.scavenged else "owner"

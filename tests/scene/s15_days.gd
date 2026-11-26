@@ -7,8 +7,8 @@ func run() -> void:
 	var w: World = game.world
 	# run a few game days with the real controller loop
 	var t_before := w.clock.time
-	game.advance(800.0)
-	check(w.clock.time > t_before + 600.0, "time runs: it is now day %d %s" % [w.clock.day() + 1, w.clock.text()])
+	game.advance(300.0)  # (the sim's own suite runs towns for days: this is the real controller loop's turn)
+	check(w.clock.time > t_before + 250.0, "time runs: it is now day %d %s" % [w.clock.day() + 1, w.clock.text()])
 	var runners: Array = game.scenario.cast.runners
 	var delivered := 0
 	var fees := 0.0

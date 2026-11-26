@@ -28,6 +28,24 @@ func _run() -> void:
 	_stand(view, landing.market + (site.along as Vector2) * 4.0, 1.2)
 	game.advance(0.5)
 	await _shot("2_market", 60)
+	# The hero puts up a tent for each founder, and they come, one every Lodging.ARRIVE_EVERY (their views through World.arrivals).
+	var home: Machine = w.machines.filter(func(m): return m.residence != null)[0]
+	for i in Lodging.FOUNDERS.size():
+		w.lodging.add_tent(home)
+		game.advance(Lodging.ARRIVE_EVERY + 1.0)
+		await _frames(2)
+	print("grown: %s" % [w.zones.drones_in(landing.key).map(func(d): return w.profession_of(d))])
+	_stand(view, landing.market + (site.along as Vector2) * 4.0, 1.2)
+	game.advance(0.5)
+	await _shot("2b_grown", 60)
+	_stand(landing.market - (site.out as Vector2) * 14.0 - (site.along as Vector2) * 22.0, landing.market - (site.along as Vector2) * 20.0, 1.2)
+	await _shot("2c_grown_down_the_street", 60)
+	for car in game.line_views:  # (each vehicle on a line: a train, the map's bus route. Signed with where it goes)
+		var m: Vehicle = car._model
+		print("%s on its line to %s: %d stops" % [m.name, m.line.name, m.line.stops.size()])
+		var fwd := Vector2.from_angle(m.heading)
+		_stand(m.pos + fwd.rotated(PI * 0.5) * 9.0 + fwd * 10.0, m.pos, 1.6)
+		await _shot("2d_%s" % m.name, 40)
 	game.map_screen.open()
 	await _shot("3_map", 30)
 	game.map_screen.close()

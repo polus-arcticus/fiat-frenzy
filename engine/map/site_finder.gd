@@ -127,7 +127,6 @@ const CAMP_ROOM := 5.0      # metres round the camp that must be park too (its p
 const RECYCLE_WALK := 220.0
 const RECYCLE_MOST := 3
 const PILE_OUT := 1.6       # metres in front of the container what it gathers lies
-const ON_MAP := {"garbage": "bin", "recycling": "recycling", "organics": "organics", "fountain": "fountain"}  # bin kind -> point kind
 
 
 ## The recycling is walked to by whoever is short of cash, on foot, for their next meal (Collecting): it must be near, or they
@@ -136,10 +135,12 @@ const ON_MAP := {"garbage": "bin", "recycling": "recycling", "organics": "organi
 const BOTTLE_WALK := CAMP_WALK
 
 
-static func bins(district: Dictionary, tile_key: String, market: Vector2, walk := Callable()) -> Dictionary:
+## `kinds`: what to look for, {bin kind: {point (the StreetThings kind that is one), on_foot (walked to by people themselves:
+## BOTTLE_WALK, not RECYCLE_WALK)}}, which is the economy's to say (WasteBin.map_kinds).
+static func bins(district: Dictionary, tile_key: String, market: Vector2, kinds: Dictionary, walk := Callable()) -> Dictionary:
 	var out := {}
-	for kind in ON_MAP:
-		var found := _nearest(district, tile_key, market, walk, ON_MAP[kind], BOTTLE_WALK if kind == "recycling" else RECYCLE_WALK)
+	for kind in kinds:
+		var found := _nearest(district, tile_key, market, walk, kinds[kind].point, BOTTLE_WALK if kinds[kind].get("on_foot", false) else RECYCLE_WALK)
 		if not found.is_empty():
 			out[kind] = found
 	return out

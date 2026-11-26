@@ -18,7 +18,7 @@ func _run(game: Node) -> void:
 	for st in DevStageController.STAGES:
 		var done: bool = await game.dev_stages.go(st[0])
 		var q := w.quests
-		print("%-8s ok=%s active=%s rode_bus=%s jam=%s rode_on=%s gate=%s shuttle=%s controls=%s seated=%s" % [st[0], done, q.active(), q.done("rode_bus"), q.done("jam_cleared"), q.done("rode_on"), q.done("cleared_gate"), q.done("rode_shuttle"), game.player.controls_enabled, game.player.is_seated()])
+		print("%-9s ok=%s active=%s rode_tram=%s repaired=%s rode_on=%s gate=%s shuttle=%s controls=%s seated=%s" % [st[0], done, q.active(), q.done("rode_tram"), q.done("repaired"), q.done("rode_on"), q.done("cleared_gate"), q.done("rode_shuttle"), game.player.controls_enabled, game.player.is_seated()])
 		ok = ok and done
 	ok = ok and w.quests.done("rode_lift") and w.player.zone == Scenario.LIFT_ZONE
 	print("STAGES ", "OK" if ok else "FAILED", " zone=", w.player.zone, " upgrade=", w.quests.state.get(QuestBook.UPGRADE, ""))

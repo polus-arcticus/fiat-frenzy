@@ -139,12 +139,22 @@ static func bake(district: Dictionary, openings := {}, kerbs: Kerbs = null, land
 		drape.ground(ground, extent, GROUND)
 		ground_span = drape.land.span() - Vector2(datum, datum)
 
+	for sq in district.get("squares", []):
+		_square(drape, streets, _pts(sq.poly), str(sq.get("surface", "")))
 	for ri in district.roads.size():
 		var r: Dictionary = district.roads[ri]
 		_road(drape, streets, ri, _pts(r.pts), float(r.w), String(r["class"]), r.get("pave", []), r.get("bike", []), str(r.get("surface", "")), int(r.get("lanes", 0)))
 	var holes: Array = []  # (the footprints with a floor inside: what is walked on there is the floor)
 	for bd in district.buildings:
-		for piece in Landmarks.pieces(int(bd.id), _pts(bd.poly)):  # (usually the one: its whole footprint)
+		if bd.has("parts") and Landmarks.style(int(bd.id)).is_empty() and not openings.has(int(bd.id)):  # (mapped in parts)
+			var stands := [walls, windows, lit, roofs]
+			_stand(drape, int(bd.id), _pts(bd.poly), stands)
+			for part in bd.parts:
+				_part(bd, part, walls, windows, lit, roofs)
+			for buf in stands:
+				buf.level = NAN
+			continue
+		for piece in Landmarks.pieces(int(bd.id), _pts(bd.poly), str(bd.get("civic", ""))):  # (usually the one: its whole footprint)
 			var opening: Dictionary = openings.get(int(bd.id), {})
 			if not opening.is_empty():
 				holes.append(piece.pts)
@@ -273,6 +283,94 @@ static func _area2(pts: PackedVector2Array) -> float:
 	return s * 0.5
 
 
+const TIMBER := Color(0.30, 0.19, 0.13)
+const BEAM := 0.16        # a timber's width
+const PROUD := 0.07       # how far it stands off the plaster (past the windows' glass)
+
+
+## Half-timbering on a wall above its shopfront: a beam under each storey and at the eaves, posts between the windows (which are
+## every 3.2 m: _building), and a brace across each end bay of every storey.
+static func _timber(walls: Buf, p: Vector2, dir: Vector2, length: float, out: Vector3, from: float, to: float) -> void:
+	var along := Vector3(dir.x, 0, dir.y)
+	var origin := Vector3(p.x, 0, p.y) + out * PROUD
+	var bar := func(u0: float, y0: float, u1: float, y1: float) -> void:
+		var a := origin + along * u0 + Vector3(0, y0, 0)
+		var b := origin + along * u1 + Vector3(0, y1, 0)
+		var across := out.cross(b - a).normalized() * BEAM * 0.5
+		walls.quad(a - across, b - across, b + across, a + across, out, TIMBER)
+	if to - from < 1.0 or length < 1.2:
+		return
+	var count := maxi(1, int((length - 1.2) / 3.2))
+	var y := from
+	while y < to - 0.2:
+		bar.call(0.0, y, length, y)
+		var next := minf(y + FLOOR_H, to)
+		for k in count + 1:
+			var u := clampf(length * k / count, BEAM * 0.5, length - BEAM * 0.5)
+			bar.call(u, y, u, next)
+		var bay := length / count
+		var lean := minf(bay * 0.28, 0.9)
+		bar.call(0.1, y, lean, next)
+		bar.call(length - 0.1, y, length - lean, next)
+		y = next
+	bar.call(0.0, to - BEAM * 0.5, length, to - BEAM * 0.5)
+
+
+## One part of a building mapped in parts (OsmImport): walls from its `min_h` up to its `h`, a row of windows a storey, a
+## floor under it if it stands in the air, and its roof (or a flat top). The part's colour, else its building's.
+static func _part(bd: Dictionary, part: Dictionary, walls: Buf, windows: Buf, lit: Buf, roofs: Buf) -> void:
+	var pts := _pts(part.poly)
+	var id := int(bd.id)
+	var low := float(part.get("min_h", 0.0))
+	var h := maxf(float(part.h), low + 0.5)
+	var base: Color = PALETTE[absi(id) % PALETTE.size()]
+	if bd.has("colour") or part.has("colour"):
+		base = base.lerp(part.get("colour", bd.get("colour")), MAPPED_COLOUR)
+	var plaster := _tint(base, id, 0.02)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = id
+	var turn := signf(_area2(pts))
+	var n := pts.size()
+	for k in n:
+		var p := pts[k]
+		var q := pts[(k + 1) % n]
+		var length := p.distance_to(q)
+		if length < 0.5:
+			continue
+		var dir := (q - p) / length
+		var out := Vector3(dir.y, 0, -dir.x) * turn
+		walls.quad(Vector3(p.x, low, p.y), Vector3(q.x, low, q.y), Vector3(q.x, h, q.y), Vector3(p.x, h, p.y), out, plaster)
+		var count := int((length - 1.2) / 3.2)
+		for w in count:
+			var centre := p + dir * (w + 0.5) / count * length
+			var c3 := Vector3(centre.x, 0, centre.y) + out * 0.05
+			var along := Vector3(dir.x, 0, dir.y)
+			var y := maxf(low + 0.9, 0.9)
+			var f := 0
+			while y + 1.6 < h - 0.3:
+				var warm := rng.randf() < 0.22
+				var col := LIT if warm else _tint(GLASS, id * 31 + w * 7 + f, 0.12)
+				(lit if warm else windows).quad(c3 - along * 0.62 + Vector3(0, y, 0), c3 + along * 0.62 + Vector3(0, y, 0),
+					c3 + along * 0.62 + Vector3(0, y + 1.6, 0), c3 - along * 0.62 + Vector3(0, y + 1.6, 0), out, col)
+				y += FLOOR_H
+				f += 1
+	var roof_col := _tint(ROOFS[absi(id) % ROOFS.size()], id + 5)
+	if low > 0.5:
+		var under := Geometry2D.triangulate_polygon(pts)
+		for k in range(0, under.size(), 3):
+			var t := [pts[under[k]], pts[under[k + 1]], pts[under[k + 2]]]
+			walls.tri(Vector3(t[0].x, low, t[0].y), Vector3(t[1].x, low, t[1].y), Vector3(t[2].x, low, t[2].y), Vector3.DOWN, plaster.darkened(0.3))
+	var st := {}
+	if part.has("roof"):
+		st = {"roof": part.roof, "rise": float(part.get("rise", 4.0))}
+	if Landmarks.roof(st, pts, h, roofs, roof_col, walls, plaster):
+		return
+	var tris := Geometry2D.triangulate_polygon(pts)
+	for k in range(0, tris.size(), 3):
+		var t := [pts[tris[k]], pts[tris[k + 1]], pts[tris[k + 2]]]
+		roofs.tri(Vector3(t[0].x, h, t[0].y), Vector3(t[1].x, h, t[1].y), Vector3(t[2].x, h, t[2].y), Vector3.UP, roof_col)
+
+
 static func _building(bd: Dictionary, walls: Buf, windows: Buf, lit: Buf, roofs: Buf, floors: Buf, opening: Dictionary, pts: PackedVector2Array, style: Dictionary, skirt := 0.0) -> void:
 	var h: float = bd.h
 	var id: int = bd.id
@@ -318,6 +416,8 @@ static func _building(bd: Dictionary, walls: Buf, windows: Buf, lit: Buf, roofs:
 		var top_q: float = top.call(q)
 		if maxf(top_p, top_q) > gh:
 			walls.quad(p0 + Vector3(0, gh, 0), q0 + Vector3(0, gh, 0), q0 + Vector3(0, maxf(top_q, gh), 0), p0 + Vector3(0, maxf(top_p, gh), 0), out, plaster)
+		if style.get("timber", false) and not has_door:
+			_timber(walls, p, dir, length, out, gh, minf(top_p, top_q))
 		if kind == "roof" or length < 3.6 or has_door:
 			continue
 		var count := int((length - 1.2) / 3.2)
@@ -339,7 +439,9 @@ static func _building(bd: Dictionary, walls: Buf, windows: Buf, lit: Buf, roofs:
 					c3 + along * hw + Vector3(0, y1, 0), c3 - along * hw + Vector3(0, y1, 0), out, col)
 	var roof_col := _tint(style.roof_col if style.has("roof_col") else ROOFS[absi(id) % ROOFS.size()], id + 5)
 	Landmarks.tower(style, pts, walls, roofs, plaster, roof_col)
-	if Landmarks.roof(style, pts, h, roofs, roof_col):
+	if style.get("pinnacles", false):
+		Landmarks.pinnacles(pts, h, walls, plaster.lightened(0.15))
+	if Landmarks.roof(style, pts, h, roofs, roof_col, walls, plaster):
 		return  # a hip, dome or gable roof: drawn, and it has no floor or ceiling to add
 	var tris := Geometry2D.triangulate_polygon(pts)
 	for k in range(0, tris.size(), 3):
@@ -428,6 +530,34 @@ static func _road(drape: Drape, streets: Buf, ri: int, pts: PackedVector2Array, 
 				_band(drape, streets, ri, p - ext, q + ext, nrm * sgn, width * 0.5 - 1.5, width * 0.5, 0.04, BIKE_LANE)
 			else:               # a track: on the pavement, beside the kerb
 				_band(drape, streets, ri, p - ext, q + ext, nrm * sgn, width * 0.5, width * 0.5 + 1.8, Kerbs.HEIGHT + 0.01, BIKE_TRACK)
+
+
+const SQUARE_Y := 0.012       # above the ground, under the streets crossing it
+const JOINT_EVERY := 3.0      # metres between the paving's joints, across it both ways
+const JOINT_WIDE := 0.09
+
+
+## A paved square (or pedestrian area): its slabs in the surface's colour, jointed in a grid.
+static func _square(drape: Drape, streets: Buf, poly: PackedVector2Array, surface: String) -> void:
+	var col: Color = SURFACES.get(surface, STONE).lerp(STONE, 0.45)
+	drape.poly(streets, poly, SQUARE_Y, col, "surface")
+	var box := Rect2(poly[0], Vector2.ZERO)
+	for p in poly:
+		box = box.expand(p)
+	if box.size.x > 400.0 or box.size.y > 400.0:
+		return
+	var joint := col.darkened(0.14)
+	for axis in 2:
+		var u := ceilf(box.position[axis] / JOINT_EVERY) * JOINT_EVERY
+		while u < box.end[axis]:
+			var strip := PackedVector2Array()
+			var lo: float = box.position[1 - axis]
+			var hi: float = box.end[1 - axis]
+			for corner in [Vector2(u, lo), Vector2(u + JOINT_WIDE, lo), Vector2(u + JOINT_WIDE, hi), Vector2(u, hi)]:
+				strip.append(corner if axis == 0 else Vector2(corner.y, corner.x))
+			for piece in Geometry2D.intersect_polygons(strip, poly):
+				drape.poly(streets, piece, SQUARE_Y + 0.001, joint, "surface")
+			u += JOINT_EVERY
 
 
 ## The water (OsmWater): its surface, WATER_DROP under the land (Landform.water_at), and a low stone wall along every edge where

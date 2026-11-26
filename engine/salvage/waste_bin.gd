@@ -6,24 +6,57 @@
 ##   fountain   water         (the lemonade stand's: runners fill up; nobody drinks from it)
 ## Each gathers its item slowly (`rate` a minute, up to `cap`), costs nothing, and the cart runners salvage it and pool it into
 ## whatever wants it (Hauling). The recycling fills with what the people round it drink: its rate is a head's, times the zone's
-## residents (`heads`). Every kind's numbers are in KINDS, the one place they are set.
+## residents (`heads`). Every kind's numbers are in KINDS, the one place they are set: it is the table of the town's raw sources.
+## A new raw good is a row here (and its item in the Catalog, which marks it salvaged from this table).
 class_name WasteBin
 extends RefCounted
 
-## kind -> {item, rate (a minute; a resident's, `per_head`), cap, start}. A tile's bins of one kind share its rate
-## (SiteFinder.bins), so a town has as much of each as an atom's one bin would give.
-const KINDS := {
-	"garbage": {"item": "scrap", "rate": 1.0, "cap": 30, "start": 10},
+## kind -> {item, rate (a minute; a resident's, `per_head`), cap, start, label (what its heap is called over it), map (the kind
+## of street thing that is one on the map, StreetThings; "" if the map never has them), on_foot (people walk to it themselves,
+## so it must be nearer: Collecting), station (one of the atom's own, where the map has none near: World.add_bin_station)}.
+## A tile's bins of one kind share its rate (SiteFinder.bins), so a town has as much of each as an atom's one bin would give.
+static var KINDS := {
+	"garbage": {"item": "scrap", "rate": 1.0, "cap": 30, "start": 10, "label": "scrap", "map": "bin", "station": true},
 	# (the town's income: what its residents spend at the stalls comes back through the depot as deposits, about $7 a resident
 	# a day, so about 7 bottles each at Deposit.DEPOSIT. A fixed trickle didn't do: too little left an atom's fund full and its
 	# people broke, and what kept an atom going left a block of 13 collapsing daily, its fund piling up. Cut further, people
 	# starve however hard they collect: at 60% of this rate an atom had 148 collapses in 60 days. It opens with enough for
 	# everyone short at the start: a broke medic lost the first day's race for 15.)
-	"recycling": {"item": "recyclables", "rate": 0.83, "per_head": true, "cap": 50, "start": 30},
+	"recycling": {"item": "recyclables", "rate": 0.83, "per_head": true, "cap": 50, "start": 30, "label": "bottles", "map": "recycling", "on_foot": true, "station": true},
 	# (as much as the food bank gave of what leftovers stand for, flour 3.6 + sugar 3.0 + protein 0.8, and of bottled water)
-	"organics": {"item": "leftovers", "rate": 7.4, "cap": 60, "start": 20},
-	"fountain": {"item": "water", "rate": 3.0, "cap": 30, "start": 10},
+	"organics": {"item": "leftovers", "rate": 7.4, "cap": 60, "start": 20, "label": "leftovers", "map": "organics", "station": true},
+	"fountain": {"item": "water", "rate": 3.0, "cap": 30, "start": 10, "label": "water", "map": "fountain"},
 }
+
+
+## A new raw source: `kind` with its row (as KINDS'). Its item must be in the Catalog already; it is marked salvaged.
+static func add_kind(kind: String, row: Dictionary) -> void:
+	KINDS[kind] = row
+	Catalog.item(row.item).scavenged = true
+
+
+## Takes a source out again (a test's own).
+static func remove_kind(kind: String) -> void:
+	KINDS.erase(kind)
+
+
+## The kinds in an atom's own bin station, in the order they stand.
+static func station_kinds() -> Array:
+	return KINDS.keys().filter(func(k): return KINDS[k].get("station", false))
+
+
+## The kinds the map may have, as SiteFinder.bins looks for them: kind -> {point (StreetThings kind), on_foot}.
+static func map_kinds() -> Dictionary:
+	var out := {}
+	for k in KINDS:
+		if str(KINDS[k].get("map", "")) != "":
+			out[k] = {"point": KINDS[k].map, "on_foot": KINDS[k].get("on_foot", false)}
+	return out
+
+
+## What a heap of `kind` is called over it.
+static func label_of(kind: String) -> String:
+	return str(KINDS.get(kind, {}).get("label", kind))
 
 var uid := ""  # see World.mint
 var zone := "district"

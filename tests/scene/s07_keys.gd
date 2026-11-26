@@ -63,6 +63,6 @@ func run() -> void:
 	game.hud.show_target(baker, w)
 	check(game.hud.card.info.text.contains("49% maximum") and game.hud.card.title.text.contains("level %d" % baker.growth.level) and baker.growth.level == 3, "the target card shows the level (the investment took the baker to level 3) and that you own the maximum")
 	game.gun.apply(game.scenario.cast.hot_dog, 40.0)
-	var drifter: Drone = w.drones[4]
+	var drifter: Drone = w.add_drifter(game.scenario.start + Vector2(2, 2), 0.0)  # (someone with no business: the town has no drifters of its own)
 	check(game.gun.apply(drifter, 10.0) == "nothing to invest in", "and there is nothing to invest in on a drifter")
 

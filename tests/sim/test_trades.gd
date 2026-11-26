@@ -33,7 +33,9 @@ func test_every_trade_is_a_ladder_of_known_tiers() -> void:
 				continue
 			var d := Catalog.machine(id)
 			check(d.trade == trade and d.tier == tier, "%s is the %s trade's tier %d" % [id, trade, tier])
-			check((d.build > 0.0 or d.build_scrap > 0) == (tier > 0 and ladder[tier - 1] != "") and not (d.build > 0.0 and d.build_scrap > 0), "%s: building it up costs $%.0f or %d scrap (only from a tier below that is built)" % [id, d.build, d.build_scrap])
+			var of_goods := not d.build_goods.is_empty()
+			check((d.build > 0.0 or of_goods) == (tier > 0 and ladder[tier - 1] != "") and not (d.build > 0.0 and of_goods), "%s: building it up costs $%.0f or goods %s (only from a tier below that is built)" % [id, d.build, d.build_goods])
+			check(d.build_goods.keys().all(func(g): return Catalog.item(g) != null and Catalog.base_price(g) == 0.0), "%s: what it is built of is known, and salvaged (worth nothing but the trip)" % id)
 			check(Catalog.item(d.item) != null and not Catalog.footprint_of(id).is_empty(), "%s makes a known item and has a footprint" % id)
 	for trade in Catalog.TRADES:
 		var bottom: String = Catalog.TRADES[trade][0]
@@ -106,45 +108,67 @@ func test_who_does_not_build_up() -> void:
 	check(given[2].kind == "burger_bar", "the hero can hurry it, by giving the owner the money")
 
 
-func test_a_built_up_business_is_saved_and_merged() -> void:
-	var build := func(tiles: Array) -> World:
-		var w := World.new()
-		for t in tiles:
-			w.zones.add_tile(t)
-			Cluster.build(w, t, TileKey.rect(t).get_center(), Cluster.DRIFTERS, true, 40.0)
-		return w
+func _built_up_build(tiles: Array) -> World:
+	var w := World.new()
+	for t in tiles:
+		w.zones.add_tile(t)
+		Cluster.build(w, t, TileKey.rect(t).get_center(), Cluster.DRIFTERS, true, 40.0)
+	return w
+
+
+func _built_up_tile() -> String:
 	var t0 := TileKey.parse(TileKey.of(50.1086307, 8.6687641))
-	var tile := TileKey.key(t0.x, t0.y)
-	var a: World = build.call([tile])
-	var b: World = build.call([tile])
-	for w in [a, b]:
-		w.add_player(Vector2.ZERO, 10.0)
-		w.begin_play()
-	var stand := func(w: World) -> Machine: return w.zones.machines_in(tile).filter(func(m): return m.trade == "meat")[0]
-	var owner: Drone = a.drone(stand.call(a).owner)
-	a.gun.gift(owner, 1000.0)
-	for w in [a, b]:
-		for i in 700:
-			w.tick(1.0)
-	check(stand.call(a).kind == "burger_bar" and stand.call(b).kind == "hot_dog_stand", "one save built the stand up, the other did not")
+	return TileKey.key(t0.x, t0.y)
+
+
+func _meat_stand(w: World) -> Machine:
+	return w.zones.machines_in(_built_up_tile()).filter(func(m): return m.trade == "meat")[0]
+
+
+# A save whose meat stand the hero paid to build up, run past dawn: the burger bar.
+func _built_up(gift := 1000.0) -> World:
+	var w := _built_up_build([_built_up_tile()])
+	w.add_player(Vector2.ZERO, 10.0)
+	w.begin_play()
+	if gift > 0.0:
+		w.gun.gift(w.drone(_meat_stand(w).owner), gift)
+	for i in 700:
+		w.tick(1.0)
+	return w
+
+
+func test_a_built_up_business_is_saved() -> void:
+	var a := _built_up()
+	check(_meat_stand(a).kind == "burger_bar", "the stand was built up")
 	var data: Dictionary = JSON.parse_string(JSON.stringify(Snapshot.new(a).capture()))
-	var fresh: World = build.call([tile])
+	var fresh := _built_up_build([_built_up_tile()])
 	fresh.add_player(Vector2.ZERO, 0.0)
 	Snapshot.new(fresh).apply(data)
-	check(stand.call(fresh).kind == "burger_bar" and stand.call(fresh).item == "burger" and fresh.trades.day == a.trades.day, "the burger bar loads as a burger bar")
-	var m := Merge.combine(Snapshot.new(a).capture(), Snapshot.new(b).capture(), build)
+	check(_meat_stand(fresh).kind == "burger_bar" and _meat_stand(fresh).item == "burger" and fresh.trades.day == a.trades.day, "the burger bar loads as a burger bar")
+
+
+func test_slow_a_built_up_business_is_merged() -> void:
+	var stand := _meat_stand
+	var a := _built_up()
+	var b := _built_up(0.0)
+	check(stand.call(a).kind == "burger_bar" and stand.call(b).kind == "hot_dog_stand", "one save built the stand up, the other did not")
+	var m := Merge.combine(Snapshot.new(a).capture(), Snapshot.new(b).capture(), _built_up_build)
 	var merged: Machine = stand.call(m)
 	check(merged.kind == "burger_bar" and merged.tier == 1 and merged.item == "burger" and merged.recipe == Catalog.machine("burger_bar").inputs, "merged, it is the burger bar, all of it")
 	check(merged.output.count("hot_dog") == 0 and is_equal_approx(merged.built_total, stand.call(a).built_total), "with no hot dogs left over, and what it cost to build once")
-	check(_accounted(m) and is_equal_approx(m.ledger.sunk, a.ledger.sunk + b.ledger.sunk), "and the money is accounted for, what was sunk into building it up included")
+	var base := _built_up_build([_built_up_tile()]).ledger.sunk  # (what building the tile sinks: its tents, in both saves alike)
+	check(_accounted(m) and is_equal_approx(m.ledger.sunk, a.ledger.sunk + b.ledger.sunk - base), "and the money is accounted for, what was sunk into building it up included, the tile's own tents once (sunk $%.2f)" % m.ledger.sunk)
 
 
 func test_the_standard_cluster_as_it_is_found_and_funded() -> void:
 	var w := World.new()
 	Cluster.found(w, "block", Vector2.ZERO)
 	var vendors := w.zones.drones_in("block").filter(func(d): return d.kind == "vendor")
-	check(vendors.size() == Cluster.STANDS.size() and vendors.all(func(d): return d.wallet == 0.0 and w.machine_of(d).working == (w.machine_of(d).shelter != null)), "as it is found: every stand wrecked but the tent city, every owner broke")
-	check(w.zones.bins_in("block").size() == 5 and w.bottle_depots.size() == 1 and w.relief_trucks.size() == 1 and w.zones.runners_in("block").size() == Cluster.RUNNERS, "with its bins and fountain, runners, the van's stop and the bottle depot")
+	var kinds := vendors.map(func(d): return w.machine_of(d).kind)
+	check(kinds.size() == 6 and ["tent", "lemonade_stand", "bakery", "thrift_stall", "scrap_camp", "hot_dog_stand"].all(func(k): return k in kinds), "an atom grown through its founders: %s" % [kinds])
+	check(vendors.all(func(d): return d.wallet == 0.0 and w.machine_of(d).working == (w.machine_of(d).shelter != null)), "as it is found: every stand wrecked but the tent city, every owner broke")
+	check(w.bottle_depots.size() == 1 and w.relief_trucks.size() == 1 and w.zones.runners_in("block").size() == Cluster.RUNNERS and w.zones.drones_in("block").filter(func(d): return d.kind == "drifter").size() == Cluster.DRIFTERS, "with the bottle depot, the van's stop, %d runners and %d residents" % [Cluster.RUNNERS, Cluster.DRIFTERS])
+	check(w.zones.bins_in("block").filter(func(b): return b.kind == "organics").size() == 2 and w.zones.bins_in("block").any(func(b): return b.kind == "fountain"), "and a block's bins: two organics, and the fountain")
 	check(_accounted(w), "the books balance")
 	w.begin_play()
 	Cluster.fund(w, "block")
@@ -154,7 +178,7 @@ func test_the_standard_cluster_as_it_is_found_and_funded() -> void:
 
 ## The balance point, over a season: the standard cluster, funded once, run on its own in summary (as a block the hero is not in)
 ## for 120 days. Nobody goes to the medical tent, and every trade is built up, slowly (tools/epoch.gd prints the same).
-func test_a_season_of_the_standard_cluster() -> void:
+func test_slow_a_season_of_the_standard_cluster() -> void:
 	var w := World.new()
 	Cluster.found(w, "block", Vector2.ZERO)
 	w.begin_play()

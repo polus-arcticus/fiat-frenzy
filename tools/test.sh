@@ -6,6 +6,7 @@
 #   tools/test.sh sim        just the model tests   (extra arguments go to tests/run.gd, e.g. --only=rescue; with them, one
 #                            process)
 #   tools/test.sh scene|intro
+#   tools/test.sh slow       the slow tier (test_slow_*: long simulations and the parked machinery), in shards
 set -u
 cd "$(dirname "$0")/.."
 GODOT="${GODOT:-$HOME/app-port/Godot_v4.7.2-stable_linux.x86_64}"
@@ -35,6 +36,11 @@ sim() {  # the sim suite: in shards at once, or (with arguments, say --only) in 
 
 case "$suite" in
   sim)   sim "$@" ;;
+  slow)
+    for i in $(seq 0 $((SHARDS - 1))); do
+      run "slow$i" tests/run.gd --slow "--shard=$i/$SHARDS" &
+    done
+    wait ;;
   scene) run scene tests/smoke_scene.gd ;;
   intro) run intro tests/smoke_intro.gd ;;
   all)
@@ -42,7 +48,7 @@ case "$suite" in
     run scene tests/smoke_scene.gd &
     run intro tests/smoke_intro.gd &
     wait ;;
-  *) echo "usage: tools/test.sh [sim|scene|intro|all]"; exit 2 ;;
+  *) echo "usage: tools/test.sh [sim|scene|intro|slow|all]"; exit 2 ;;
 esac
 
 for f in "$out"/*.txt; do

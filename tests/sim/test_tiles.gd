@@ -29,7 +29,7 @@ func test_neighbouring_tiles_line_up_edge_to_edge() -> void:
 	check(not TileKey.border_point(k, TileKey.key(TileKey.parse(k).x + 2, TileKey.parse(k).y)).is_finite(), "tiles that do not touch have no border")
 
 
-func test_a_dormant_town_lives_in_summary_much_as_it_would_in_full() -> void:
+func test_slow_a_dormant_town_lives_in_summary_much_as_it_would_in_full() -> void:
 	# (A funded town that keeps going, the standard cluster with its van and bottle depot: a town without them goes broke and
 	# collapses, which is a cascade, not a test of the summary.)
 	var full := World.new()

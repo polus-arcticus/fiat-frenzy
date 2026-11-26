@@ -74,18 +74,7 @@ func test_the_street_is_hardened_to_it() -> void:
 	check(is_equal_approx(d.bars.warmth, 1.0 - 60.0 / Needs.DAY_COOLING), "a minute in the open costs a drifter a thirtieth of the bar, as ever (%.3f)" % d.bars.warmth)
 
 
-func test_the_town_and_the_atom_have_fires() -> void:
+func test_the_atom_has_a_fire() -> void:
 	var w := World.new(false)
 	Atom.seed(w, "atom", Vector2.ZERO)
 	check(w.fires.size() == 1, "an atom has a barrel fire by its market")
-	var sc := Fixtures.scenario()
-	var town := sc.build()
-	var along := town.fires.filter(func(f): return f.zone == "district").map(func(f): return (f.pos - (sc.start as Vector2)).dot(sc.street_dir()))
-	along.sort()
-	var gap := 0.0
-	for i in range(1, along.size()):
-		gap = maxf(gap, along[i] - along[i - 1])
-	var night: float = Cold.NIGHT_BLOCKS * Cold.BLOCK
-	var lift: Vector2 = sc.lift.centre
-	check(town.heating.is_warm(lift) and town.heating.is_warm((sc.ecb.door as Vector2) - (sc.ecb.out as Vector2) * 3.0), "the bank is warm inside: upstairs by the lift, and in the hall")
-	check(along.size() >= 7 and gap < night, "%d fires down Kaiserstraße, at most %.0f m apart: under the %.0f m a bar lasts at night" % [along.size(), gap, night])

@@ -38,7 +38,7 @@ func _run(game: Node, dir: String) -> void:
 	p.sit(bus, BusView.SEAT_LOCAL)
 	w.hero.enter(Hero.Mode.SEATED)
 	p.controls_enabled = false
-	w.transit.board(game.scenario.ecb_stop.bus, "rode_bus", [])
+	w.transit.board(w.transit.vehicle("bus"), game.scenario.ecb_stop.bus, [], false, 0.0, "rode_bus")
 	for i in 200:
 		await physics_frame
 	# look down at the floor and fire
@@ -52,7 +52,7 @@ func _run(game: Node, dir: String) -> void:
 	for i in 60:
 		await physics_frame
 	var aboard := w.bills.filter(func(b): return b.aboard)
-	print("on the floor: %d piles, $%d; the bus has gone %.0f m from its stop; bills left in the street: %d" % [aboard.size(), aboard.reduce(func(a, b): return a + b.value, 0.0), w.bus.pos.distance_to(w.bus_stop), w.bills.filter(func(b): return not b.aboard).size()])
+	print("on the floor: %d piles, $%d; the bus has gone %.0f m from its stop; bills left in the street: %d" % [aboard.size(), aboard.reduce(func(a, b): return a + b.value, 0.0), w.transit.vehicle("bus").pos.distance_to(w.transit.vehicle("bus").home), w.bills.filter(func(b): return not b.aboard).size()])
 	await _shot("1_floor", dir)
 	var key := InputEventAction.new()
 	key.action = "map"

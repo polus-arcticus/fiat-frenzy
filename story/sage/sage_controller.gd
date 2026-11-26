@@ -66,7 +66,7 @@ func _show_menu() -> void:
 
 func dialogue_chosen(id: String) -> void:
 	if id == DialogueScreen.FAREWELL:
-		world.quests.farewell_to_sage()  # on the letter quest, saying goodbye is what lets the traffic go
+		world.quests.farewell_to_sage()  # on the letter quest, saying goodbye is what mends the tram
 		dialogue.close()
 		return
 	var pages := world.sage.tell(id)

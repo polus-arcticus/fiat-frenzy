@@ -15,10 +15,10 @@ var gravity := 3.2
 var drag := 0.9
 var flutter := 4.0   # how hard the air shoves it about
 
-## The bus, when this was fired from a seat in it. Then the flight is in the bus's own frame (it falls straight down inside, as
-## it would on a moving bus, and is not left streaming behind it), and what it lands on inside the bus stays there (see
-## Gun.land_aboard). Out through the open door it is in the street's frame again, with the bus's speed.
-var frame: BusView = null
+## The vehicle, when this was fired from a seat in it. Then the flight is in its own frame (it falls straight down inside, as
+## it would on a moving bus, and is not left streaming behind it), and what it lands on inside stays there (see
+## Gun.land_aboard). Out through the open door it is in the street's frame again, with the vehicle's speed.
+var frame: VehicleView = null
 
 var _age := 0.0
 var _spin := Vector3.ZERO
@@ -52,15 +52,17 @@ func _miss(_at: Vector2) -> void:
 	pass
 
 
-## It came down on the floor of the bus, at `local` in the bus's own coordinates. (By default that is just a miss, wherever
-## the bus's floor is in the world just now: a contract that misses is void whatever it lands on.)
-func _miss_aboard(local: Vector2) -> void:
-	_miss(world.bus.to_world(local) if world.bus != null else local)
+## It came down on the floor of the vehicle `v`, at `local` in its own coordinates. (By default that is just a miss, wherever
+## that floor is in the world just now: a contract that misses is void whatever it lands on.)
+func _miss_aboard(v: Vehicle, local: Vector2) -> void:
+	_miss(v.to_world(local))
 
 
 func _ready() -> void:
-	if world != null and world.bus != null and world.bus.aboard and world.hero.mode == Hero.Mode.SEATED:
-		frame = get_tree().get_first_node_in_group("bus")
+	if world != null and world.hero.mode == Hero.Mode.SEATED:
+		for view in get_tree().get_nodes_in_group(VehicleView.CABIN):
+			if view.model() != null and view.model().aboard:
+				frame = view
 	if frame != null:
 		_local = frame.to_local(global_position)
 		velocity = frame.global_basis.inverse() * velocity  # (it leaves the muzzle at the hero's own pace: already the bus's)
@@ -89,11 +91,12 @@ func _physics_process(delta: float) -> void:
 	rotate(_spin.normalized(), _spin.length() * delta * 0.2)
 	if frame != null:
 		_local = next
-		if absf(next.x) > Bus.WIDTH * 0.5 + 0.05 or absf(next.z) > Bus.LENGTH * 0.5 or next.y > BusView.CEILING + 0.1:
-			velocity = frame.global_basis * velocity + frame.velocity()  # out of the open door: the street's frame, at the bus's speed
+		var size := frame.model().spec()
+		if absf(next.x) > float(size.width) * 0.5 + 0.05 or absf(next.z) > float(size.length) * 0.5 or next.y > frame.ceiling_height() + 0.1:
+			velocity = frame.global_basis * velocity + frame.velocity()  # out of the open door: the street's frame, at its speed
 			frame = null
 		elif _age > LIFETIME:
-			_miss_aboard(Vector2(next.x, next.z))
+			_miss_aboard(frame.model(), Vector2(next.x, next.z))
 			queue_free()
 		return
 	if to.y <= 0.04 or _age > LIFETIME:
@@ -112,10 +115,10 @@ func _resolve(hit: Dictionary) -> void:
 		_deliver(d)
 		queue_free()
 		return
-	if frame != null and c.has_meta("bus"):  # fired from inside, it hit the floor or a wall of the bus: it lands in the bus
+	if frame != null and c.has_meta(VehicleView.CABIN):  # fired from inside, it hit its floor or a wall: it lands in the vehicle
 		var at := frame.to_local(hit.position)
 		var out: Vector3 = frame.global_basis.inverse() * hit.normal
-		_miss_aboard(Bus.on_the_floor(Vector2(at.x, at.z) + Vector2(out.x, out.z) * 0.4))
+		_miss_aboard(frame.model(), frame.model().on_the_floor(Vector2(at.x, at.z) + Vector2(out.x, out.z) * 0.4))
 		queue_free()
 		return
 	var p: Vector3 = hit.position

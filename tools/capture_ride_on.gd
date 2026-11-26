@@ -43,7 +43,8 @@ func _run() -> void:
 	w.quests.state[QuestBook.LETTER] = "active"
 	# the first ride, skipped through (it has its own capture tool)
 	qc.fast = true
-	game.player.teleport(Vector3(w.bus_stop.x, 0.1, w.bus_stop.y + 4.0), 0.0)
+	var stop: Vector2 = w.transit.vehicle("bus").home
+	game.player.teleport(Vector3(stop.x, 0.1, stop.y + 4.0), 0.0)
 	await qc.ride()
 	qc.fast = false
 	for need in Drone.NEEDS:
@@ -72,12 +73,12 @@ func _run() -> void:
 	while qc.riding_the_bus and t < 6000:
 		await process_frame
 		t += 1
-		if w.bus.state == Bus.State.DRIVING:
-			var left: float = w.bus.pos.distance_to(sc.ecb_stop.bus)
+		if w.transit.vehicle("bus").state == Vehicle.State.DRIVING:
+			var left: float = w.transit.vehicle("bus").pos.distance_to(sc.ecb_stop.bus)
 			if left < 120.0:
 				game.player.look_toward(bus.to_global(Vector3(0, 1.5, 12.0)))
 				await _shot("4_the_gate_ahead")
-		if w.bus.state == Bus.State.ARRIVED:
+		if w.transit.vehicle("bus").state == Vehicle.State.ARRIVED:
 			await _shot("5_stopped_at_the_bank")
 	await _frames(15)
 	var d: Drone = w.cast.doorman

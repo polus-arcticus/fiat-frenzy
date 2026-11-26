@@ -2,9 +2,9 @@
 ## bank's door, and whether the gate is open. Nothing here draws anything (see SecurityGateView).
 ##
 ## Everything is laid out in the gate's own frame: its origin is where the guard stands on the pavement (a little past the
-## kerb, level with the bus stop), `u` runs along the street and `v` runs away from it, into the bank's grounds. `plan` turns
-## the frame into the world, from where the bus stops. (The shuttle's route round the market hall is laid out by hand for this
-## map: a test checks that it clears every building.)
+## kerb, across the road from the tram's stop), `u` runs along the road and `v` runs away from it, into the bank's grounds.
+## `plan` turns the frame into the world, from where the doorman stands (Scenario.ecb_stop). (The shuttle's route over the
+## lawns and round the market hall is laid out by hand for this map: a test checks that it clears every building.)
 class_name SecurityGate
 extends RefCounted
 
@@ -26,16 +26,16 @@ const BLOCKS := [  # big concrete blocks: {u0, u1, v, depth, height}
 ]
 const FLAG_POLES := [[-24.0, 9.0], [-21.5, 9.0], [-19.0, 9.0], [-16.5, 9.0]]  # (u, v): the four flags
 
-## The shuttle's way from the pad to the bank's door: east along the lawn north of the market hall, round the hall's east end, then
-## west along the plaza between the hall and the tower, which is closed at its west end and open only to the east. World
-## coordinates (for this map); the stop itself is laid out from the door.
-const ROUTE := [Vector2(2480, -195), Vector2(2590, -170), Vector2(2592, -120), Vector2(2580, -88), Vector2(2540, -80), Vector2(2500, -80), Vector2(2470, -77)]
+## The shuttle's way from the pad to the bank's door: south over the lawns, round the market hall's east end, then west along
+## the plaza between the hall and the tower, which is closed at its west end and open only to the east. World coordinates (for
+## this map).
+const ROUTE := [Vector2(2610, -250), Vector2(2598, -213), Vector2(2590, -170), Vector2(2592, -120), Vector2(2580, -88), Vector2(2540, -80), Vector2(2500, -80), Vector2(2470, -77)]
 const ENTRANCE_BACK := 8.0     # the shuttle stops this far out from the door...
 const RECEPTION_OUT := 2.6     # ...and the receptionist waits this far out from it
 
 
-## The frame in the world: {origin, into (the way away from the street), along (u's direction), yaw}. `stop` is the bus's
-## last stop (Scenario.ecb_stop).
+## The frame in the world: {origin, into (the way away from the street), along (u's direction), yaw}. `stop` is the bank's end
+## of the ride (Scenario.ecb_stop).
 static func plan(stop: Dictionary, ecb: Dictionary) -> Dictionary:
 	if stop.is_empty() or ecb.is_empty():
 		return {}

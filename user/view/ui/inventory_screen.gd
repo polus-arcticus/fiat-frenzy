@@ -21,7 +21,6 @@ signal closed
 
 const INK := Color(0.16, 0.14, 0.2)
 const PAPER := Color(0.97, 0.94, 0.86, 0.97)
-const BAR_COLORS := {"hunger": Color(0.85, 0.55, 0.25), "thirst": Color(0.3, 0.6, 0.85), "warmth": Color(0.9, 0.35, 0.25)}
 const COLUMNS := 5      # slots across in a stand's stock
 const BAG_COLUMNS := 4  # and in your bag
 
@@ -85,7 +84,7 @@ func _build_left() -> PanelContainer:
 	var v: VBoxContainer = panel.get_child(0)
 	_label(v, "Your inventory", 24)
 	_wallet = _label(v, "", 17)
-	for k in ["hunger", "thirst", "warmth"]:
+	for k in Drone.NEEDS:
 		_left_bars[k] = _bar(v, k)
 	_label(v, "Loadout", 18)
 	_loadout = _grid(v, Loadout.SLOTS)
@@ -198,7 +197,7 @@ func _bar(parent: Node, key: String) -> ProgressBar:
 	bg.bg_color = Color(INK, 0.15)
 	bg.set_corner_radius_all(3)
 	var fill := StyleBoxFlat.new()
-	fill.bg_color = BAR_COLORS[key]
+	fill.bg_color = Ui.bar_color(key)
 	fill.set_corner_radius_all(3)
 	b.add_theme_stylebox_override("background", bg)
 	b.add_theme_stylebox_override("fill", fill)
@@ -314,10 +313,10 @@ func _refresh_machine() -> void:
 		var per_craft: int = m.recipe.get(raw, 0)
 		var low: bool = have < per_craft * Needs.RESTOCK_BELOW
 		row.add_child(SlotView.new().setup(raw, have, "%d / %d" % [have, cap], "%s: %d of %d" % [raw.replace("_", " "), have, cap], "warn" if low else ""))
-		var text := _source_note(raw, cap - have, have)
+		var text := _source_note(raw, cap - have, have, Catalog.machine(m.kind).fetched_by(raw))
 		var up := Catalog.next_tier(m.kind)
-		if up != "" and raw == "scrap" and Catalog.machine(up).build_scrap > 0:
-			text += " %d of it builds it up into a %s." % [Catalog.machine(up).build_scrap, Catalog.machine(up).name]
+		if up != "" and Catalog.machine(up).build_goods.has(raw):
+			text += " %d of it builds it up into a %s." % [int(Catalog.machine(up).build_goods[raw]), Catalog.machine(up).name]
 		var note := _label(row, text, 14)
 		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		note.custom_minimum_size.x = 250
@@ -368,8 +367,10 @@ func _toggle_card(uid: String) -> void:
 	refresh()
 
 
-func _source_note(raw: String, short: int, have: int) -> String:
+func _source_note(raw: String, short: int, have: int, by := "owner") -> String:
 	var name := raw.replace("_", " ")
 	if raw in Catalog.scavenged_goods():
 		return "%s: wants %d more. Runners salvage it from the bins." % [name, short] if short > 0 else "%s: full." % name
+	if by == "runner":
+		return "%s: wants %d more. Runners bring it from another stand." % [name, short] if short > 0 else "%s: full." % name
 	return "%s: wants %d more. Bought from another stand." % [name, short] if short > 0 else "%s: full." % name

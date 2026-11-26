@@ -12,6 +12,7 @@ func _initialize() -> void:
 	root.size = Vector2i(1300, 750)
 	var game: Node = load("res://main.tscn").instantiate()
 	game.skip_intro = true
+	game.grown_at_start = true  # (the town with its founders: GameController.grow_town)
 	root.add_child(game)
 	_run(game, out_dir)
 

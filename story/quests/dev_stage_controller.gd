@@ -9,8 +9,8 @@ extends Node
 ## id, label: in story order. Jumping to one plays every step up to it that has not happened yet.
 const STAGES := [
 	["offer", "Letter in hand, at the market"],
-	["jam", "Bus ride done: Mr. Nobody's street"],
-	["bus", "Farewell said: the bus is waiting"],
+	["breakdown", "Tram ride done: broken down at Börneplatz"],
+	["repaired", "Farewell said: the tram is mended"],
 	["gate", "At the bank's gate (doorman)"],
 	["inside", "Through the gate, at the shuttle"],
 	["desk", "At the reception desk"],
@@ -40,7 +40,7 @@ func go(id: String) -> bool:
 			target = i
 	var w: World = game.world
 	var qc: QuestController = game.quest_controller
-	if target < 0 or busy or not game.player.controls_enabled or not w.hero.is_on_foot() or qc.riding_the_bus:
+	if target < 0 or busy or not game.player.controls_enabled or not w.hero.is_on_foot() or qc.riding:
 		return false
 	busy = true
 	var was_fast := qc.fast
@@ -58,7 +58,6 @@ func _step(id: String) -> void:
 	var w: World = game.world
 	var q := w.quests
 	var qc: QuestController = game.quest_controller
-	var sc: Scenario = game.scenario
 	match id:
 		"offer":
 			if q.state.get(QuestBook.LETTER, "") in ["", "offered"]:
@@ -70,25 +69,23 @@ func _step(id: String) -> void:
 				if w.player.carry.count("letter") == 0:
 					w.player.carry.add("letter", 1)
 				w.events.append("Dev: the letter is yours.")
-			if not q.done("rode_bus"):
-				_put(sc.bus_stop.pos + Vector2(0.0, 4.0))
-		"jam":
-			if not q.done("rode_bus"):
-				_put(sc.bus_stop.pos + Vector2(0.0, 4.0))
+			if not q.done("rode_tram"):
+				_by_the_tram(qc)
+		"breakdown":
+			if not q.done("rode_tram"):
+				_by_the_tram(qc)
 				game.advance(0.2)
 				await qc.ride()
-		"bus":
-			if not q.done("jam_cleared"):
+		"repaired":
+			if not q.done("repaired"):
 				w.sage.tell(Stories.FIRST)
 				q.farewell_to_sage()
 				for i in 3:
 					await get_tree().process_frame
-				var k: Vector3 = game.bus.kerb_point()
-				_put(Vector2(k.x, k.z))
+				_by_the_tram(qc)
 		"gate":
 			if not q.done("rode_on"):
-				var k: Vector3 = game.bus.kerb_point()
-				_put(Vector2(k.x, k.z))
+				_by_the_tram(qc)
 				game.advance(0.2)
 				await qc.ride_on()
 		"inside":
@@ -113,6 +110,15 @@ func _step(id: String) -> void:
 				_put(out)
 				game.player.level_gaze()
 				game.advance(0.2)
+
+
+## Puts the hero at the tram's door, on its platform side.
+func _by_the_tram(qc: QuestController) -> void:
+	var view := qc.tram_view()
+	if view != null:
+		view.door_to_alight()
+		var k := view.kerb_point()
+		_put(Vector2(k.x, k.z))
 
 
 ## Puts the hero on the ground at `at`.

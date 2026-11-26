@@ -27,11 +27,28 @@ func _clearance(sc: Scenario, p: Vector2) -> float:
 func test_the_gate_is_planned_at_the_stop_facing_into_the_grounds() -> void:
 	var sc := _scenario()
 	var g: Dictionary = sc.ecb_gate
-	check(not g.is_empty() and g.guard.distance_to(sc.ecb_stop.doorman) < 4.0, "the gate is planned, with the guard just by the doorman's old spot, at the bus stop")
-	var from_street: Vector2 = (g.pad as Vector2) - (sc.ecb_stop.bus as Vector2)
+	check(not g.is_empty() and g.guard.distance_to(sc.ecb_stop.doorman) < 4.0 and g.guard.distance_to(sc.ecb_stop.at) < 80.0, "the gate is planned across the road from the tram's stop (%.0f m)" % g.guard.distance_to(sc.ecb_stop.at))
+	var from_street: Vector2 = (g.pad as Vector2) - (sc.ecb_stop.at as Vector2)
 	check(from_street.dot(g.into) > 10.0, "the shuttle's pad is on the far side of the gate from the street (%.0f m in)" % from_street.dot(g.into))
 	check(absf((g.into as Vector2).length() - 1.0) < 0.001 and absf((g.along as Vector2).dot(g.into)) < 0.001, "the gate's frame is a proper one: its two directions are at right angles")
 	check(SecurityGate.world_of(g, Vector2.ZERO).is_equal_approx(g.origin) and SecurityGate.world_of(g, Vector2(0, 5)).is_equal_approx((g.origin as Vector2) + (g.into as Vector2) * 5.0), "a spot's v runs into the grounds")
+
+
+func test_nothing_mapped_stands_between_the_tram_and_the_doorman_or_in_the_carts_way() -> void:
+	var sc := _scenario()
+	var g: Dictionary = sc.ecb_gate
+	var way := PackedVector2Array([g.pad]) + (g.route as PackedVector2Array) + PackedVector2Array([g.entrance])
+	var legs: Array = [[sc.ecb_stop.at, g.guard]]
+	for k in way.size() - 1:
+		legs.append([way[k], way[k + 1]])
+	var barred := 0
+	for l in sc.district.street.lines:
+		for k in l.pts.size() - 1:
+			for leg in legs:
+				if Geometry2D.segment_intersects_segment(leg[0], leg[1], l.pts[k], l.pts[k + 1]) != null:
+					barred += 1
+	check(sc.district.street.lines.size() > 100 and barred == 0, "no hedge, wall or fence across any of it (%d), and the rest of the town keeps its own" % barred)
+	check(sc.district.green.trees.size() < Fixtures.district().green.trees.size(), "nor a tree in the way, in the story's own copy of the map: the map as loaded keeps its own")
 
 
 func test_the_gate_and_its_pieces_stand_on_open_ground() -> void:
@@ -54,7 +71,7 @@ func test_the_shuttles_way_to_the_door_clears_every_building() -> void:
 	var route: PackedVector2Array = [g.pad]
 	route.append_array(g.route)
 	route.append(g.entrance)
-	var path := BusPath.build(route, 7.0, 1.6, 2.2, 5.0)  # (as the shuttle is driven: the corners rounded)
+	var path := DrivePath.build(route, 7.0, 1.6, 2.2, 5.0)  # (as the shuttle is driven: the corners rounded)
 	var worst := INF
 	var at_worst := Vector2.ZERO
 	for p in path.pts:
@@ -73,24 +90,24 @@ func test_the_shuttle_makes_the_trip_at_a_golf_cart_pace() -> void:
 	var g: Dictionary = sc.ecb_gate
 	var w := World.new()
 	w.add_player(Vector2(5, 5), 0.0)
-	w.transit.add_shuttle(g.pad, g.pad_heading)
+	var cart := w.transit.add("shuttle", "cart", g.pad, g.pad_heading)
 	var via: Array = []
 	for p in g.route:
 		via.append(p)
-	check(w.transit.board(g.entrance, "rode_shuttle", via, w.shuttle, true) and w.shuttle.aboard, "the hero gets on")
+	check(w.transit.board(cart, g.entrance, via, true, 0.0, "rode_shuttle") and cart.aboard, "the hero gets on")
 	var fastest := 0.0
 	var seconds := 0.0
-	while w.shuttle.state == Bus.State.DRIVING and seconds < 300.0:
+	while cart.state == Vehicle.State.DRIVING and seconds < 300.0:
 		w.tick(0.25)
 		seconds += 0.25
-		fastest = maxf(fastest, w.shuttle.speed)
-		check_once(w.player.pos == w.shuttle.pos, "the hero is where the shuttle is, all the way")
+		fastest = maxf(fastest, cart.speed)
+		check_once(w.player.pos == cart.pos, "the hero is where the shuttle is, all the way")
 	note("    %.0f s, top speed %.1f m/s" % [seconds, fastest])
-	check(w.shuttle.state == Bus.State.ARRIVED and w.shuttle.pos.distance_to(g.entrance) < 0.5 and w.quests.done("rode_shuttle"), "it arrives at the entrance and counts as the shuttle ride")
+	check(cart.state == Vehicle.State.ARRIVED and cart.pos.distance_to(g.entrance) < 0.5 and w.quests.done("rode_shuttle"), "it arrives at the entrance and counts as the shuttle ride")
 	check(fastest <= 7.05 and fastest > 5.0, "at a golf cart's pace, not a bus's (top %.1f m/s)" % fastest)
 	check(seconds > 40.0 and seconds < 120.0, "about %.0f s: long enough to enjoy, short enough not to drag" % seconds)
-	w.transit.disembark(w.shuttle)
-	check(not w.shuttle.aboard, "and the hero can get off")
+	w.transit.disembark(cart)
+	check(not cart.aboard, "and the hero can get off")
 
 
 func test_the_gate_is_open_once_the_doorman_has_cleared_the_hero() -> void:

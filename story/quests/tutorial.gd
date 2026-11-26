@@ -1,8 +1,10 @@
 ## The tutorial, as a set of goals checked against the model. A goal has a title, the text to show, an optional
-## place to point the beacon at, a test that says it's done, a note explaining what the player just did, and the
-## goals that must be done before it opens (`after`). Goals with nothing in the way are open together, so the player
-## can fund the stands in any order. Nothing here changes the world: it only watches, so it needs no nodes and is
-## tested headless like any other system. It is the HUD's Objectives (the user space's shape for what the hero is asked).
+## place to point the beacon at, a test that says it's done, a note explaining what the player just did, the goals that must be
+## done before it opens (`after`), and what must be there for it to open at all (`ready`: a stand whose keeper has not come yet
+## has nothing to fund). Goals with nothing in the way are open together, so the player can fund the stands in any order.
+## The town grows as the hero puts up tents: its founders come in their order (Lodging.FOUNDERS), and the goals follow them.
+## Nothing here changes the world: it only watches, so it needs no nodes and is tested headless like any other system. It is the
+## HUD's Objectives (the user space's shape for what the hero is asked).
 class_name Tutorial
 extends Objectives
 
@@ -13,45 +15,45 @@ var index := 0
 var news: Array[String] = []
 
 var _w: World
-var _cast: Dictionary
+var _town: Variant  # who is who, by role (Scenario.cast): a Dictionary, or a Callable that gives one as it is now
 var _player := Vector2.ZERO
 
+## What each founder brings, as the tent goal says who comes next.
+const COMING := {"bottle_depot": "the bottle depot's attendant (bottles to cash: the town's money)", "first_aid": "a medic",
+	"runner": "a cart runner (they fetch the stands' goods from the bins)", "lemonade_stand": "a lemonade seller",
+	"bakery": "a baker", "thrift_stall": "a thrift seller (coats, of scrap)", "scrap_camp": "a camp keeper (boards, of scrap)",
+	"hot_dog_stand": "a hot dog vendor"}
 
-func _init(world: World, cast: Dictionary, with_pickup := false) -> void:
+
+func _init(world: World, town: Variant, with_pickup := false) -> void:
 	_w = world
-	_cast = cast
-	var hot: Drone = cast.hot_dog
-	var baker: Drone = cast.bakery
-	var tent: Drone = cast.tent
+	_town = town
 	var gun := -1
 	if with_pickup:
 		gun = _goal("gun", "Take the gun", "Pick up the money gun at your feet: aim at it and press E.",
 			func(): return _w.player.pos, func(): return _w.gun_owned,
 			"You have the money gun. Hold left click to print money.")
-	var walk := _goal("walk", "Meet the vendors", "Welcome to the station district. It's abandoned, and everyone left in it is broke, hungry and cold. Walk over to the hot dog vendor. (Anyone with a gold glow needs your help.)",
-		func(): return hot.pos, func(p): return p.distance_to(hot.pos) < 10.0,
+	var walk := _goal("walk", "Meet the tent keeper", "Welcome to the station district. It's abandoned: all that is left is a tent city and its keeper, broke, hungry and cold. Walk over to the tent keeper. (Anyone with a gold glow needs your help.)",
+		func(): return _pos("tent"), func(p): return p.distance_to(_pos("tent")) < 10.0,
 		"", [gun])
-	# Everything below is open at the same time: do it in whatever order suits.
-	var fund_hot := _goal("hot_dog", "Fund the hot dog vendor", "His stand is wrecked and he has nothing. Aim at him and hold LEFT CLICK to spray $1 bills (GIFT mode). Repairs cost about $50. Every dollar you give fills the green bar over a head; fill it and their business levels up.",
-		func(): return hot.pos, func(): return _w.machine_of(hot).working,
-		"The hot dog stand is running: he can cook and sell now. His glow went out because he has what he needs.", [walk])
-	var fund_baker := _goal("bakery", "Fund the baker", "Hot dogs need buns. The baker's stand is wrecked too: gift him about $50 so he can bake.",
-		func(): return baker.pos, func(): return _w.machine_of(baker).working,
-		"The bakery is running: bread to eat, and buns for the hot dogs.", [walk])
-	var tents_at_start: int = _w.machine_of(tent).residence.tents
-	_goal("tent", "Put up a tent", "Everyone here sleeps in the tent city, a tent each. Press E at it and put up another (the gun pays): someone new will come to live in it.",
-		func(): return tent.pos, func(): return _w.machine_of(tent).residence.tents > tents_at_start,
-		"A new tent is up: someone will come to live in it.", [walk])
-	var lemonade: Drone = cast.get("lemonade")
-	if lemonade != null:
-		_goal("lemonade", "Fund the lemonade seller", "Something to drink: the lemonade stand is wrecked too.",
-			func(): return lemonade.pos, func(): return _w.machine_of(lemonade).working,
-			"The lemonade stand is running: water from the fountain and leftovers from the bins become drinks.", [walk])
-	_goal("eat", "Get someone fed", "The Red Cross van brings a few free supplies twice a day. Now the drifters need money to buy food. Gift them until someone eats. Bills that miss land in the street: anyone can pick them up, and so can you.",
-		func(): return _nearest_drifter(), func(): return _sold() >= 3,
-		"Customers are buying: the money you printed is moving through the town.", [fund_hot, fund_baker])
-	var invest := _goal("invest", "Buy a share of the bakery", "Scroll the mouse wheel to switch to INVEST. HOLD left click to charge a contract (the ring fills: the longer, the bigger), aim at the baker and RELEASE. You buy a share of his bakery (up to 49%), and the money goes to him. A contract that misses is void.",
-		func(): return baker.pos, func(): return _w.machine_of(baker).equity.share(_w.ledger.local) > 0.05,
+	# The town comes a tent at a time, its founders in their order; their stands open goals of their own as they come.
+	_goal("tent", "Put up tents", func(): return _tent_line(),
+		func(): return _pos("tent"), func(): return _city() != null and _w.lodging.next_founder(_city()).is_empty(),
+		"The tent city is full: the town is all here.", [walk])
+	var fund_lemonade := _goal("lemonade", "Fund the lemonade seller", "Something to drink: the lemonade stand is wrecked. Aim at the seller and hold LEFT CLICK to spray $1 bills (GIFT mode). Every dollar you give fills the green bar over a head; fill it and their business levels up.",
+		func(): return _pos("lemonade"), func(): return _working("lemonade"),
+		"The lemonade stand is running: water from the fountain and leftovers from the bins become drinks.", [walk], _has.bind("lemonade"))
+	var fund_baker := _goal("bakery", "Fund the baker", "Something to eat: the baker's stand is wrecked too. Gift about $50 so they can bake.",
+		func(): return _pos("bakery"), func(): return _working("bakery"),
+		"The bakery is running: bread to eat, and buns for hot dogs.", [walk], _has.bind("bakery"))
+	_goal("hot_dog", "Fund the hot dog vendor", "Hot dogs: bread and leftovers, more filling for the money. The stand is wrecked: gift the vendor about $50.",
+		func(): return _pos("hot_dog"), func(): return _working("hot_dog"),
+		"The hot dog stand is running.", [walk], _has.bind("hot_dog"))
+	_goal("eat", "Get someone fed", "People need money to buy food. Gift them until someone eats. Bills that miss land in the street: anyone can pick them up, and so can you. Whoever is short of cash takes bottles to the depot.",
+		func(): return _nearest_needy(), func(): return _sold() >= 3,
+		"Customers are buying: the money you printed is moving through the town.", [fund_lemonade, fund_baker])
+	var invest := _goal("invest", "Buy a share of the bakery", "Scroll the mouse wheel to switch to INVEST. HOLD left click to charge a contract (the ring fills: the longer, the bigger), aim at the baker and RELEASE. You buy a share of the bakery (up to 49%), and the money goes to the baker. A contract that misses is void.",
+		func(): return _pos("bakery"), func(): return _has("bakery") and _w.machine_of(_who("bakery")).equity.share(_w.ledger.local) > 0.05,
 		"You own a share of the bakery: you get that share of everything it sells, forever.", [fund_baker])
 	_goal("income", "Earn from your stake", "Every sale now pays you a share of the takings, forever. Keep the town fed until your stake has paid you $2.",
 		func(): return null, func(): return _w.ledger.stake_income >= 2.0,
@@ -65,14 +67,51 @@ func _init(world: World, cast: Dictionary, with_pickup := false) -> void:
 		func(): return null, func(): return false, "", every)
 
 
-## Adds a goal and returns its number. `after` lists the numbers of the goals that must be done first (-1: none).
-func _goal(id: String, title: String, text: Variant, marker: Callable, done: Callable, note := "", after := []) -> int:
+## Adds a goal and returns its number. `after` lists the numbers of the goals that must be done first (-1: none); `ready`, if
+## given, must say true as well.
+func _goal(id: String, title: String, text: Variant, marker: Callable, done: Callable, note := "", after := [], ready := Callable()) -> int:
 	var needs: Array[int] = []
 	for a in after:
 		if int(a) >= 0:
 			needs.append(int(a))
-	goals.append({"id": id, "title": title, "text": text, "marker": marker, "done": done, "note": note, "after": needs, "finished": false})
+	goals.append({"id": id, "title": title, "text": text, "marker": marker, "done": done, "note": note, "after": needs, "finished": false, "ready": ready})
 	return goals.size() - 1
+
+
+## Who is who now, by role (see `_town`).
+func _cast() -> Dictionary:
+	return _town.call() if _town is Callable else _town
+
+
+func _who(role: String) -> Drone:
+	return _cast().get(role)
+
+
+func _has(role: String) -> bool:
+	return _who(role) != null
+
+
+func _pos(role: String) -> Variant:
+	var d := _who(role)
+	return d.pos if d != null else null
+
+
+func _working(role: String) -> bool:
+	return _has(role) and _w.machine_of(_who(role)).working
+
+
+## The first market's tent city.
+func _city() -> Machine:
+	return _w.machine_of(_who("tent")) if _has("tent") else null
+
+
+## The tent goal's line: who will come for the next tent, or that the town is all there.
+func _tent_line() -> String:
+	var city := _city()
+	var next: Dictionary = _w.lodging.next_founder(city) if city != null else {}
+	if next.is_empty():
+		return "The tent city is full."
+	return "The town is its tent city: press E at it and put up a tent (the gun pays $%d). The next to come and live in it: %s. Each comes with their stand, wrecked, and broke." % [int(Catalog.base_price("tent")), COMING.get(next.role, next.role)]
 
 
 func _fed_bankers() -> int:
@@ -95,7 +134,7 @@ func open_goals() -> Array[Dictionary]:
 	for g in goals:
 		if g.finished:
 			continue
-		var ready := true
+		var ready: bool = not g.ready.is_valid() or g.ready.call()
 		for a in g.after:
 			if not goals[a].finished:
 				ready = false
@@ -164,18 +203,23 @@ func take_news() -> Array[String]:
 
 
 func _sold() -> int:
+	var city := _city()
+	if city == null:
+		return 0
 	var n := 0
-	for m in _w.zones.machines_in(_cast.hot_dog.zone):  # (the first market's: the far one at the bank is not the lesson)
+	for m in _w.zones.machines_in(city.zone):  # (the first market's: the far one at the bank is not the lesson)
 		if m.trade in ["bread", "meat", "drinks"]:  # (at whatever tier its owner has built it up to)
 			n += m.sold_total
 	return n
 
 
-func _nearest_drifter() -> Variant:
+## Whoever of the town is shortest of money, near the market: someone to gift so they can buy.
+func _nearest_needy() -> Variant:
+	var city := _city()
+	if city == null:
+		return null
 	var best: Drone = null
-	var bd := INF
-	for d in _w.drones:
-		if d.kind == "drifter" and d.wallet < 10.0 and d.pos.distance_to(_cast.hot_dog.pos) < bd:
-			bd = d.pos.distance_to(_cast.hot_dog.pos)
+	for d in _w.lodging.housed(city):
+		if d.wallet < 10.0 and (best == null or d.wallet < best.wallet):
 			best = d
 	return best.pos if best else null

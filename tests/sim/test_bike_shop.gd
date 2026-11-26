@@ -86,23 +86,6 @@ func test_riding_the_bike() -> void:
 	check(not w.riding.mount().ok, "and you can't get on while you're out cold")
 
 
-func test_the_tutorial_does_not_send_you_for_the_bike() -> void:
-	var sw := _shop(0.0)
-	var w: World = sw[0]
-	var owner: Drone = sw[1]
-	var hot := w.add_vendor("hot_dog_stand", Vector2(20, 0), 0.0, false, false)
-	var baker := w.add_vendor("bakery", Vector2(25, 0), 0.0, false, false)
-	var tent := w.add_vendor("tent", Vector2(30, 0), 0.0, false, false)
-	var t := Tutorial.new(w, {"hot_dog": hot, "bakery": baker, "tent": tent, "bike_shop": owner}, false)
-	var mentions := 0
-	for goal in t.goals:
-		var line: Variant = goal.text
-		var text: String = line.call() if line is Callable else line
-		if text.to_lower().contains("bicycle") or text.to_lower().contains("bike"):
-			mentions += 1
-	check(mentions == 0, "no tutorial step mentions the bicycle: it is too dear to be a goal yet")
-
-
 func test_the_skate_shop_sells_a_board_at_the_price_of_a_board() -> void:
 	var w := World.new()
 	var owner := w.add_vendor("skate_shop", Vector2(0, 0), 600.0, true, true)

@@ -11,7 +11,8 @@ var mode := "gift"  # gift, or cash once it has landed
 var zone := "district"
 var pos := Vector2.ZERO
 var loose := false  # lying on the ground, ready to be picked up
-var aboard := false # lying on the floor of the bus, and going where it goes (then `local` is where, in the bus's own coordinates)
+var aboard := false # lying on a vehicle's floor, and going where it goes (`ride` is which, `local` where in its own coordinates)
+var ride := ""
 var local := Vector2.ZERO
 
 

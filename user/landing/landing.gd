@@ -5,7 +5,7 @@
 class_name Landing
 extends RefCounted
 
-var district: Dictionary            # the map (see OsmImport, tools/osm_to_district.py): buildings and streets
+var district: Dictionary            # the map (see OsmImport, tools/story_district.gd): buildings and streets
 var facing := {}                    # a thing in the world -> the yaw it faces (for its view)
 var start := Vector2.ZERO           # where the hero begins
 var start_yaw := 0.0
@@ -33,6 +33,18 @@ func title() -> String:
 
 ## Whether this is the story (its cast, quests, bus and opening crash are built), or a sandbox.
 func story() -> bool:
+	return false
+
+
+## The vehicles (by name: Vehicle.name) that are wholly the landing's own: its controllers draw and ride them (the story's golf
+## cart).
+func own_rides() -> Array:
+	return []
+
+
+## Is the vehicle called `called` the landing's own to ride just now, so nobody gets on it at its door (a quest has it: the
+## story's tram)?
+func held(_w: World, _called: String) -> bool:
 	return false
 
 

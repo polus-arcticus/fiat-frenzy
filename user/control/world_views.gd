@@ -10,7 +10,7 @@ static func spawn(parent: Node, world: World, facing: Dictionary) -> void:
 	for d in world.drones:
 		drone_view(parent, world, d)
 	for m in world.machines:
-		parent.add_child(MachineView.new().setup(m, world, facing.get(m, 0.0)))
+		parent.add_child(MachineView.new().setup(m, world, facing.get(m, _yaw(m.front))))
 	for f in world.fires:
 		parent.add_child(FireView.new().setup(f))
 	for b in world.bins:
@@ -18,9 +18,9 @@ static func spawn(parent: Node, world: World, facing: Dictionary) -> void:
 	for t in world.relief_trucks:
 		parent.add_child(ReliefView.new().setup(t, facing.get(t, 0.0)))
 	for h in world.hospitals:
-		parent.add_child(HospitalView.new().setup(h, facing.get(h, 0.0)))
+		parent.add_child(HospitalView.new().setup(h, facing.get(h, _yaw(h.front))))
 	for o in world.bottle_depots:
-		parent.add_child(BottleDepotView.new().setup(o, world))
+		parent.add_child(BottleDepotView.new().setup(o, world))  # (it turns itself by its model's front)
 	for ring in world.portals.all:
 		if ring.kind != "lift":  # (the bank's lift is a story set piece)
 			parent.add_child(PortalView.new().setup(ring))
@@ -31,12 +31,11 @@ static func spawn(parent: Node, world: World, facing: Dictionary) -> void:
 ## A view for one thing that turned up after the start (see World.arrivals: a block's cluster found, things a save had). It
 ## faces the way the model says it does (its `front`, or the way it is parked). Bills draw themselves (BillsView).
 static func add(parent: Node, world: World, thing: Object) -> void:
-	var yaw := func(dir: Vector2) -> float: return atan2(-dir.x, -dir.y)
 	if thing is Drone:
 		if thing in world.drones:
 			drone_view(parent, world, thing)
 	elif thing is Machine:
-		parent.add_child(MachineView.new().setup(thing, world, yaw.call(thing.front)))
+		parent.add_child(MachineView.new().setup(thing, world, _yaw(thing.front)))
 	elif thing is BarrelFire:
 		parent.add_child(FireView.new().setup(thing))
 	elif thing is WasteBin:
@@ -44,12 +43,17 @@ static func add(parent: Node, world: World, thing: Object) -> void:
 	elif thing is ReliefTruck:
 		parent.add_child(ReliefView.new().setup(thing, -(thing.heading as Vector2).angle() + PI / 2.0))
 	elif thing is Hospital:
-		parent.add_child(HospitalView.new().setup(thing, yaw.call(thing.front)))
+		parent.add_child(HospitalView.new().setup(thing, _yaw(thing.front)))
 	elif thing is Ambulance:
 		var f: Vector2 = thing.hospital.front if thing.hospital != null else Vector2(0, 1)
-		parent.add_child(AmbulanceView.new().setup(thing, yaw.call(Vector2(-f.y, f.x))))
+		parent.add_child(AmbulanceView.new().setup(thing, _yaw(Vector2(-f.y, f.x))))
 	elif thing is BottleDepot:
 		parent.add_child(BottleDepotView.new().setup(thing, world))
+
+
+## The yaw of a view whose front is toward `dir`.
+static func _yaw(dir: Vector2) -> float:
+	return atan2(-dir.x, -dir.y)
 
 
 static func drone_view(parent: Node, world: World, d: Drone) -> DroneView:

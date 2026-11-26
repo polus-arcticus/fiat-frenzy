@@ -39,7 +39,7 @@ func _run() -> void:
 	game.gun.set_enabled(false)
 	game.hud.visible = true
 	# five drifters in a row in the middle of the street, with different amounts of money
-	var dir: Vector2 = sc._frame.dir
+	var dir: Vector2 = sc.street_dir()
 	var base: Vector2 = sc.start + dir * 6.0
 	var wallets := [0.0, 5.0, 40.0, 250.0, 3000.0]
 	var people: Array[Drone] = []

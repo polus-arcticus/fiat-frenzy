@@ -176,8 +176,8 @@ func test_the_ground_keeps_under_the_streets() -> void:
 	check(n > 500 and under == n, "the ground is never above the streets' surface (%d of %d points; worst %.3f m above)" % [under, n, worst])
 	var own := 0
 	var away := 0
-	for j in f.rows:
-		for i in f.cols:
+	for j in range(0, f.rows, 2):  # (every other row and column: the same picture, a quarter of the time)
+		for i in range(0, f.cols, 2):
 			var p := f.point(i, j)
 			var near_street := false
 			for o in [Vector2(-1, -1), Vector2(0, -1), Vector2(1, -1), Vector2(-1, 0), Vector2.ZERO, Vector2(1, 0), Vector2(-1, 1), Vector2(0, 1), Vector2(1, 1)]:

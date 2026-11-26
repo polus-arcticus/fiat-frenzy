@@ -32,7 +32,7 @@ func test_they_are_made_of_scrap() -> void:
 	check(city.output.count("tent") == 1 and city.output.count("barrel_fire") == 1 and city.input.count("scrap") == 0, "four scrap make a tent and two a barrel, the emptiest first (%d tents, %d barrels, %d scrap left)" % [city.output.count("tent"), city.output.count("barrel_fire"), city.input.count("scrap")])
 	city.craft()
 	check(city.output.count("tent") == 1, "and with no scrap, nothing")
-	check(city.input.caps["scrap"] == city.per_craft("scrap") * Catalog.machine("tent").stock_crafts + Catalog.machine("hostel").build_scrap, "its store holds the wares' scrap and the hostel's (%d)" % city.input.caps["scrap"])
+	check(city.input.caps["scrap"] == city.per_craft("scrap") * Catalog.machine("tent").stock_crafts + Catalog.machine("hostel").build_goods.scrap, "its store holds the wares' scrap and the hostel's (%d)" % city.input.caps["scrap"])
 	var _w := w
 
 
@@ -52,7 +52,7 @@ func test_building_up_waits_on_the_wares_scrap() -> void:
 	var w: World = c[0]
 	var city: Machine = c[1]
 	city.working = true
-	city.input.counts["scrap"] = Catalog.machine("hostel").build_scrap
+	city.input.counts["scrap"] = Catalog.machine("hostel").build_goods.scrap
 	check(w.trades.can_build(city) == "", "200 scrap isn't enough while the wares' stock is short")
 	city.input.counts["scrap"] = city.input.caps["scrap"]
 	check(w.trades.can_build(city) == "hostel", "with its store full, it builds up into a hostel")

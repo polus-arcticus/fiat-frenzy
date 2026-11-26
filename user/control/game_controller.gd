@@ -46,11 +46,16 @@ var skate_controller: SkateController
 var inspector: InspectorController
 var portal_controller: PortalController
 var quest_controller: QuestController
-var bus: BusView
+var rides: RideController  # every ride the hero takes, on anything (the door, the walk, the seat)
+var line_views: Array[VehicleView] = []  # the vehicles that run on a line (a tile's train, a tram), drawn
+var line_riders: Array[LineRideController] = []  # and the hero's way on and off each
 var shuttle: ShuttleView   # the golf cart at the European Central Bank's gate (null if the map has no gate)
 var fade: FadeScreen
 ## Set before the scene is added, or pass --skip-intro: starts the game at once, with the gun in hand.
 var skip_intro := false
+## Start the story's town grown through all its founders, as if the hero had put up every tent (`--grown`; the capture tools'
+## default: CaptureTool). Its stands are as wrecked as ever.
+var grown_at_start := false
 var sim: SimLoop
 ## Whether anything is holding the sim still. Setting it is a plain manual hold, for tests and tools.
 var sim_paused: bool:
@@ -99,13 +104,20 @@ func _ready() -> void:
 	await _step()
 	_build_screens()
 	await _step()
+	rides = RideController.new().setup(world, player, hud, self)
+	add_child(rides)
 	_build_story()
+	_build_lines()
+	interaction.board_prompt = _board_prompt
+	interaction.board_requested.connect(_board)
 	presenter = HudPresenter.new(world, hud, player, gun, inventory, tutorial, marker)
 	hud.notify("Click to capture the mouse.")
 	if load_slot != "":
 		if not load_game(load_slot):
 			hud.notify("That save could not be read: starting fresh.")
 	_last_day = world.clock.day()
+	if scenario != null and load_slot == "" and (grown_at_start or "--grown" in args):
+		grow_town()
 	if scenario != null:
 		dev_stages = DevStageController.new().setup(self)
 		add_child(dev_stages)
@@ -138,6 +150,7 @@ func _step() -> void:
 ## The city's meshes: its geometry baked on a worker thread while the picture keeps moving (from the title), then made into
 ## nodes here.
 func _build_city() -> void:
+	Landmarks.use(LandmarkStyles.all(), LandmarkStyles.PROPS)  # (the story's landmarks: Frankfurt's, by building, on any map of it)
 	var district := landing.district
 	var openings := landing.openings()
 	var tile_key: String = landing.key if landing is TileLanding else ""
@@ -151,7 +164,8 @@ func _build_city() -> void:
 		Ground.datum = datum
 		Ground.kerbs = kerbs  # (the street things stand on the pavements: set before they're baked)
 		var things := StreetThingsBuilder.bake(StreetThings.of(district, kerbs, tile_key))
-		return {"kerbs": kerbs, "city": CityBuilder.bake(district, openings, kerbs, land, datum), "things": things}
+		var rails := RailBuilder.bake(district.get("rail", {}), land, datum, district.get("routes", []))
+		return {"kerbs": kerbs, "city": CityBuilder.bake(district, openings, kerbs, land, datum), "things": things, "rails": rails}
 	var baked: Dictionary
 	if _stepwise:
 		baked = await OffThread.run(self, make)
@@ -163,6 +177,59 @@ func _build_city() -> void:
 	Ground.kerbs = kerbs  # (...and on the pavements)
 	city = CityBuilder.assemble(baked.city)
 	city.add_child(StreetThingsBuilder.assemble(baked.things))  # (lamps, stops, signs, benches, hedges: StreetThings)
+	city.add_child(RailBuilder.assemble(baked.rails))           # (the tracks: OsmRail)
+
+
+## Every vehicle that runs on a line (Transit.add_on: a tile's train, the story's trams): its car, signed with its line's name,
+## the hero's way on and off (LineRideController), and a tram's line's stop signs.
+func _build_lines() -> void:
+	for model in world.vehicles:
+		if model.line == null or model.name in landing.own_rides():
+			continue
+		var livery := {"sign": model.line.name, "colour": model.line.colour}
+		var view: VehicleView = TramView.new() if model.kind in ["tram", "train"] else BusView.new()
+		view.on_ground = true  # (set before it follows: it stands on the land of a tile's hills)
+		view.call("setup", model.pos, VehicleView._yaw_of(model.heading), livery)
+		if model.kind == "tram":
+			for k in model.line.stops.size():
+				add_child(TramStopView.new().setup(model.line, k))
+		view.follow(model, sim)
+		add_child(view)
+		line_views.append(view)
+		var rider := LineRideController.new().setup(world, player, rides, view, model)
+		rider.held = landing.held.bind(world, model.name)
+		add_child(rider)
+		line_riders.append(rider)
+
+
+## What the interaction prompt says about getting on anything here: the story's own rides first, then the lines'.
+func _board_prompt() -> String:
+	if quest_controller != null and quest_controller.board_prompt() != "":
+		return quest_controller.board_prompt()
+	for r in line_riders:
+		if r.prompt() != "":
+			return r.prompt()
+	return ""
+
+
+## The story's first market grown through all its founders at once (Atom.grow: a tent put up for each, printed and sunk as the
+## hero's would be), with their views.
+func grow_town() -> void:
+	if scenario == null:
+		return
+	Atom.grow(world, scenario.market)
+	_views_for_arrivals()
+
+
+## Gets on whatever the prompt offers, and returns when the ride is over.
+func _board() -> void:
+	if quest_controller != null and quest_controller.board_prompt() != "":
+		await quest_controller.board()
+		return
+	for r in line_riders:
+		if r.prompt() != "":
+			await r.board()
+			return
 
 
 ## The landing a spec names ({kind: "story"}, or {kind: "tile", key, lat, lon}: its map must be in the tile cache, see
@@ -172,7 +239,7 @@ func _landing_of(spec: Dictionary) -> Landing:
 		var map := TileSource.district(spec.key)
 		if not map.is_empty():
 			return TileLanding.new(spec.key, map, float(spec.lat), float(spec.lon), TileSource.landform(spec.key, map))
-		push_warning("tile %s is not in the cache: landing in Frankfurt" % spec.key)
+		push_warning("tile %s is not in the cache: landing in the story's town" % spec.key)
 	return Scenario.new(_load_district())
 
 
@@ -192,6 +259,7 @@ func _build_town() -> void:
 	world = landing.build()
 	sim = SimLoop.new(world)
 	WorldViews.spawn(self, world, landing.facing)
+	world.arrivals.clear()  # (everything there is has its view now: what the build grew, say an atom, came with it)
 	if scenario != null:
 		StoryViews.spawn(self, world, scenario)
 	bills_view = BillsView.new().setup(world)
@@ -218,7 +286,7 @@ func _build_player() -> void:
 	gun.set_enabled(skip_intro)
 	world.gun_owned = skip_intro
 	if scenario != null:
-		tutorial = Tutorial.new(world, scenario.cast, not skip_intro)
+		tutorial = Tutorial.new(world, func() -> Dictionary: return scenario.cast, not skip_intro)
 	else:
 		tutorial = LandingObjectives.new(landing)
 		for item in TileLanding.KIT:
@@ -288,7 +356,7 @@ func _intro_running() -> bool:
 	return intro != null and intro.running
 
 
-## What happens to the hero: the conversations, the bus, passing out, and the opening crash.
+## What happens to the hero: the conversations, the story's rides, passing out, and the opening crash.
 func _build_story() -> void:
 	collapse = CollapseController.new().setup(world, player, hud, screens, gun)
 	add_child(collapse)
@@ -298,22 +366,18 @@ func _build_story() -> void:
 		return  # (a tile with no story: passing out and the inspector are all of this there is)
 	sage_controller = SageController.new().setup(world, player, hud, dialogue, self)
 	add_child(sage_controller)
-	bus = BusView.new().setup(scenario.bus_stop.pos, scenario.bus_stop.yaw)
-	bus.follow(world.bus, sim)
-	add_child(bus)
-	if world.shuttle != null:
-		shuttle = ShuttleView.new().setup(world.shuttle.pos, VehicleView._yaw_of(world.shuttle.heading))
-		shuttle.follow(world.shuttle, sim)
+	var cart := world.transit.vehicle("shuttle")
+	if cart != null:
+		shuttle = ShuttleView.new().setup(cart.pos, VehicleView._yaw_of(cart.heading))
+		shuttle.follow(cart, sim)
 		add_child(shuttle)
-	quest_controller = QuestController.new().setup(world, player, hud, dialogue, self, scenario, bus, fade, shuttle)
+	quest_controller = QuestController.new().setup(world, player, hud, dialogue, self, scenario, fade, shuttle, rides)
 	add_child(quest_controller)
 	interaction.talk_requested.connect(func(who: Drone):
 		if who == world.cast.sage:
 			sage_controller.talk()
 		else:
 			quest_controller.talk(who))
-	interaction.board_prompt = quest_controller.board_prompt
-	interaction.board_requested.connect(quest_controller.board)
 	intro = IntroController.new().setup(world, player, hud, scenario, self, add_drone_view)
 	add_child(intro)
 	intro.pickup_spawned.connect(_on_pickup_spawned)
@@ -324,7 +388,7 @@ func _build_story() -> void:
 
 
 func _load_district() -> Dictionary:
-	assert(FileAccess.file_exists(DISTRICT_PATH), "missing %s: run tools/osm_to_district.py" % DISTRICT_PATH)
+	assert(FileAccess.file_exists(DISTRICT_PATH), "missing %s: run tools/story_district.gd" % DISTRICT_PATH)
 	return Scenario.load_district(DISTRICT_PATH)
 
 
@@ -414,16 +478,16 @@ func _unhandled_input(e: InputEvent) -> void:
 
 # ---------------------------------------------------------------- saving and loading
 
-## Whether the world is at rest enough to be written down: not mid-intro, not on the bus ride, not passed out.
+## Whether the world is at rest enough to be written down: not mid-intro, not on a ride, not passed out.
 func can_save() -> bool:
-	var on_the_bus := quest_controller != null and quest_controller.riding_the_bus
-	return not _intro_running() and not on_the_bus and world.player.care == "" and not world.hero.mode == Hero.Mode.SEATED
+	var on_a_ride := rides != null and rides.riding
+	return not _intro_running() and not on_a_ride and world.player.care == "" and not world.hero.mode == Hero.Mode.SEATED
 
 
-## What the model cannot say: where the hero looks, and the scene bits the controllers keep.
+## What the model cannot say: where the hero looks.
 func _hero_state() -> Dictionary:
 	return {"yaw": player.rotation.y, "pitch": player.camera.rotation.x, "third_person": player.wanted_third_person,
-		"gun_mode": gun.mode, "quest": quest_controller.save_state() if quest_controller != null else {}}
+		"gun_mode": gun.mode}
 
 
 ## Writes the game to `slot`. False if it could not be (or is not at a point where it can be).
@@ -453,8 +517,6 @@ func load_game(slot: String) -> bool:
 	player.set_third_person(h.get("third_person", false))
 	gun.mode = h.get("gun_mode", "gift")
 	gun.set_enabled(world.gun_owned)
-	if quest_controller != null:
-		quest_controller.load_state(h.get("quest", {}))
 	tutorial.update(world.player.pos)
 	tutorial.take_news()  # (what was done before the save is not news)
 	sky.update(world.clock.fraction())
@@ -478,7 +540,7 @@ func _checkpoint() -> void:
 		return
 	var q := world.quests
 	var reached := ""
-	if q.active() == QuestBook.LETTER and not q.done("rode_bus"):
+	if q.active() == QuestBook.LETTER and not q.done("rode_tram"):
 		reached = "chapter-letter"
 	if q.active() == QuestBook.LETTER and q.done("rode_on") and not q.done("cleared_gate"):
 		reached = "chapter-bank"

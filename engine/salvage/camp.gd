@@ -1,6 +1,6 @@
 ## A homeless camp among the bike scrap: the salvage trade (Catalog.TRADES "salvage"). Its keeper puts together old skateboards
 ## from the scrap the runners bring (tier 0), and once enough scrap is pooled into it, it is built up into a bike camp that puts
-## together old bikes (tier 1: Trades, MachineDef.build_scrap). Both sell to the hero at their flat price, cheap and slow
+## together old bikes (tier 1: Trades, MachineDef.build_goods). Both sell to the hero at their flat price, cheap and slow
 ## (ItemDef.speed). Its scrap gathers in a garbage bin beside it (WasteBin).
 class_name Camp
 extends RefCounted

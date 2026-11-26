@@ -1,5 +1,5 @@
 ## The quests, as data: who gives them, what they say, and the objectives in order. An objective is done when its
-## `key` is (see Quests.done), and points the beacon at `at` (a World property name: "bus_stop", "sage", or "" for
+## `key` is (see Quests.done), and points the beacon at `at` (a World property name: "tram_stop", "sage", or "" for
 ## nowhere in particular). Rewrite freely: nothing here is rules.
 class_name QuestBook
 extends RefCounted
@@ -14,9 +14,9 @@ const BOOK := {
 		"offer": [
 			"Listen. My phone is a brick, and so is everyone's: they broke in the crash. Nobody at the European Central Bank knows we are alive.",
 			"You, with the gun, have been keeping us fed. Take this letter to them and spell out our predicament: stranded, hungry, and the helicopter is a write-off.",
-			"The bus leaves from the stop by the market. Do hurry. A banker's patience is measured in basis points.",
+			"Tram 11 leaves from the Hauptbahnhof stop, across the road. Do hurry. A banker's patience is measured in basis points.",
 		],
-		"reminder": "The bus, my dear fellow, the bus. The stop is by the market.",
+		"reminder": "The tram, my dear fellow, the tram. Number eleven, across the road.",
 		"gate": [
 			"Good morning. European Central Bank, visitors' entrance. Nobody walks up to the building: it is three hundred metres of lawn and very good security.",
 			"A letter? In your hand? Let me see... a helicopter, a write-off, bankers in a state. Hm. I have seen stranger things come through this gate. Not many.",
@@ -36,11 +36,11 @@ const BOOK := {
 			"The lift is there, beside the desk. It has one button and nobody here has ever pressed it. Please do. Mind the marble on your way. It is a lovely lobby. We would like it to stay one.",
 		],
 		"objectives": [
-			{"text": "Take the bus to the European Central Bank. The stop is by the market (E at the bus to board).", "key": "rode_bus", "at": "bus_stop"},
-			{"text": "The bus is stuck in traffic. Look around: someone is watching you.", "key": "met_sage", "at": "sage"},
-			{"text": "Talk with Mr. Nobody as long as you like: when you are ready to move on, say farewell, and the traffic will clear.", "key": "jam_cleared", "at": "sage"},
-			{"text": "The traffic is moving again and the bus is waiting. Get back on (E at the bus) to carry on to the European Central Bank.", "key": "rode_on", "at": "bus"},
-			{"text": "You are at the European Central Bank. Report to the doorman at the security gate (aim at him and press Q).", "key": "cleared_gate", "at": "ecb"},
+			{"text": "Take tram 11 to the European Central Bank. It waits at the Hauptbahnhof stop, across the road from the square (E at its door to board).", "key": "rode_tram", "at": "tram_stop"},
+			{"text": "The tram has broken down at Börneplatz. Look around: someone is watching you.", "key": "met_sage", "at": "sage"},
+			{"text": "Talk with Mr. Nobody as long as you like: when you are ready to move on, say farewell, and the tram will be mended.", "key": "repaired", "at": "sage"},
+			{"text": "The tram is mended and waiting. Get back on (E at its door) to carry on to the European Central Bank.", "key": "rode_on", "at": "tram"},
+			{"text": "This is the stop for the European Central Bank. Cross to the security gate and report to the doorman (aim at him and press Q).", "key": "cleared_gate", "at": "ecb"},
 			{"text": "The gate is open. Hop on the shuttle just inside (E at the cart): it will take you to the main entrance.", "key": "rode_shuttle", "at": "shuttle"},
 			{"text": "Give the letter to the receptionist at the main entrance (aim at them and press Q).", "key": "delivered", "at": "reception"},
 		],

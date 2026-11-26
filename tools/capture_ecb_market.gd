@@ -15,6 +15,7 @@ func _initialize() -> void:
 	root.size = Vector2i(1300, 750)
 	game = load("res://main.tscn").instantiate()
 	game.skip_intro = true
+	game.grown_at_start = true  # (the town with its founders: GameController.grow_town)
 	root.add_child(game)
 	_run(out_dir)
 
@@ -42,7 +43,7 @@ func _run(dir: String) -> void:
 	game.gun.set_enabled(false)
 	game.hud.visible = false
 	var mid: Machine = w.machine_of(sc.cast.ecb_hot_dog)
-	var from: Vector2 = sc.ecb_stop.bus
+	var from: Vector2 = sc.ecb_stop.at
 	_stand(from + (mid.front as Vector2) * -1.0, Vector3(mid.pos.x, 1.2, mid.pos.y))
 	await _shot("1_from_the_bus", dir)
 	_stand(mid.pos + (mid.front as Vector2) * 4.0, Vector3(mid.pos.x, 1.2, mid.pos.y))

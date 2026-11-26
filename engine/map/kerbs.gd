@@ -12,15 +12,22 @@ extends RefCounted
 const HEIGHT := 0.12          # metres from the carriageway to the top of the kerb
 const SIDE_WALK := 3.4        # the pavement both sides take together where the map doesn't say (CityBuilder's rule)
 const CELL := 16.0            # the lookup grid's cell, in metres
+const TRACK_CLEAR := 0.55     # no pavement this near a tram's rail, so its car clears the kerb
 const LEVEL := ["pedestrian"] # streets that are paved level, with no kerbs
 ## Surfaces rough to roll on (a street's `surface`): a skateboard is slower on them (Skating.ROUGH).
 const ROUGH := ["sett", "cobblestone", "unhewn_cobblestone", "gravel", "pebblestone"]
 
 var pieces: Array[PackedVector2Array] = []
 var piece_roads: Array[int] = []  # with `pieces`: the street (an index into district.roads) each is the pavement of
-var edges: Array = []          # [{a: Vector2, b: Vector2, side: the unit vector toward the pavement, road}]
+var edges: Array = []          # [{a: Vector2, b: Vector2, side: the unit vector toward the pavement, road, top, kind}]
+## Everything a board can grind: the kerb lines (`edges`, first) and the rails of the district's tracks (OsmRail), each rail of each
+## track a line by its own. Same shape as an edge: `top` is how high its top is over the ground, `kind` "kerb" or "rail", and `side`
+## the way off it to land loose things (a rail's: out from the track). The kerbs' own `edges` stay the kerbs: they are what is drawn
+## as kerb stones and what street furniture stands by.
+var grindable: Array = []
 var _cells := {}               # Vector2i -> [piece index]
 var _edge_cells := {}          # Vector2i -> [edge index]
+var _grind_cells := {}         # Vector2i -> [grindable index]
 var _boxes: Array[Rect2] = []
 var _rough: Array[PackedVector2Array] = []  # rough carriageways (ROUGH)
 var _rough_cells := {}
@@ -60,6 +67,18 @@ static func of(district: Dictionary, hollow := {}) -> Kerbs:
 					var band := _quad(p - ext, q + ext, nrm * sgn, width * 0.5, float(reach[side]))
 					var kerb := PackedVector2Array([p + nrm * sgn * width * 0.5, q + nrm * sgn * width * 0.5])
 					bands.append({"poly": band, "kerb": kerb, "side": nrm * sgn, "road": ri, "seg": s})
+	for t in district.get("rail", {}).get("tracks", []):  # a tram's track in the street is kept clear of pavement too
+		var kind: Dictionary = OsmRail.KINDS.get(str(t.kind), {})
+		if not bool(kind.get("street", false)):
+			continue
+		var half := float(kind.gauge) * 0.5 + TRACK_CLEAR
+		var pts: PackedVector2Array = t.pts
+		for s in pts.size() - 1:
+			if pts[s].distance_to(pts[s + 1]) < 0.1:
+				continue
+			var dir := (pts[s + 1] - pts[s]).normalized()
+			var way := _quad(pts[s] - dir * TRACK_CLEAR, pts[s + 1] + dir * TRACK_CLEAR, Vector2(-dir.y, dir.x), -half, half)
+			ways.append({"poly": way, "box": _box(way), "road": -1, "seg": s})
 	var way_cells := _index(ways.map(func(w): return w.box))
 	var walls: Array = []
 	for b in district.get("buildings", []):
@@ -86,10 +105,12 @@ static func of(district: Dictionary, hollow := {}) -> Kerbs:
 			k.piece_roads.append(band.road)
 		for line in lines:
 			if line.size() >= 2 and line[0].distance_to(line[line.size() - 1]) > 0.3:
-				k.edges.append({"a": line[0], "b": line[line.size() - 1], "side": band.side, "road": band.road})
+				k.edges.append({"a": line[0], "b": line[line.size() - 1], "side": band.side, "road": band.road, "top": HEIGHT, "kind": "kerb"})
 	k._boxes.assign(k.pieces.map(func(p): return _box(p)))
 	k._cells = _index(k._boxes)
 	k._edge_cells = _index(k.edges.map(func(e): return Rect2(e.a, Vector2.ZERO).expand(e.b)))
+	k.grindable = k.edges + _rails(district.get("rail", {}))
+	k._grind_cells = _index(k.grindable.map(func(e): return Rect2(e.a, Vector2.ZERO).expand(e.b)))
 	k._rough_cells = _index(k._rough.map(func(q): return _box(q)))
 	return k
 
@@ -122,6 +143,40 @@ func edges_near(p: Vector2, radius: float) -> Array:
 				if Geometry2D.get_closest_point_to_segment(p, e.a, e.b).distance_to(p) <= radius:
 					out[i] = true
 	return out.keys()
+
+
+## The grindable lines within `radius` of `p` (their indices into `grindable`).
+func grind_near(p: Vector2, radius: float) -> Array:
+	var out := {}
+	var lo := _cell(p - Vector2(radius, radius))
+	var hi := _cell(p + Vector2(radius, radius))
+	for x in range(lo.x, hi.x + 1):
+		for y in range(lo.y, hi.y + 1):
+			for i in _grind_cells.get(Vector2i(x, y), []):
+				var e: Dictionary = grindable[i]
+				if Geometry2D.get_closest_point_to_segment(p, e.a, e.b).distance_to(p) <= radius:
+					out[i] = true
+	return out.keys()
+
+
+## The two rails of every track in `rail` (OsmRail's district entry), a line to each stretch of each: a gauge apart, their tops as
+## high as the kind of track says. A tram's, flush in its street, are low.
+static func _rails(rail: Dictionary) -> Array:
+	var out: Array = []
+	for t in rail.get("tracks", []):
+		var kind: Dictionary = OsmRail.KINDS.get(str(t.kind), {})
+		if kind.is_empty():
+			continue
+		var pts: PackedVector2Array = t.pts
+		var half := float(kind.gauge) * 0.5
+		for s in pts.size() - 1:
+			if pts[s].distance_to(pts[s + 1]) < 0.1:
+				continue
+			var nrm := (pts[s + 1] - pts[s]).normalized().orthogonal()
+			for sgn in [-1.0, 1.0]:
+				out.append({"a": pts[s] + nrm * sgn * half, "b": pts[s + 1] + nrm * sgn * half, "side": nrm * sgn, "road": -1,
+					"top": float(kind.head), "kind": "rail"})
+	return out
 
 
 static func _cell(p: Vector2) -> Vector2i:
@@ -158,8 +213,22 @@ static func _near(cells: Dictionary, box: Rect2) -> Array:
 static func _clip_all(parts: Array, cut: PackedVector2Array) -> Array:
 	var out: Array = []
 	for part in parts:
-		for piece in Geometry2D.clip_polygons(part, cut):
-			if not Geometry2D.is_polygon_clockwise(piece) and _area(piece) > 0.05:  # (a clockwise result is a hole)
+		var made := Geometry2D.clip_polygons(part, cut)
+		var holed := false
+		for piece in made:
+			holed = holed or Geometry2D.is_polygon_clockwise(piece)
+		if holed:
+			# The cut lies wholly inside the part, leaving a hole (clockwise), which a piece cannot have: the part is halved
+			# through the cut's middle first, so the cut is on each half's edge.
+			var box := _box(part).grow(1.0)
+			var middle := _box(cut).get_center().x
+			for side in [Rect2(box.position, Vector2(middle - box.position.x, box.size.y)), Rect2(middle, box.position.y, box.end.x - middle, box.size.y)]:
+				var half := PackedVector2Array([side.position, Vector2(side.end.x, side.position.y), side.end, Vector2(side.position.x, side.end.y)])
+				for piece in Geometry2D.intersect_polygons(part, half):
+					out.append_array(_clip_all([piece], cut))
+			continue
+		for piece in made:
+			if _area(piece) > 0.05:
 				out.append(piece)
 	return out
 

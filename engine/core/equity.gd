@@ -38,14 +38,6 @@ func room(book: float, xp: float) -> float:
 	return maxf(0.0, (MAX_STAKE - stake) * value(book, xp) / (1.0 - MAX_STAKE))
 
 
-## What it would cost to take the heroes' stake up to `target` (at today's valuation).
-func cost_to_reach(target: float, book: float, xp: float) -> float:
-	var s := stake
-	if target <= s:
-		return 0.0
-	return value(book, xp) * (target - s) / (1.0 - target)
-
-
 ## `hero` buys up to `amount` worth, as much as fits under the cap. Returns the dollars actually accepted. The new money
 ## dilutes every stake already held, and the buyer gets what it bought.
 func buy(amount: float, book: float, xp: float, hero := "") -> float:

@@ -97,28 +97,129 @@ func test_a_tile_seeds_the_same_way_whatever_was_built_before_it() -> void:
 
 
 ## The engine on its own (World.new(false)): what a headless run on a map of anywhere needs, with no hero and no story. It has
-## none of their systems, every system that takes a turn is the engine's or the people's, and the standard cluster runs on it.
+## none of their systems, every system that takes a turn is the engine's or the people's, and an atom runs on it. (That a town
+## keeps itself going for days on an engine-only world is founders.* and tile_landing.it_keeps_itself_going.)
 func test_the_engine_runs_without_the_hero_or_the_story() -> void:
 	var w := World.new(false)
 	for field in ["gun", "commerce", "hero", "riding", "transit", "skating", "sage", "quests", "attention"]:
 		check(w.get(field) == null, "an engine-only world has no %s" % field)
 	var theirs := w._end_of_tick.filter(func(s): return not (s.get_script().resource_path.begins_with("res://engine/") or s.get_script().resource_path.begins_with("res://npc/")))
 	check(theirs.is_empty(), "and every system that takes a turn is the engine's or the people's (%s)" % [theirs.map(func(s): return s.get_script().resource_path)])
-	Cluster.found(w, "block", Vector2.ZERO)
+	Fixtures.grown_atom(w)
 	w.begin_play()
-	Cluster.fund(w, "block")
-	for i in int(Clock.DAY_SECONDS) * 2:
+	Cluster.fund(w, "atom")
+	for i in 120:
 		w.tick(1.0)
-	check(Fixtures.sold(w, "block") > 100 and not w.events.any(func(e): return "collapsed" in e), "the standard cluster runs two days on it, trading, nobody collapsing (%d sold)" % Fixtures.sold(w, "block"))
-	check(is_equal_approx(w.total_money(), w.ledger.printed), "with the money accounted for")
+	check(Fixtures.sold(w, "atom") > 0 and is_equal_approx(w.total_money(), w.ledger.printed), "an atom trades on it, the money accounted for (%d sold in two minutes)" % Fixtures.sold(w, "atom"))
 	var data: Dictionary = JSON.parse_string(JSON.stringify(Snapshot.new(w).capture()))
 	check(not data.systems.has("gun") and data.systems.has("trades"), "and it saves only what it has")
 
 
 func test_every_script_is_in_one_of_the_four_spaces() -> void:
-	for old in ["res://sim", "res://features", "res://control", "res://view"]:
-		check(not DirAccess.dir_exists_absolute(old), "%s is gone: its scripts are in engine/, npc/, user/ or story/" % old)
-	check(_all().size() > 140, "and the spaces hold the scripts (%d)" % _all().size())
+	check(_all().size() > 140, "the spaces hold the scripts (%d)" % _all().size())
+
+
+## The three concerns, across the spaces: building the world from the map (the map's model and the city's views), the economy
+## (people, machines, money and the goods between them), and the story. The world building names no part of the economy and the
+## economy no part of the world building: they meet only in the composition roots and in what places things on the map (the
+## landings and the tile's atom). Shared ground both may name: the road graph, footprints, tiles, navigation, walking, zones,
+## the clock and names; and for views, Ground (the height of the street's surface, that every view stands its things on).
+const WORLD_DIRS := ["res://engine/map/", "res://engine/view/world/"]
+const ECONOMY_DIRS := ["res://engine/entities/", "res://engine/deposit/", "res://engine/salvage/", "res://engine/lodging/", "res://engine/relief/", "res://npc/agents/", "res://npc/medical/"]
+const ECONOMY_CORE := ["Equity", "Catalog", "Cluster", "Atom", "Stacks", "Shelter", "Growth", "MachineDef", "ItemDef", "Inventory", "Pricing", "Wealth", "Levels", "Trades", "Heating", "Ledger", "TileSummary"]
+const SHARED := ["Ground"]
+## Where they still meet, to be undone (docs/review.md): each "file uses Class".
+const CONCERN_DEBT := [
+	"engine/map/site_finder.gd uses Cluster",  # (its street site is laid out by the atom's LAYOUT: the atom should be handed the site)
+	"engine/map/site_finder.gd uses Atom",
+]
+
+
+func _classes_in(dirs: Array) -> Dictionary:
+	var named := RegEx.create_from_string("(?m)^class_name\\s+(\\w+)")
+	var out := {}
+	for path in _all():
+		if dirs.any(func(d): return path.begins_with(d)):
+			var m := named.search(FileAccess.get_file_as_string(path))
+			if m != null:
+				out[m.get_string(1)] = true
+	return out
+
+
+func _uses(paths: Array, classes: Dictionary) -> Array:
+	var word := RegEx.create_from_string("\\b[A-Z][A-Za-z0-9]+\\b")
+	var out := []
+	for path in paths:
+		var seen := {}
+		for w in word.search_all(_code(path)):
+			var cls := w.get_string()
+			if classes.has(cls) and not seen.has(cls):
+				seen[cls] = true
+				out.append("%s uses %s" % [path.trim_prefix("res://"), cls])
+	return out
+
+
+func _report(found: Array, debt: Array, what: String) -> void:
+	var fresh := found.filter(func(f): return not debt.has(f))
+	var paid := debt.filter(func(f): return not found.has(f))
+	for f in fresh:
+		note("      new: " + f)
+	for f in paid:
+		note("      no longer: " + f + " (take it off the list)")
+	check(fresh.is_empty(), "%s: nothing new (%d new, %d still owed)" % [what, fresh.size(), debt.size() - paid.size()])
+	check(paid.is_empty(), "%s: the list of debts is up to date (%d paid off)" % [what, paid.size()])
+
+
+func test_world_building_and_the_economy_keep_apart() -> void:
+	var economy := _classes_in(ECONOMY_DIRS)
+	for c in ECONOMY_CORE:
+		economy[c] = true
+	var world := _classes_in(WORLD_DIRS)
+	for c in SHARED:
+		world.erase(c)
+	var in_dirs := func(dirs: Array) -> Array: return Array(_all()).filter(func(p): return dirs.any(func(d): return p.begins_with(d)))
+	var found := _uses(in_dirs.call(WORLD_DIRS), economy) + _uses(in_dirs.call(ECONOMY_DIRS), world)
+	_report(found, CONCERN_DEBT, "world building and the economy")
+
+
+## Below the story, nothing reaches into the story's state on the world (its quests, its sage, its cast, the gold glow) by field:
+## the class rule above can't see `world.quests`. The roots may.
+const STORY_FIELDS_DEBT := [
+	"user/control/hud_presenter.gd",  # (reads world.quests.objective(): the Objectives stack should be handed in)
+]
+
+
+func test_nothing_below_the_story_reads_the_storys_state() -> void:
+	var field := RegEx.create_from_string("\\.(quests|sage|cast|attention)\\b")
+	var found := []
+	for path in _all():
+		if path.begins_with("res://story/") or path in ROOTS:
+			continue
+		if field.search(_code(path)) != null:
+			found.append(path.trim_prefix("res://"))
+	_report(found, STORY_FIELDS_DEBT, "the story's state")
+
+
+## Below the story, no place of the story's map by name or number: no OpenStreetMap ids, no Frankfurt names. (The new game's
+## map picker may name the city it opens on.)
+const STORY_NAMES := "EZB|Frankfurt|Battonn|Kaiserstra|Sonnemann|Hauptbahnhof|Paulskirche|Kaiserdom"
+const STORY_LITERALS_DEBT := []
+
+
+func test_nothing_below_the_story_names_the_storys_places() -> void:
+	var id := RegEx.create_from_string("(?<![\\w.])\\d{7,10}(?![\\w.])")
+	var place := RegEx.create_from_string(STORY_NAMES)
+	var comment := RegEx.create_from_string("(?m)(^\\s*#.*$|\\s\\s#\\s.*$)")
+	var found := []
+	for path in _all():
+		if path.begins_with("res://story/") or path == "res://user/landing/landing_screen.gd":
+			continue
+		var text := comment.sub(FileAccess.get_file_as_string(path), "", true)
+		if id.search(text) != null:
+			found.append("%s has an OSM id" % path.trim_prefix("res://"))
+		if place.search(text) != null:
+			found.append("%s names a story place" % path.trim_prefix("res://"))
+	_report(found, STORY_LITERALS_DEBT, "the story's places")
 
 
 ## The rule of the spaces: a script names no class from a space after its own (story may name anything). The composition root

@@ -15,7 +15,7 @@ func build(root: Control) -> void:
 	_mode = Ui.label(panel, "", 20)
 	var box: VBoxContainer = panel.get_child(0)
 	_title = Ui.label(box, "You", 15)
-	bars = Ui.bars(box, ["cash", "hunger", "thirst", "warmth"])
+	bars = Ui.bars(box, ["cash"] + Drone.NEEDS)
 
 
 func show_world(w: World, time_scale: float) -> void:

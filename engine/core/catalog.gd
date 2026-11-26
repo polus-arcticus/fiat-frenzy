@@ -43,8 +43,8 @@ static func _build_items() -> Dictionary[String, ItemDef]:
 	]
 	for d in defs:
 		out[d.id] = d
-	for g in ["scrap", "leftovers", "water", "recyclables"]:
-		out[g].scavenged = true
+	for k in WasteBin.KINDS:  # (what the town's bins give is salvaged: the table of its raw sources says which)
+		out[WasteBin.KINDS[k].item].scavenged = true
 	out["old_skateboard"].speed = 0.6
 	out["old_bike"].speed = 0.5
 	for g in ["bicycle", "old_bike", "skateboard", "old_skateboard", "old_coat", "coat"]:
@@ -81,7 +81,7 @@ static func _build_machines() -> Dictionary[String, MachineDef]:
 	var tent := MachineDef.new("tent", "Tent city", "bed")
 	tent.rate = 0.5
 	tent.wares = {"tent": {"scrap": 4}, "barrel_fire": {"scrap": 2}, "camp_kit": {"scrap": 6}}
-	tent.cap = Atom.ROLES.size()
+	tent.cap = Atom.size()  # (its keeper and the founders: Lodging.FOUNDERS)
 	tent.tick = 0.0
 	tent.repair = 30.0
 	tent.warm = 0.02
@@ -133,12 +133,12 @@ static func _build_machines() -> Dictionary[String, MachineDef]:
 	var hostel := MachineDef.new("hostel", "Hostel", "bed")  # (twice the room)
 	hostel.rate = tent.rate
 	hostel.wares = tent.wares
-	hostel.cap = Atom.ROLES.size() * 2
+	hostel.cap = Atom.size() * 2
 	hostel.tick = 0.0
 	hostel.warm = 0.03
 	# (Built of scrap the runners pool into the tent city, not of money: about 35 days of a garbage bin's scrap, WasteBin.KINDS, with its
 	# tents' and barrels' share. At 200 an atom had it on day 24: the user wants no capital formed in an atom's first month.)
-	hostel.build_scrap = 320
+	hostel.build_goods = {"scrap": 320}
 	# The salvage trade: a homeless camp among the bike scrap, where someone puts together old boards from scrap the runners bring
 	# (tier 0), and, built up, old bikes (tier 1). Cheap and slow (ItemDef.speed), at the item's flat price.
 	var camp := MachineDef.new("scrap_camp", "Homeless camp", "old_skateboard")
@@ -155,7 +155,7 @@ static func _build_machines() -> Dictionary[String, MachineDef]:
 	bike_camp.cap = 2
 	bike_camp.tick = 0.0
 	bike_camp.flat_price = true
-	bike_camp.build_scrap = 60
+	bike_camp.build_goods = {"scrap": 60}
 	# The clothing trade: a thrift stall stitches old coats from scrap (tier 0); built up with money, a clothing shop makes coats,
 	# still of scrap until there is a cloth trade to buy from. Flat prices: the hero is who buys clothes, for now.
 	var thrift := MachineDef.new("thrift_stall", "Thrift stall", "old_coat")
@@ -239,6 +239,22 @@ const FIXTURE_FOOTPRINTS := {
 
 static func item(id: String) -> ItemDef:
 	return _items[id]
+
+
+## Adds a kind of item or business made elsewhere than here (a test's, or content laid out by a generator later). A business on
+## no trade's ladder is a tier 0 with nothing above it.
+static func add_item(def: ItemDef) -> void:
+	_items[def.id] = def
+
+
+static func add_machine(def: MachineDef) -> void:
+	_machines[def.id] = def
+
+
+## Takes one out again.
+static func remove(id: String) -> void:
+	_items.erase(id)
+	_machines.erase(id)
 
 
 static func machine(id: String) -> MachineDef:

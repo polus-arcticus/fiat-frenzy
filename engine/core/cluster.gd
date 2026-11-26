@@ -1,51 +1,34 @@
-## The standard cluster: the collection of people a block of the city starts with, defined once. It is the town the economy is
-## balanced on: with its bottles worth Deposit.DEPOSIT at its bottle depot (whoever is short of cash collects them), a cluster
-## the hero has funded once runs on its own with nobody in the medical tent, and its owners save slowly toward building their
-## stands up (Trades; tools/epoch.gd watches it grow for a year). Change what is in it and that balance has to be measured again.
+## The standard cluster: the collection of people a block of the city starts with, defined once. It is an atom grown through all
+## its founders (Atom, Lodging.FOUNDERS), with a block's worth more: RUNNERS cart runners in all, more organics, the Red Cross
+## van's stop (and DRIFTERS residents, none by default). It is the town the economy is balanced on: with its bottles worth Deposit.DEPOSIT at
+## its bottle depot (whoever is short of cash collects them), a cluster the hero has funded once runs on its own with nobody
+## collapsing, and its owners save slowly toward building their stands up (Trades; tools/epoch.gd watches it grow for a year).
+## Change what is in it and that balance has to be measured again.
 ##
-## What is in it:
-##   the four trades at tier 0  a bakery, a hot dog stand, a lemonade stand and a tent; their owners start with VENDOR_WALLET
-##   supply                     its bins (WasteBin: garbage, recycling, two organics, a fountain) and RUNNERS cart runners
-##                              (RUNNER_WALLET each), who salvage them into the stands
-##   residents                  DRIFTERS drifters with PURSE dollars each
-##   for the night and the sick a barrel fire, and the medical tent with its ambulance
-##   the outside world          the Red Cross van's stop and the bottle depot
-## As a block is found (`found`): every stand wrecked but the tent city, and every owner broke. The hero gets it going (`fund`):
-## each owner is given what their repair costs, their reserve and a little over, once.
+## As it is built (`build`): every stand working, its owner with VENDOR_WALLET. As a block is found (`found`): every stand
+## wrecked but the tent city, and every owner broke. The hero gets it going (`fund`): each owner is given what their repair
+## costs, their reserve and a little over, once.
 ##
-## Everyone in it, the bottle depot's attendant included, has a tent of their own in the tent city (see Lodging): it is built with
-## one tent per person, and every tent added brings someone new.
-##
-## Where it stands: along one side of a street (a SITE: {point on the centre line, along, out toward the
-## buildings, width of the carriageway, line: how far out the building line is}). The stands are at the kerb with their counters
-## to the carriageway (there is no traffic: people walk in the road), the tent, the fire and the medical tent against the
-## buildings, the fountain, the bottle depot and the bins further along, the van parked in the lane. On open ground (tests, benches)
-## it is laid out along an open street (`open_site`).
+## Where it stands: along one side of a street (a SITE: {point on the centre line, along, out toward the buildings, width of the
+## carriageway, line: how far out the building line is}), laid out as the atom is (Atom.LAYOUT). On open ground (tests,
+## benches) it is laid out along an open street (`open_site`).
 class_name Cluster
 extends RefCounted
 
-const STANDS := ["bakery", "hot_dog_stand", "lemonade_stand", "tent"]
 const VENDOR_WALLET := 30.0
 const RUNNERS := 2
 const RUNNER_WALLET := 20.0
-const DRIFTERS := 6
+## Residents with no trade of their own (none by default: with the atom's founders, six of them were 100+ collapses a season, the
+## mouths outgrowing the producers, 2026-11-25; a town is its founders, Lodging). Tests may add some.
+const DRIFTERS := 0
 const PURSE := 15.0
 const FUND_OVER := 5.0  # what the hero gives an owner over their repair and reserve
-## How many atoms' worth of leftovers a block's organics give (WasteBin.KINDS): one feeds an atom's 7 but not a block's 13 (five
-## collapse in a season), 1.5 or more is so much that every stall sits at its floor and earns nothing. At 1.2 nobody collapses
-## and the lemonade stand runs short enough to save a little (about $100 in 120 days: tools/../.godot/probe, 2026-11-22).
+## How many atoms' worth of leftovers a block's organics give (WasteBin.KINDS): one feeds an atom but not a block (five collapsed
+## in a season), 1.5 or more is so much that every stall sits at its floor and earns nothing. At 1.2 nobody collapsed and the
+## lemonade stand ran short enough to save a little (2026-11-22).
 const ORGANICS := 1.2
 const ROOM_TO_GROW := 4  # tents its tent city may still have put up, beyond the ones it starts with (it is bigger than an Atom)
-
-## Where each thing stands: [metres along the street from the site, where across it]. Across is "kerb" (just on the
-## pavement), "wall" (this far in from the building line), or "road" (this far out from the kerb into the carriageway).
-## The tent is the first of its modules: it grows down the street from there, one module for every few beds (see Lodging), so
-## nothing stands beyond it.
-const LAYOUT := {
-	"bakery": [-7.5, "kerb", 0.6], "hot_dog_stand": [-2.5, "kerb", 0.6], "lemonade_stand": [2.5, "kerb", 0.6],
-	"fire": [5.5, "wall", 1.0], "tent": [9.0, "wall", 2.0], "fountain": [-16.0, "kerb", 0.6], "runners": [-12.5, "road", 1.5],
-	"drifters": [-5.0, "road", 2.0], "bottle_depot": [-24.0, "kerb", 0.6], "hospital": [-31.0, "wall", 2.0], "van": [12.0, "road", 1.6], "bins": [-39.5, "wall", 1.5],  # (four bins, 2.2 m apart: clear of the medical tent)
-}
+const VAN_AT := [12.0, "road", 1.6]  # where the van parks, as Atom.LAYOUT: in the lane by the tent city
 
 
 ## An open street through `at`, running east (the default site, where there is no map).
@@ -53,7 +36,8 @@ static func open_site(at: Vector2) -> Dictionary:
 	return {"point": at, "along": Vector2(1, 0), "out": Vector2(0, 1), "width": 7.0, "line": 6.0}
 
 
-## The point `along` metres down the site's street, placed across it as LAYOUT says.
+## The point `along` metres down the site's street, placed across it: "kerb" (just on the pavement), "wall" (this far in from
+## the building line), or "road" (this far out from the kerb into the carriageway).
 static func spot(site: Dictionary, along: float, across: String, by: float) -> Vector2:
 	var kerb: float = float(site.width) * 0.5
 	var lateral: float = kerb + by
@@ -64,48 +48,45 @@ static func spot(site: Dictionary, along: float, across: String, by: float) -> V
 	return (site.point as Vector2) + (site.along as Vector2) * along + (site.out as Vector2) * lateral
 
 
-static func _at(site: Dictionary, what: String, shift := 0.0) -> Vector2:
-	var l: Array = LAYOUT[what]
-	return spot(site, l[0] + shift, l[1], l[2])
-
-
 ## Builds a cluster in `zone` at `site` (or along an open street through `at`, if there is none), everything working.
 ## `drifters`, `supply` and `purse` vary it (tests use a bigger purse, or no supply: no runners, and no bins but the garbage);
-## `outside` false leaves out the van and the bottle depot (a town on its own).
-static func build(w: World, zone: String, at: Vector2, drifters := DRIFTERS, supply := true, purse := PURSE, outside := true, site := {}) -> void:
+## `outside` false leaves out the van and the bottle depot (a town on its own). Returns its tent city.
+static func build(w: World, zone: String, at: Vector2, drifters := DRIFTERS, supply := true, purse := PURSE, outside := true, site := {}) -> Machine:
 	if site.is_empty():
 		site = open_site(at)
-	var street_side: Vector2 = -(site.out as Vector2)  # (what faces the carriageway)
-	w.build_zone = zone
-	var tent: Machine = null
-	for kind in STANDS:
-		var v := w.add_vendor(kind, _at(site, kind), VENDOR_WALLET, true, true)
-		var m := w.machine_of(v)
-		m.front = street_side
-		v.pos = m.post()
-		if m.residence != null:
-			tent = m
-			m.residence.wing = signf(Vector2(-street_side.y, street_side.x).dot(site.along))  # (its row goes on down the street)
-	var kinds := ["garbage"]  # (the tent city is built up of scrap the runners pool into it)
+	var skip := []
+	if not supply:
+		skip.append("runner")
+	if not outside:
+		skip.append("bottle_depot")
+	var bins: Array = ["garbage"]  # (the tent city is built up of scrap the runners pool into it)
 	if supply:
-		kinds = ["garbage", "recycling", "organics", "organics"]  # (two organics: a bin feeds an atom's 7, and a block is near twice that)
-		w.add_bin("fountain", _at(site, "fountain")).front = street_side
-		for i in RUNNERS:
-			w.add_runner(_at(site, "runners", i * 1.5), RUNNER_WALLET)
-	for b in w.add_bin_station(_at(site, "bins"), site.along, kinds):
-		b.front = street_side
-		if b.kind == "organics":
+		bins = WasteBin.station_kinds() + ["organics", "fountain"]  # (two organics: a bin feeds an atom, and a block is near twice that)
+	var city := Atom.seed(w, zone, at, site, bins)
+	Atom.grow(w, city, -1, skip)
+	for d in w.zones.drones_in(zone):  # (built working, its owners with money: `found` wrecks it again)
+		if d.kind == "vendor":
+			w.machine_of(d).working = true
+			w.machine_of(d).refresh()
+			w.ledger.printed += VENDOR_WALLET - d.wallet
+			d.wallet = VENDOR_WALLET
+	for b in w.zones.bins_in(zone):
+		if b.kind == "organics" and supply:
 			b.rate = float(WasteBin.KINDS.organics.rate) * ORGANICS / 2.0  # (the two share ORGANICS bins' worth)
+	w.build_zone = zone
+	if supply:
+		var runners := w.zones.runners_in(zone).size()
+		for i in range(runners, RUNNERS):
+			w.add_runner(Atom._at(site, "runner") - (site.along as Vector2) * 1.5 * i, RUNNER_WALLET)
+	var street_side: Vector2 = -(site.out as Vector2)
 	for i in drifters:
-		w.add_drifter(_at(site, "drifters", i * 2.0), purse)
-	w.add_fire(_at(site, "fire"))
-	w.add_hospital(_at(site, "hospital"), street_side)
+		w.add_drifter(spot(site, -5.0 + i * 2.0, "road", 2.0), purse)
 	if outside:
-		var van := w.add_relief_truck(_at(site, "van"))
+		var van := w.add_relief_truck(spot(site, VAN_AT[0], VAN_AT[1], VAN_AT[2]))
 		van.heading = site.along
-		w.add_bottle_depot(_at(site, "bottle_depot"), street_side)
-	w.lodging.house_everyone(tent)  # a tent each
-	tent.residence.tents_cap = tent.residence.tents + ROOM_TO_GROW  # (laid out bigger than an atom: room for a few more all the same)
+	w.lodging.house_everyone(city)  # a tent each
+	city.residence.tents_cap = city.residence.tents + ROOM_TO_GROW  # (laid out bigger than an atom: room for a few more all the same)
+	return city
 
 
 ## The standard cluster as a block is found: built, then every stand but the tent city wrecked and every owner's money gone (taken out of

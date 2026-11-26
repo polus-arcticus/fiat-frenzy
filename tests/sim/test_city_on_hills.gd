@@ -66,7 +66,7 @@ func test_the_streets_lie_on_the_surface() -> void:
 	var land := _hills()
 	var d := Fixtures.tile_district()
 	var baked := CityBuilder.bake(d, {}, Kerbs.of(d, {}), land, DATUM)
-	var heights := [0.015, 0.03, 0.034, 0.04, Kerbs.HEIGHT + 0.01]  # (paving, carriageway, lane lines, bike lanes and tracks)
+	var heights := [CityBuilder.SQUARE_Y, CityBuilder.SQUARE_Y + 0.001, 0.015, 0.03, 0.034, 0.04, Kerbs.HEIGHT + 0.01]  # (squares and their joints, paving, carriageway, lane lines, bike lanes and tracks)
 	var off := 0
 	var over := _over(baked.layers.Streets, land)
 	for h in over:

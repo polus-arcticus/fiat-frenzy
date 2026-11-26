@@ -9,15 +9,14 @@ Only tiers 0 and 1 are built. This note keeps the whole ladders, so each new tie
 ## What the epoch sim says about the ladders
 
 `tools/epoch.gd` runs the standard cluster for a year (`docs/balance.md` has the numbers):
-- **The bins are everyone's ceiling.** Every tier 0 is made of what the bins give (leftovers, water, scrap). Under the food bank,
-  bread was capped at 25 loaves a day by its flour; now a block needs 1.2 organics bins' worth or its people go hungry
-  (docs/balance.md). Every tier above 1 makes more, faster, and needs more coming in: the waste trade has to grow with the
-  others, or they starve it.
-- **Lodging earns nothing while the barrel fire is free.** The tent city is built up of scrap (the hostel, day 41), not of its
+- **The bins are everyone's ceiling.** Every tier 0 is made of what the bins give (leftovers, water, scrap); a block needs 1.2
+  organics bins' worth or its people go hungry. Every tier above 1 makes more, faster, and needs more coming in: the waste trade
+  has to grow with the others, or they starve it.
+- **Lodging earns nothing while the barrel fire is free.** The tent city is built up of scrap (the hostel, day 51), not of its
   takings. Lodging needs something only a roof gives: a cold that a fire can't answer, storage, an address.
 - **Stalls don't climb on their own takings.** With the bottle depot, everyone is kept at about the line where they stop
-  collecting, and the stalls' margins stay thin: in a season only the tent city builds up (of scrap). Under the welfare office
-  money piled up after tier 1 instead (about $20,000 in a year). Tiers 2 and up need money to go somewhere: the hero's, for now.
+  collecting, and the stalls' margins stay thin: in a season only the scrap-built tiers come. Tiers 2 and up need money to go
+  somewhere: the hero's, for now.
 
 ## The ladders
 

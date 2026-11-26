@@ -13,6 +13,9 @@ extends SceneTree
 var out_dir := "/tmp/ff3d_capture"
 var window := Vector2i(1300, 750)
 var game: Node
+## The story's town grown through its founders before the capture starts (the stands and people most captures look at come with
+## them). False: the town as found, its tent city alone.
+var grown := true
 
 
 func _initialize() -> void:
@@ -24,6 +27,7 @@ func _initialize() -> void:
 	game = load("res://main.tscn").instantiate()
 	game.skip_intro = true
 	_configure()
+	game.grown_at_start = grown
 	root.add_child(game)
 	_run()
 

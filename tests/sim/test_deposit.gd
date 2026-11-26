@@ -98,7 +98,7 @@ func test_the_recycling_fills_with_what_people_throw_away() -> void:
 	check(not w.add_bin("organics", Vector2(30, 0)).per_head(), "the organics fill at their own pace, however many are about")
 
 
-func test_a_funded_town_keeps_itself_going_without_the_hero() -> void:
+func test_slow_a_funded_town_keeps_itself_going_without_the_hero() -> void:
 	var w := World.new()
 	Cluster.found(w, "town", Vector2.ZERO)
 	w.begin_play()
@@ -138,7 +138,7 @@ func test_a_dormant_town_collects_too() -> void:
 	check(_accounted(w), "the money is accounted for")
 
 
-func test_two_saves_with_bottle_depots_merge() -> void:
+func test_slow_two_saves_with_bottle_depots_merge() -> void:
 	var build := func(tiles: Array) -> World:
 		var w := World.new()
 		for t in tiles:

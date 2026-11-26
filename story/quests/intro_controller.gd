@@ -16,7 +16,7 @@ const ROTOR := preload("res://assets/models/heli_rotor.glb")
 const BRIEFCASE := preload("res://assets/models/briefcase.glb")
 
 const FALL_TIME := 3.2
-const SKY_OFFSET := Vector3(-28, 40, -26)
+const SKY_OFFSET := Vector3(30, 40, -18)  # in from over the road, clear of the roofs and of the station's halls
 ## Where the bankers land, as (along the street, across it) from the wreck.
 const BANKER_SPOTS := [Vector2(-2.5, -1.5), Vector2(3.0, 1.2), Vector2(-1.0, 2.2)]
 const CASH_BILLS := 10
@@ -71,7 +71,7 @@ func start() -> void:
 	first.origin += SKY_OFFSET
 	wreck.global_transform = first
 	Effects.smoke(wreck, Vector3(0, 2.0, 0.6))
-	_hud.show_caption("Bahnhofsviertel. 6:47 AM.", 2.4)
+	_hud.show_caption("Frankfurt Hauptbahnhof. 6:47 AM.", 2.4)
 	_tween = create_tween()
 	_tween.tween_method(_fall_step, 0.0, 1.0, FALL_TIME).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	_play()

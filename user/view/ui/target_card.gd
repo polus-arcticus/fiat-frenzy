@@ -13,7 +13,7 @@ var _panel: PanelContainer
 func build(root: Control) -> void:
 	_panel = Ui.panel(root, Control.PRESET_CENTER_BOTTOM, Vector2(0, -120))
 	title = Ui.label(_panel, "", 20)
-	bars = Ui.bars(_panel.get_child(0), ["money", "hunger", "thirst", "warmth"])
+	bars = Ui.bars(_panel.get_child(0), ["money"] + Drone.NEEDS)
 	info = Ui.label(_panel, "", 15)
 	_panel.visible = false
 
@@ -24,7 +24,7 @@ func show_target(d: Drone, w: World) -> void:
 		return
 	_panel.visible = true
 	title.text = "%s  ·  level %d" % [d.label if d.label != "" else d.kind, d.growth.level]
-	for k in ["hunger", "thirst", "warmth"]:
+	for k in Drone.NEEDS:
 		bars[k].value = d.bars[k] * 100.0
 	(bars["money"] as LevelBar).level = Wealth.tiers(d.wallet) + 1  # a notch for every order of magnitude: $10, $100, $1,000...
 	bars["money"].value = Wealth.progress(d.wallet) * 100.0

@@ -95,6 +95,11 @@ func _build_prop() -> void:
 			_kiosk(Color(0.78, 0.18, 0.12))
 		"coffee_stop":
 			_kiosk(Color(0.36, 0.22, 0.14))
+		_:  # (a kind with no look of its own yet: a plain stall by its tier, a kiosk from tier 1, so it is never invisible)
+			if Catalog.machine(_kind).tier >= 1:
+				_kiosk(Color(0.45, 0.45, 0.42))
+			else:
+				_stall(Color(0.5, 0.5, 0.46), Color(0.9, 0.88, 0.82), Color(0.6, 0.58, 0.52))
 
 
 ## The tent city: a tent for each person, side by side down its wing, with a cot in each. (No barrel: barrel fires are what the

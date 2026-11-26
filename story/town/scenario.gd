@@ -1,38 +1,52 @@
-## CONTROLLER. Sets up the starting world on top of the district data: the street graph, and a small
-## cast on Kaiserstraße, close together so the four businesses are one little market, with the street's bins
-## and its cart runners a good walk down the street. Every stand starts wrecked and every vendor starts broke: the district is the
-## garden of Eden, and nothing runs until the player funds it. It only builds the model; the game
+## CONTROLLER. The story's landing: the starting world on top of the story's district. Its first market is an atom on the station
+## forecourt (Atom), found as any is: a tent city and its keeper, its bins and a fire. The town comes as the hero puts up tents, its founders
+## in their order (Lodging.FOUNDERS), every stand wrecked and every owner broke: nothing runs until the player funds it (the
+## tutorial walks them through it). On top: the story's own (the medical tent and its ambulance, the bike and skate shops, Mr.
+## Nobody, tram 11 to the bank, the bank's gate, golf cart, market and lift). It only builds the model; the game
 ## controller makes views for what it finds.
 class_name Scenario
 extends Landing  # (the story's landing: see Landing)
 
 const STREET := "Kaiserstraße"
-const NEAR := Vector2(30, 0)
-const ECB_VISITORS := ["Sabine", "Joost", "Ana"]
-const DRIFTER_NAMES := ["Edda", "Karl", "Mehmet", "Dragan", "Ines", "Tobi"]
-## How many of them are about at the start, besides the four vendors. Few, so the economy can be tuned.
-const DRIFTER_COUNT := 2
 
 ## The building the bike shop is in: a four-cornered block 15 m back from the street, just past the start.
 const BIKE_SHOP_BUILDING := 174326357
 ## Mr. Nobody's house: a building on Battonnstraße, a little way along from the museum (which is left alone).
 const SAGE_STREET := "Battonnstraße"
 const SAGE_BUILDING := 249389854
-const KERB_STALL := 4.6        # a stall's middle, this far from the centre line: at the kerb edge of the pavement
-const TENT_DEPTH := 2.6        # a tent's middle, this far in from the building line
-## The street's barrel fires besides the one by the tent city (at 3.5): [metres along from the market, side]. About 60 m apart,
-## less than the 0.75 block (82 m) a full bar lasts the hero at night (Cold); the tents run down the right side past the market.
-const STREET_FIRES := [[-175.0, 1.0], [-120.0, 1.0], [-55.0, 1.0], [60.0, -1.0], [125.0, -1.0], [185.0, -1.0]]
-const HOSPITAL_CENTRE := 6.3  # the medical tent's middle: its open end a step back from the kerb, its back wall on the pavement
+## The story begins on the station forecourt (Emilie-und-Oskar-Schindler-Platz): the market's middle, and the way it runs, in
+## front of the arched train halls, between them and the road. Distances along it (`_fore`) are from the middle that way.
+const FORECOURT_NAME := "Emilie-und-Oskar-Schindler-Platz"
+const FORECOURT := Vector2(-355.0, 101.0)
+const FORECOURT_DIR := Vector2(0.8, 0.6)
+const START_ALONG := -24.0
+const WRECK_ALONG := 34.0
+const WRECK_OFF := 4.0     # (toward the road)
+const HOSPITAL_ALONG := -4.0
+const HOSPITAL_OFF := 11.0  # (toward the road)
+## Its paving, between the station's front and the road (x, y pairs).
+const FORECOURT_PAVING := [-446, 100, -420, 62, -394, 52, -365, 62, -342, 77, -322, 95, -304, 113, -290, 133, -278, 156, -272, 180,
+	-268, 205, -268, 235, -305, 245, -345, 180, -406, 84]
+## The market's site (Atom.seed): the square taken as a street this wide, with its far edge this far across it, toward the station.
+const SITE_WIDTH := 8.0
+const SITE_LINE := 12.0
 const ECB_STREET := "Sonnemannstraße"
 const ECB_BUILDING := 156432555  # the European Central Bank
 const ECB_ZONE := "ecb"          # the market at the bank is a zone of its own, so the first market's people do not trek 2 km to it
-const ECB_REGION_MARGIN := 90.0  # the zone reaches this far round the stop, the gate, the shuttle's way and the door
+const ECB_REGION_MARGIN := 90.0  # the zone reaches this far round the stop, the gate, the market, the shuttle's way and the door
 const LIFT_ZONE := Quests.LIFT_ZONE     # the room the bank's lift goes up to: a zone of its own, built far off the map
 const LIFT_ROOM_CENTRE := Vector2(-3000.0, -3000.0)
 const LIFT_ROOM_HALF := Vector2(8.0, 7.0)  # half its width (x) and depth (y)
-const ECB_KERB_BACK := 9.0     # the stalls stand this far out from the buildings opposite the bank (the pavement and its yard), on that side
-## The story's map: its buildings and streets (tools/osm_to_district.py), and its land, as Overpass gave it (tools/story_land.gd).
+## The bank's gate: where the guard stands, by the road across from the tram's stop, and the way into the grounds.
+const ECB_GATE := Vector2(2598.0, -287.0)
+const ECB_GATE_INTO := Vector2(0.26, 0.97)
+## The bank's market (Atom.seed): on the open ground east of the gate, taken as a street along it, the stalls with their backs
+## to the east.
+const ECB_MARKET := Vector2(2668.0, -252.0)
+const ECB_MARKET_DIR := Vector2(-0.5, 0.866)
+const ECB_MARKET_NAME := "the bank's forecourt"
+## The story's map: its buildings and streets (tools/story_district.gd, from tools/story_map.gd's extract), and its land, as
+## Overpass gave it (tools/story_land.gd).
 const DISTRICT := "res://data/bahnhofsviertel.json"
 const LAND := "res://data/raw/story_land.json"
 const LAND_KEY := "story"  # what its frame's dice are named (the trees)
@@ -42,18 +56,40 @@ const LAND_KEY := "story"  # what its frame's dice are named (the trees)
 ## and its street furniture, brought into the district's metres the way a tile's are (TileSource.district).
 static func load_district(path := DISTRICT, land := LAND) -> Dictionary:
 	var d: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(path))
+	for b in d.buildings:  # (colours are kept as HTML strings in the file: tools/story_district.gd)
+		for o in [b] + b.get("parts", []):
+			if o.has("colour"):
+				o["colour"] = Color.from_string(str(o.colour), Color.WHITE)
+	for r in d.get("routes", []):
+		if str(r.ref) == TRAM:
+			r["colour"] = TRAM_COLOUR  # (coloured along its track: RailBuilder)
+	if not d.has("squares"):
+		d["squares"] = []
+	d.squares.append({"poly": FORECOURT_PAVING.duplicate(), "surface": "paving_stones"})  # (the map has no area for it)
 	if FileAccess.file_exists(land):
 		var raw: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(land))
 		var frame := MapFrame.of_district(d, LAND_KEY)
 		d["water"] = OsmWater.of(raw, frame, d)
 		d["green"] = OsmDressing.of(raw, frame, d)
 		d["street"] = StreetThings.points_in(raw, frame)
+		d["rail"] = OsmRail.of(raw, frame)  # (empty until the land is fetched again with railways in it: tools/story_land.gd)
 	return d
 
-var cast := {}      # "hot_dog", "bakery", "lemonade", "tent": the keeper; "runners": the cart runners
-var van: ReliefTruck
-var hospital: Hospital
-var _toward := {}   # Machine -> unit vector from its kerb to the middle of the street (its customers' side)
+## Who is who, by role: the story's own people ("bike_shop", "skate_shop", "sage", "doorman", "receptionist", "technician"), the
+## market's tent keeper ("tent"), and whichever of its founders have come so far (FOUNDER_CAST: "depot", "medic", "runners" (a
+## list), "lemonade", "bakery", "thrift", "camp", "hot_dog"), and the bank's market's ("ecb_" and the same). Looked up afresh each
+## time: the market grows in play, a tent at a time (Atom, Lodging.FOUNDERS).
+var cast: Dictionary:
+	get:
+		return _cast_now()
+## The founders' roles (Lodging.FOUNDERS), by the name the story calls them.
+const FOUNDER_CAST := {"bottle_depot": "depot", "first_aid": "medic", "runner": "runners", "lemonade_stand": "lemonade",
+	"bakery": "bakery", "thrift_stall": "thrift", "scrap_camp": "camp", "hot_dog_stand": "hot_dog"}
+var market: Machine     # the tent city of the first market (the atom on the station forecourt)
+var ecb_market: Machine  # and of the market at the bank (null if there is none)
+var hospital: Hospital   # the medical tent, the story's own (its ambulance brings the hero in: Rescue)
+var _own := {}           # the story's own people, by role
+var _world: World
 var wreck_pos := Vector2.ZERO  # where the helicopter ends up, in the street beyond the market
 var wreck_yaw := 0.0
 var gun_rest := Vector2.ZERO   # where the money gun lands: just ahead of where the player begins
@@ -65,100 +101,92 @@ var bike_shop := {}
 var skate_shop := {}  # and the skate shop's, in the building next door
 var sage_house := {}  # the same, for Mr. Nobody's house
 var ecb := {}          # and for the European Central Bank (no door is cut in it: the doorman stands outside)
-## The bus: where it waits at the start ({pos, yaw, dir: along the street, kerb_side: from the lane toward the kerb, width: of
-## the carriageway}), and the traffic jam it ends up in outside Mr. Nobody's house
-## ({bus: {pos, yaw}, cars: [{pos, yaw, color}], arrival, arrival_yaw}: where the hero gets off). Empty if there is no house.
-var bus_stop := {}
-var jam := {}
-## Where the bus stops at the European Central Bank, and its doorman: {bus: pos, via: [points the bus drives through to
-## line up with the street], doorman: pos, doorman_faces: pos}. The named street is a long way from the building's own
-## wall in the data, so the gate is on the street. Empty if the street is not in the data.
+## Where the tram lets the hero off for the European Central Bank, and its doorman: {at: the tram's stop, doorman: pos,
+## doorman_faces: pos}. The bank's grounds begin across the road from the stop, and the gate is on that side. Empty if the map
+## has no bank or no such stop.
 var ecb_stop := {}
 ## The security gate at the bank's frontage, and the shuttle's way to the door (see SecurityGate.plan). Empty if there is no stop.
 var ecb_gate := {}
-## The market for the hero's arrival at the bank: {street, frame (the street where the bus stops), side (+1/-1: the pavement
-## opposite the bank's grounds), kerb (how far out from the street's line that pavement's stalls stand)}, and the patch of map that is the zone of its own. Empty if there is no stop.
-var ecb_lane := {}
-var ecb_region := Rect2()
+var ecb_region := Rect2()  # the patch of map that is the bank's market's zone
 var lift := {}  # the lift in the plaza ({pos, facing}) and the room it goes up to ({centre, half}); empty if the map has no bank
-## The streets (also the world's road graph, see build()): the bus's way to the jam is worked out on them.
-var roads: RoadGraph
-
-var _frame: Dictionary
-var _dice := RandomNumberGenerator.new()
+var roads: RoadGraph  # the streets (also the world's road graph, see build())
 
 
 func _init(data: Dictionary) -> void:
 	district = data
-	_frame = MapSites.street_frame(district, STREET, NEAR)
 	roads = RoadGraph.new()
 	for r in district.roads:
 		roads.add_polyline(MapSites.pts(r.pts))
-	var street_dir: Vector2 = _frame.dir
-	var lane := _spot(-16.0, 1.0, float(_frame.width) * 0.25)  # the bus waits in its own (right-hand) lane, at the kerb
-	bus_stop = {"pos": lane.pos, "yaw": atan2(street_dir.x, street_dir.y), "dir": street_dir, "kerb_side": lane.away, "width": float(_frame.width)}
 	bike_shop = MapSites.plan_door(district, BIKE_SHOP_BUILDING, STREET)
 	sage_house = MapSites.plan_door(district, SAGE_BUILDING, SAGE_STREET)
 	var next_door := MapSites.neighbour(district, bike_shop, STREET)
 	skate_shop = MapSites.plan_door(district, next_door, STREET) if next_door >= 0 else {}
-	jam = _plan_jam()
 	ecb = MapSites.plan_door(district, ECB_BUILDING, ECB_STREET)
 	ecb_stop = _plan_ecb_stop()
 	ecb_gate = SecurityGate.plan(ecb_stop, ecb)
-	_plan_ecb_market()
+	if not ecb_gate.is_empty():  # the bank's zone: the stop, the gate, the market, the shuttle's whole way and the door, and a margin
+		var r := Rect2(ecb_stop.at, Vector2.ZERO)
+		for p in [ecb.door, ecb_gate.pad, ecb_gate.entrance, ECB_MARKET] + Array(ecb_gate.route):
+			r = r.expand(p)
+		ecb_region = r.grow(ECB_REGION_MARGIN)
+		_clear_the_banks_way()
 
 
-## The bus's last stop: on the named street nearest the European Central Bank, pulled up in its right-hand lane after
-## lining up with the street, and the doorman on the pavement on the bank's side.
+## What the map has standing across the gate's frontage and the shuttle's way (hedges, walls, fences, trees) is taken out:
+## the gate is the story's own barrier there, and the hero walks up to it from the tram.
+const GATE_CLEAR := Rect2(-27.0, -12.0, 54.0, 29.0)  # in the gate's frame (u, v): out to the road, and in past the barriers
+const WAY_CLEAR := 2.5                              # metres either side of the shuttle's way
+
+
+func _clear_the_banks_way() -> void:
+	var cuts: Array = []
+	var frontage := PackedVector2Array()
+	for corner in [GATE_CLEAR.position, Vector2(GATE_CLEAR.end.x, GATE_CLEAR.position.y), GATE_CLEAR.end, Vector2(GATE_CLEAR.position.x, GATE_CLEAR.end.y)]:
+		frontage.append(SecurityGate.world_of(ecb_gate, corner))
+	cuts.append(frontage)
+	var way := PackedVector2Array([ecb_gate.pad]) + (ecb_gate.route as PackedVector2Array) + PackedVector2Array([ecb_gate.entrance])
+	for k in way.size() - 1:
+		var d := (way[k + 1] - way[k]).normalized() * WAY_CLEAR
+		var n := Vector2(-d.y, d.x)
+		cuts.append(PackedVector2Array([way[k] - d + n, way[k + 1] + d + n, way[k + 1] + d - n, way[k] - d - n]))
+	var street: Dictionary = district.get("street", {})
+	var lines: Array = street.get("lines", [])
+	for cut in cuts:
+		var left: Array = []
+		for l in lines:
+			for piece in Geometry2D.clip_polyline_with_polygon(l.pts, cut):
+				left.append({"kind": l.kind, "pts": piece})
+		lines = left
+	district = district.duplicate()  # (the story's own copy: the map as loaded stays as the map has it)
+	if street.has("lines"):
+		district["street"] = street.duplicate()
+		district.street["lines"] = lines
+	var green: Dictionary = district.get("green", {})
+	if green.has("trees"):
+		var kept := PackedVector2Array()
+		for p in green.trees:
+			if not cuts.any(func(cut): return Geometry2D.is_point_in_polygon(p, cut)):
+				kept.append(p)
+		district["green"] = green.duplicate()
+		district.green["trees"] = kept
+
+
+## The bank's end of the tram ride: the eastbound line's stop for it (TRAM_BANK_AT), and the doorman at the gate across the road.
 func _plan_ecb_stop() -> Dictionary:
-	if ecb.is_empty() or jam.is_empty():
+	if ecb.is_empty():
 		return {}
-	var street := MapSites.street_frame(district, ECB_STREET, ecb.door)
-	if street.is_empty():
-		return {}
-	var from: Vector2 = jam.bus.pos
-	var along: Vector2 = street.dir
-	if along.dot((street.point as Vector2) - from) < 0.0:
-		along = -along
-	var right := Vector2(-along.y, along.x)
-	var width: float = street.width
-	var stop: Vector2 = (street.point as Vector2) + along * 8.0 + right * (width * 0.25)
-	var via: Vector2 = (street.point as Vector2) - along * 30.0 + right * (width * 0.25)  # lined up, a little before it
-	var bank_side := 1.0 if right.dot((ecb.door as Vector2) - (street.point as Vector2)) >= 0.0 else -1.0
-	var gate: Vector2 = (street.point as Vector2) + along * 8.0 + right * bank_side * (width * 0.5 + 2.0)
-	return {"bus": stop, "via": [via], "doorman": gate, "doorman_faces": gate - right * bank_side * 20.0}
+	for route in district.get("routes", []):
+		if str(route.ref) != TRAM or not _eastbound(route):
+			continue
+		for s in route.stops:
+			if str(s.name) == TRAM_BANK_AT:
+				var into := ECB_GATE_INTO.normalized()
+				return {"at": Vector2(s.at[0], s.at[1]), "doorman": ECB_GATE, "doorman_faces": ECB_GATE - into * 20.0}
+	return {}
 
 
-## Where the market at the bank goes: on the pavement across the street from the bank's grounds, at the stop. And the patch of
-## map that is its zone: the stop, the gate, the shuttle's whole way and the door, and a margin.
-func _plan_ecb_market() -> void:
-	if ecb_stop.is_empty():
-		return
-	var frame := MapSites.street_frame(district, ECB_STREET, ecb_stop.bus)
-	var nrm := Vector2(-(frame.dir as Vector2).y, (frame.dir as Vector2).x)
-	var bank_side := 1.0 if nrm.dot((ecb.door as Vector2) - (frame.point as Vector2)) >= 0.0 else -1.0
-	# (The street's mapped width is only a lane of what is really a broad avenue: the stalls are put by the buildings instead.)
-	var wall := MapSites.building_ahead(district, frame.point, nrm * -bank_side, 80.0)
-	ecb_lane = {"street": ECB_STREET, "frame": frame, "side": -bank_side, "kerb": (wall if is_finite(wall) else 24.0) - ECB_KERB_BACK}
-	var r := Rect2(ecb_stop.bus, Vector2.ZERO)
-	for p in [ecb.door, ecb_gate.pad, ecb_gate.entrance] + Array(ecb_gate.route):
-		r = r.expand(p)
-	ecb_region = r.grow(ECB_REGION_MARGIN)
-
-
-## The jam outside Mr. Nobody's house, with the bus joining it the way it arrives: the direction of the last stretch of
-## its journey along Battonnstraße.
-func _plan_jam() -> Dictionary:
-	if sage_house.is_empty():
-		return {}
-	var street := MapSites.street_frame(district, SAGE_STREET, sage_house.door)
-	if street.is_empty():
-		return {}
-	var probe := roads.route(bus_stop.pos, street.point)
-	var fwd: Vector2 = street.dir
-	if probe.size() >= 2 and fwd.dot(probe[probe.size() - 1] - probe[probe.size() - 2]) < 0.0:
-		fwd = -fwd
-	return MapSites.plan_jam(district, sage_house, SAGE_STREET, fwd)
+static func _eastbound(route: Dictionary) -> bool:
+	return float(route.pts[route.pts.size() - 2]) > float(route.pts[0])
 
 
 ## Which buildings get a door cut into them, for CityBuilder: {building id: {edge, t, width, height}}.
@@ -171,79 +199,34 @@ func openings() -> Dictionary:
 
 
 func build() -> World:
-	_dice.seed = 1133  # (the story's own dice, for where its first people stand: the same every build)
 	var w := World.new()
+	_world = w
 	w.roads = roads
 	w.clock.time = 0.033 * Clock.DAY_SECONDS  # 6:47 in the morning, the time the intro names
 
-	# The landing street, laid out across its width. From the centre line out to either building: the carriageway (the middle:
-	# the bus's lane, and where people walk, for there is no traffic now), the kerb, the stalls (their backs to the road,
-	# serving the pavement), the walkway down the middle of the pavement, and against the buildings the tents (open to the
-	# walkway). Along the street, neighbours on one side need about 4.5 m between centres.
-	var stall := KERB_STALL
-	cast["hot_dog"] = _vendor(w, "hot_dog_stand", "Hot dog vendor", 0.0, 1.0, 8.0, stall, false)
-	cast["bakery"] = _vendor(w, "bakery", "Baker", -1.0, -1.0, 6.0, stall, false)
-	cast["lemonade"] = _vendor(w, "lemonade_stand", "Lemonade seller", 4.5, -1.0, 10.0, stall, false)
-	cast["tent"] = _vendor(w, "tent", "Tent keeper", 7.0, 1.0, 4.0, -TENT_DEPTH, true)
-	w.machine_of(cast.tent).working = true  # (the tent city stands: it is where the town lives, and where newcomers come to)
-
-	var fire_spot := _spot(3.5, 1.0, -2.0)  # by the tent, against the buildings: off the walkway
-	var fire := w.add_fire(fire_spot.pos)
-	facing[fire] = atan2(-(fire_spot.toward as Vector2).x, -(fire_spot.toward as Vector2).y)
-	var van_spot := _spot(22.0, 1.0, 0.0)
-	van = w.add_relief_truck(van_spot.pos)
-	facing[van] = (_frame.dir as Vector2).angle() * -1.0 + PI / 2.0
-
-	# The medical tent on the left-hand pavement, well down the street from the market, its open end toward the road and the
-	# ambulance's bay on the carriageway in front of it.
-	var clinic := _spot(26.0, -1.0, HOSPITAL_CENTRE)
-	hospital = w.add_hospital(clinic.pos, clinic.toward)
-	facing[hospital] = atan2(-(clinic.toward as Vector2).x, -(clinic.toward as Vector2).y)
-	facing[w.ambulances[0]] = facing[van]
-
-	for i in DRIFTER_COUNT:
-		var d := w.add_drifter(_at(_dice.randf_range(-12.0, 12.0), _dice.randf_range(-1.0, 1.0)), _dice.randf_range(3.0, 12.0))
-		d.label = "%s %s" % [DRIFTER_NAMES[i], Names.surname(d.uid)]
-
-	# The street's bins, 40 m down the street from the market on the left kerb (garbage, recycling, organics: what the town runs
-	# on, WasteBin), a water fountain beside them, and two cart runners waiting on the pavement, who salvage it all to the stands.
-	var bins_at := _spot(-42.0, -1.0, KERB_STALL)
-	_add_bins(w, bins_at.pos, _spot(-46.5, -1.0, KERB_STALL).pos, bins_at.away)
-	var runners: Array[Drone] = []
-	for k in 2:
-		var r := w.add_runner(_spot(-38.0 - 3.0 * k, -1.0, KERB_STALL + 2.2).pos, 15.0)
-		r.label = "%s %s" % [["Jakob", "Lena"][k], Names.surname(r.uid)]
-		runners.append(r)
-	cast["runners"] = runners
+	# The first market: an atom (Atom) on the station forecourt, along the square in front of the train halls, as found: its tent
+	# city and keeper, its bins and a fire. The town is its founders, who come a tent at a time as the hero puts tents up (the
+	# tutorial walks them through it).
+	var dir := _forecourt_dir()
+	var station := _toward_station()
+	market = Atom.seed(w, Zones.HOME, FORECOURT, market_site())
+	# The medical tent on the forecourt's road side, a little back toward where the hero begins, its open end to the square:
+	# where the hero is brought when they collapse (the story's own: an atom's is a first aid post).
+	var clinic := _fore(HOSPITAL_ALONG, -HOSPITAL_OFF)
+	hospital = w.add_hospital(clinic, station)
+	facing[hospital] = atan2(-station.x, -station.y)
+	facing[w.ambulances[0]] = dir.angle() * -1.0 + PI / 2.0
 	_add_bike_shop(w)
 	_add_sage(w)
 	_add_doorman(w)
 	_add_skate_shop(w)
 	_add_shuttle_and_reception(w)
-	_add_ecb_market(w)  # (the drones before it keep their numbers)
-	_add_lift(w)        # (last, for the same reason)
-	_add_bottle_depots(w)  # (after everything else, so nobody's uid changes)
-	# A homeless camp among the bike scrap, on the left-hand pavement back up the street past the start (see Camp).
-	var camp_spot := _spot(-30.0, -1.0, KERB_STALL)
-	var camp := Camp.pitch(w, camp_spot.pos, camp_spot.away)
-	facing[camp] = atan2(-(camp_spot.away as Vector2).x, -(camp_spot.away as Vector2).y)
-	cast["camp"] = w.drone(camp.owner)
-	# A thrift stall between it and the market, stitching old coats from the street's scrap (its own pile: the camp's is spoken
-	# for). (The bins and the runners are further down, past the camp.)
-	var thrift_spot := _spot(-20.0, -1.0, KERB_STALL)
-	var thrift := Camp.pitch(w, thrift_spot.pos, thrift_spot.away, Camp.KEEPER_WALLET, "thrift_stall", "Thrift seller")
-	facing[thrift] = atan2(-(thrift_spot.away as Vector2).x, -(thrift_spot.away as Vector2).y)
-	cast["thrift"] = w.drone(thrift.owner)
-	# Barrel fires down Kaiserstraße, Moselstraße to Gallusanlage, against the buildings: the hero, new to the street, gets
-	# about two blocks from one by day and under one at night without clothes (Cold), so they are a little closer than that.
-	for spot in STREET_FIRES:
-		var s := _spot(spot[0], spot[1], -2.0)
-		var f := w.add_fire(s.pos)
-		facing[f] = atan2(-(s.toward as Vector2).x, -(s.toward as Vector2).y)
-	_add_ecb_fires(w)
-	start = _at(-24.0, 0.0)  # far enough that "walk over to the hot dog vendor" is a real first step
-	start_yaw = atan2(-(_frame.dir as Vector2).x, -(_frame.dir as Vector2).y)
-	w.transit.add_bus(bus_stop.pos, (_frame.dir as Vector2).angle())
+	_add_ecb_market(w)
+	_add_lift(w)
+	_add_plaza_fire(w)
+	start = _fore(START_ALONG, 0.0)  # across the square from the tent city: a real first walk
+	start_yaw = atan2(-dir.x, -dir.y)
+	_add_trams(w)
 	for layout in [bike_shop, skate_shop, sage_house]:  # the shops and the sage's house are warm inside
 		if not layout.is_empty():
 			w.heating.add_building(layout.poly)
@@ -256,6 +239,10 @@ func build() -> World:
 			if not ecb_region.has_area() or not _bounds(outline).intersects(ecb_region):
 				continue
 			w.nav.add_static(ECB_ZONE, outline)  # (and the bank's neighbours are walls in the bank's zone too)
+	for prop in LandmarkStyles.PROPS:  # nor through a fountain
+		var ground := Landmarks.footprint(prop)
+		if not ground.is_empty():
+			w.nav.add_static("district", ground)
 	for piece in district.get("water", {}).get("pieces", []):  # nor into the Main (over its bridges, streets cut out of it)
 		w.nav.add_static("district", piece)
 		if ecb_region.has_area() and _bounds(piece).intersects(ecb_region):
@@ -265,17 +252,67 @@ func build() -> World:
 			w.parks.append(area.poly)
 	if ecb_region.has_area():
 		w.zones.regions[ECB_ZONE] = ecb_region
-	wreck_pos = offset_on_street(_at(34.0, 0.0), 0.0, 0.0)
+	wreck_pos = _fore(WRECK_ALONG, -WRECK_OFF)  # on the square, under the arched halls
 	wreck_yaw = start_yaw + 0.5
-	gun_rest = start + (_frame.dir as Vector2) * 3.4
-	# The tent city: a tent for everyone in the town (the clerk and the shop owners too), but for the story's scripted cast (Mr.
-	# Nobody has a house; the bank's people have the bank). Its row goes on down the street, away from the market. (The bankers
-	# come later, by helicopter.)
-	var tent := w.machine_of(cast.tent)
-	tent.residence.wing = signf(Vector2(-tent.front.y, tent.front.x).dot(_frame.dir))
-	w.lodging.house_everyone(tent, [w.cast.sage, w.cast.doorman, w.cast.receptionist, w.cast.technician])
-	tent.residence.tents_cap = tent.residence.tents + Cluster.ROOM_TO_GROW  # (the story's town is bigger than an atom: room for a few more all the same)
+	gun_rest = start + dir * 3.4
+	# (Nobody of the story's own is housed in the tent city: the shop owners live in their shops, Mr. Nobody in his house, the
+	# bank's people at the bank, and the bankers come later, by helicopter. Its tents are the founders'.)
 	return w
+
+
+## The first market's site (Atom.seed): the forecourt, taken as a street along it, the stalls with their backs to the station.
+## Not read off a street of the map, so it is the story's to say (FORECOURT, SITE_WIDTH, SITE_LINE).
+func market_site() -> Dictionary:
+	return {"point": FORECOURT, "along": _forecourt_dir(), "out": _toward_station(), "width": SITE_WIDTH, "line": SITE_LINE, "street": FORECOURT_NAME}
+
+
+## Who is who now: the story's own, the tent keepers, and the founders who have come (`cast`).
+func _cast_now() -> Dictionary:
+	var out := _own.duplicate()
+	if _world == null:
+		return out
+	for pair in [["", market], ["ecb_", ecb_market]]:
+		var city: Machine = pair[1]
+		if city == null:
+			continue
+		out[pair[0] + "tent"] = _world.drone(city.owner)
+		var runners: Array[Drone] = []
+		for d in _world.lodging.housed(city):
+			var role := _world.lodging.role_of(d)
+			if role == "runner":
+				runners.append(d)
+			elif FOUNDER_CAST.has(role):
+				out[pair[0] + FOUNDER_CAST[role]] = d
+		if not runners.is_empty():
+			out[pair[0] + "runners"] = runners
+	return out
+
+
+## Tram line 11, both ways, along its own tracks (the district's `routes`): a car each way, waiting at the station and at the
+## bank's end. Each goes round: off one edge of the map, on at the other. The eastbound one is the letter quest's first (`held`):
+## it takes the hero to TRAM_BREAKS_AT, breaks down outside Mr. Nobody's house, and, mended, goes on to TRAM_BANK_AT.
+const TRAM := "11"
+const TRAM_COLOUR := Color(0.80, 0.14, 0.50)  # (the story's choice: the map gives the line none)
+const TRAM_QUEST := "tram_east"
+const TRAM_BREAKS_AT := "Börneplatz"
+const TRAM_BANK_AT := "Ostbahnhof/Sonnemannstraße"
+const TRAM_WAITS := {"tram_east": "Hauptbahnhof", "tram_west": TRAM_BANK_AT}
+const TRAM_STOP_REACH := 5.0
+
+
+func _add_trams(w: World) -> void:
+	for r in district.get("routes", []):
+		if str(r.ref) != TRAM:
+			continue
+		var way := MapSites.pts(r.pts)
+		var places: Array = r.stops.map(func(s): return {"name": str(s.name), "at": Vector2(s.at[0], s.at[1])})
+		var line := Line.through(way, places, "%s %s" % [TRAM, str(r.to).get_slice(" ", 0)], TRAM_STOP_REACH, 30.0)
+		if line == null:
+			continue
+		line.number = TRAM
+		line.colour = TRAM_COLOUR
+		var called := TRAM_QUEST if _eastbound(r) else "tram_west"
+		w.transit.add_on(called, "tram", line, maxi(0, line.stop_called(TRAM_WAITS[called])))
 
 
 ## The bike shop: its owner behind a counter inside the building, facing the door. Added last, so the
@@ -290,23 +327,8 @@ func _add_bike_shop(w: World) -> void:
 	var m := w.machine_of(owner)
 	m.front = -inward  # the customers are on the door side of the counter
 	facing[m] = atan2(inward.x, inward.y)  # the yaw that faces `front`
-	_toward[m] = m.front
 	owner.pos = m.post()
-	cast["bike_shop"] = owner
-
-
-## The bottle depot (see Deposit): a kiosk on the right-hand pavement against the buildings, between where the hero starts and
-## the market, facing the street, its attendant behind the counter and the fund starting empty. And a second at the bank's
-## market, for the people there.
-func _add_bottle_depots(w: World) -> void:
-	var spot := _spot(-32.0, 1.0, -TENT_DEPTH)
-	cast["depot"] = w.add_bottle_depot(spot.pos, spot.toward)
-	if ecb_lane.is_empty():
-		return
-	w.build_zone = ECB_ZONE  # and one at the bank's market, past its bins: its people can't walk 2 km to the first
-	var at := _spot(-39.0, ecb_lane.side, ecb_lane.kerb, ecb_lane)
-	cast["ecb_depot"] = w.add_bottle_depot(at.pos, at.toward)
-	w.build_zone = Zones.HOME
+	_own["bike_shop"] = owner
 
 
 ## The skate shop, next to the bike shop: its owner behind a counter, like the bike shop's. Added after everyone else, so no
@@ -321,9 +343,8 @@ func _add_skate_shop(w: World) -> void:
 	var m := w.machine_of(owner)
 	m.front = -inward
 	facing[m] = atan2(inward.x, inward.y)
-	_toward[m] = m.front
 	owner.pos = m.post()
-	cast["skate_shop"] = owner
+	_own["skate_shop"] = owner
 
 
 ## Mr. Nobody, standing on the pavement outside his door, looking along the street. Added last of all.
@@ -333,7 +354,7 @@ func _add_sage(w: World) -> void:
 	var out: Vector2 = sage_house.out
 	var sage := w.cast.add_sage(w,(sage_house.door as Vector2) + out * 2.6)
 	sage.face_to = sage.pos + out * 20.0
-	cast["sage"] = sage
+	_own["sage"] = sage
 	# He waits for a guest in the middle of his room, on the line in from his door (so the way there is straight).
 	w.sage.set_house(sage_house.poly, (sage_house.door as Vector2) + (sage_house.inward as Vector2) * minf(5.0, float(sage_house.depth) * 0.5))
 
@@ -345,25 +366,35 @@ func _add_doorman(w: World) -> void:
 	var out: Vector2 = ecb.out
 	var at: Vector2 = (ecb.door as Vector2) + out * 2.6
 	var faces: Vector2 = at + out * 20.0
-	if not ecb_stop.is_empty():  # at the gate on the street, where the bus stops
+	if not ecb_stop.is_empty():  # at the gate, across the road from the tram's stop
 		at = ecb_stop.doorman
 		faces = ecb_stop.doorman_faces
-	if not ecb_gate.is_empty():  # in front of the guard's booth, facing the street the bus comes along
+	if not ecb_gate.is_empty():  # in front of the guard's booth, facing the road
 		at = ecb_gate.guard
 		faces = at - (ecb_gate.into as Vector2) * 20.0
 	var d := w.cast.add_doorman(w,at)
 	d.face_to = faces
-	cast["doorman"] = d
+	_own["doorman"] = d
 
 
 ## The shuttle, waiting inside the gate, and the receptionist at the bank's door.
 func _add_shuttle_and_reception(w: World) -> void:
 	if ecb_gate.is_empty():
 		return
-	w.transit.add_shuttle(ecb_gate.pad, ecb_gate.pad_heading)
+	# The golf cart's line, laid out by hand (SecurityGate.plan): from its pad inside the gate, round the market hall and along
+	# the plaza, to the bank's door; and back.
+	var way := PackedVector2Array([ecb_gate.pad])
+	way.append_array(PackedVector2Array(ecb_gate.route))
+	way.append(ecb_gate.entrance)
+	var line := Line.through(way, [{"at": ecb_gate.pad, "name": "the gate"}, {"at": ecb_gate.entrance, "name": "the main entrance"}], "", 1.0, 20.0, 10.0)
+	var cart := w.transit.add_on("shuttle", "cart", line) if line != null else null
+	if cart == null:
+		cart = w.transit.add("shuttle", "cart", ecb_gate.pad, ecb_gate.pad_heading)
+	cart.heading = ecb_gate.pad_heading
+	cart.prev_heading = cart.heading
 	var r := w.cast.add_receptionist(w,ecb_gate.reception)
 	r.face_to = (ecb_gate.reception as Vector2) + (ecb.out as Vector2) * 20.0
-	cast["receptionist"] = r
+	_own["receptionist"] = r
 
 
 ## The lift in the plaza beside the receptionist's desk, and the room it goes up to: a stage-set room of its own, in a zone of its
@@ -391,48 +422,31 @@ func _add_lift(w: World) -> void:
 	w.build_zone = LIFT_ZONE
 	var t := w.cast.add_technician(w,LIFT_ROOM_CENTRE + Vector2(-2.0, -LIFT_ROOM_HALF.y + 3.2))
 	t.face_to = t.pos + Vector2(0.0, 20.0)
-	cast["technician"] = t
+	_own["technician"] = t
 	w.build_zone = Zones.HOME
 	w.zones.asleep.append(LIFT_ZONE)  # the room waits, as the bank's market does, until the hero is in it
 
 
-## The market the hero finds on getting off the bus at the bank, in a zone of its own: the hero is hungry and thirsty by now, and
-## the stands here start wrecked, like the first market's. A lemonade stand, a hot dog stand and a bakery across the road from
-## the gate, bins and a fountain to feed them with a cart runner, a medical tent, and a few people who need them. Everything is on the
-## pavement opposite the bank, with its back to the buildings and its front to the road (which has no traffic).
+## The market the hero finds on getting off the tram for the bank, in a zone of its own: an atom (Atom) grown through all its
+## founders at once, its stands wrecked as the first market's are, on the open ground beside the gate (a site of the story's
+## own, as the forecourt's is: ECB_MARKET).
 func _add_ecb_market(w: World) -> void:
-	if ecb_lane.is_empty():
+	if ecb_gate.is_empty():
 		return
-	w.build_zone = ECB_ZONE
-	var side: float = ecb_lane.side
-	var kerb: float = ecb_lane.kerb
-	cast["ecb_lemonade"] = _vendor(w, "lemonade_stand", "Lemonade seller", 2.0, side, 10.0, kerb, true, ecb_lane)
-	cast["ecb_hot_dog"] = _vendor(w, "hot_dog_stand", "Hot dog vendor", 6.5, side, 8.0, kerb, true, ecb_lane)
-	cast["ecb_bakery"] = _vendor(w, "bakery", "Baker", -2.5, side, 6.0, kerb, true, ecb_lane)
-	var bins_at := _spot(-30.0, side, kerb, ecb_lane)
-	_add_bins(w, bins_at.pos, _spot(-34.5, side, kerb, ecb_lane).pos, bins_at.toward)
-	var runner := w.add_runner(_spot(-26.0, side, kerb, ecb_lane).pos, 15.0)
-	runner.label = "Mara %s" % Names.surname(runner.uid)
-	var clinic := _spot(30.0, side, kerb + 1.4, ecb_lane)
-	var tent := w.add_hospital(clinic.pos, clinic.toward)
-	var yaw := -(ecb_lane.frame.dir as Vector2).angle() + PI / 2.0  # (the way the street runs, as the van's is laid)
-	facing[tent] = atan2(-(clinic.toward as Vector2).x, -(clinic.toward as Vector2).y)
-	facing[w.ambulances[w.ambulances.size() - 1]] = yaw
-	for i in 3:  # the people the stands are for: they had come to see the bank
-		var d := w.add_drifter(_spot(_dice.randf_range(-10.0, 10.0), -side, _dice.randf_range(0.5, 3.0), ecb_lane).pos, _dice.randf_range(3.0, 12.0))
-		d.label = "%s %s" % [ECB_VISITORS[i], Names.surname(d.uid)]
+	var dir := ECB_MARKET_DIR.normalized()
+	var site := {"point": ECB_MARKET, "along": dir, "out": Vector2(dir.y, -dir.x), "width": SITE_WIDTH, "line": SITE_LINE, "street": ECB_MARKET_NAME}
+	ecb_market = Atom.seed(w, ECB_ZONE, ECB_MARKET, site)
+	Atom.grow(w, ecb_market)
 	w.build_zone = Zones.HOME
 	w.zones.asleep.append(ECB_ZONE)  # the bank's people wait, fresh, until the hero gets there
 
 
-## Two barrel fires at the bank: one among the market's stalls (in reach of the gate, where the hero waits on the doorman), and
-## one on the plaza beside the main entrance, where the shuttle lets them off (see Cold).
-func _add_ecb_fires(w: World) -> void:
-	if ecb_lane.is_empty():
+## A barrel fire on the plaza beside the main entrance, where the shuttle lets the hero off (see Cold). (The bank's market has its
+## atom's own.)
+func _add_plaza_fire(w: World) -> void:
+	if ecb_gate.is_empty():
 		return
 	w.build_zone = ECB_ZONE
-	var s := _spot(14.0, ecb_lane.side, ecb_lane.kerb, ecb_lane)
-	facing[w.add_fire(s.pos)] = atan2(-(s.toward as Vector2).x, -(s.toward as Vector2).y)
 	var out: Vector2 = ((ecb_gate.entrance as Vector2) - (ecb.door as Vector2)).normalized()  # (from the door, onto the plaza)
 	var aside := Vector2(-out.y, out.x)
 	if aside.x > 0.0:  # (to the west of it: the shuttle comes in from the east)
@@ -453,19 +467,32 @@ func story() -> bool:
 	return true
 
 
+## The golf cart is the story's own, drawn and ridden by it (QuestController).
+func own_rides() -> Array:
+	return ["shuttle"]
+
+
+## The tram at the station is the letter quest's until it has taken the hero to the bank: it waits for them there, and where it
+## breaks down. After that it is anyone's, like the one the other way.
+func held(w: World, called: String) -> bool:
+	return called == TRAM_QUEST and not w.quests.done("rode_on")
+
+
 func title() -> String:
 	return "Frankfurt, Bahnhofsviertel to the old town"
 
 
 func landmarks(w: World) -> Array:
 	var marks: Array = []
-	marks.append({"pos": w.machine_of(cast.hot_dog).pos, "label": "market", "color": Color(0.9, 0.7, 0.25)})
+	marks.append({"pos": market.pos, "label": "tent city", "color": Color(0.45, 0.35, 0.6)})
 	if not w.hospitals.is_empty():
 		marks.append({"pos": w.hospitals[0].pos, "label": "medical tent", "color": Color(0.9, 0.25, 0.25)})
 	var station: Array = w.bins.filter(func(b): return b.kind == "organics" and b.zone == w.bins[0].zone)
 	if not station.is_empty():
 		marks.append({"pos": station[0].pos, "label": "bins", "color": Color(0.35, 0.7, 0.4)})
-	marks.append({"pos": bus_stop.pos, "label": "bus stop", "color": Color(0.85, 0.75, 0.2)})
+	var tram := w.transit.vehicle(TRAM_QUEST)
+	if tram != null:
+		marks.append({"pos": tram.home, "label": "tram %s" % TRAM, "color": TRAM_COLOUR})
 	if not bike_shop.is_empty():
 		marks.append({"pos": bike_shop.door, "label": "bike shop", "color": Color(0.3, 0.5, 0.85)})
 	if not skate_shop.is_empty():
@@ -473,73 +500,37 @@ func landmarks(w: World) -> Array:
 	return marks
 
 
-func _vendor(w: World, kind: String, label: String, along: float, side: float, wallet: float, lateral: float, faces_road: bool, lane := {}) -> Drone:
-	var spot := _spot(along, side, lateral, lane)
-	var d := w.add_vendor(kind, spot.pos, wallet, false, false)
-	d.profession = label
-	var m := w.machine_of(d)
-	var toward: Vector2 = spot.toward if faces_road else spot.away
-	facing[m] = atan2(-toward.x, -toward.y)
-	_toward[m] = toward
-	m.front = toward
-	d.pos = m.post()
-	return d
-
-
-## A point on the street, laid out across it: `along` metres down it from the anchor, on `side` (+1 the right, -1 the left)
-## and `lateral` metres out from the centre line (negative: that far in from the building line instead). Returns {pos,
-## toward (a unit vector from there toward the middle of the street), away (the other way, toward the buildings)}. Measured
-## from the real road where it stands, which bends a little: a straight line through the market does not follow it.
-## (`lane` names another street's frame, {street, frame}: the market at the bank is laid out the same way, on its own street.)
-func _spot(along: float, side: float, lateral: float, lane := {}) -> Dictionary:
-	var frame: Dictionary = lane.get("frame", _frame)
-	var global: Vector2 = (frame.point as Vector2) + (frame.dir as Vector2) * along
-	var here := MapSites.street_frame(district, lane.get("street", STREET), global)
-	var nrm := Vector2(-(here.dir as Vector2).y, (here.dir as Vector2).x)
-	var out := lateral
-	if lateral < 0.0:  # measured in from the building line
-		var pave: Array = here.pave
-		var reach: float = float(pave[1 if side > 0.0 else 0]) if pave.size() == 2 else float(here.width) * 0.5 + 3.0
-		out = reach + lateral
-	var toward := -nrm * side
-	return {"pos": (here.point as Vector2) + nrm * side * out, "toward": toward, "away": -toward}
-
-
-## A station of the three bins at `at` along the kerb, and a water fountain at `fountain`, all facing `front` (the road): what a
-## market runs on (WasteBin).
-func _add_bins(w: World, at: Vector2, fountain: Vector2, front: Vector2) -> void:
-	for b in w.add_bin_station(at, Vector2(-front.y, front.x)):
-		b.front = front
-	w.add_bin("fountain", fountain).front = front
-
-
 ## A spot `dist` metres in front of a stand (on the customers' side, toward the middle of the street) and
 ## the yaw that faces the stand from there. Tests and the capture tool stand here instead of guessing
 ## which way the street runs.
 func front_of(m: Machine, dist: float) -> Dictionary:
-	var spot: Vector2 = m.pos + (_toward[m] as Vector2) * dist
+	var spot: Vector2 = m.pos + m.front * dist
 	var to := m.pos - spot
 	return {"pos": spot, "yaw": atan2(-to.x, -to.y)}
 
 
-## `from` moved `along` metres down the street and `lateral` metres across it (positive is toward side +1).
+## `from` moved `along` metres down the forecourt (the way the market runs) and `lateral` metres across it (positive toward the
+## station).
 func offset_on_street(from: Vector2, along: float, lateral: float) -> Vector2:
-	var dir: Vector2 = _frame.dir
-	return from + dir * along + Vector2(-dir.y, dir.x) * lateral
+	var dir := _forecourt_dir()
+	return from + dir * along + _toward_station() * lateral
 
 
-## The carriageway's width where the market is.
-func street_width() -> float:
-	return float(_frame.width)
-
-
-## The street's direction where the market is.
+## The way the market runs along the forecourt (the hero faces it as they begin).
 func street_dir() -> Vector2:
-	return _frame.dir
+	return _forecourt_dir()
 
 
-## A point `along` metres down the street from the anchor, at the kerb on `side` (+1 or -1).
-func _at(along: float, side: float) -> Vector2:
-	var dir: Vector2 = _frame.dir
-	var nrm := Vector2(-dir.y, dir.x)
-	return (_frame.point as Vector2) + dir * along + nrm * side * (float(_frame.width) * 0.5 - 0.8)
+func _forecourt_dir() -> Vector2:
+	return FORECOURT_DIR.normalized()
+
+
+## Across the forecourt, toward the station's front.
+func _toward_station() -> Vector2:
+	var dir := _forecourt_dir()
+	return Vector2(-dir.y, dir.x)
+
+
+## A point on the forecourt: `along` metres from the market's middle the way it runs, `across` metres toward the station.
+func _fore(along: float, across: float) -> Vector2:
+	return offset_on_street(FORECOURT, along, across)

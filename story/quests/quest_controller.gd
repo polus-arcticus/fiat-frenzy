@@ -1,6 +1,7 @@
-## CONTROLLER. The player's side of quests: talking to the banker who has the letter (Q), and the bus ride. The
-## rules are the model's (Quests); this opens the dialogue, takes and gives back the controls, and plays the
-## bus ride (the hero boards and sits, the bus drives itself to the traffic jam on Battonnstraße, the hero steps out).
+## CONTROLLER. The player's side of quests: talking to the banker who has the letter (Q), and the story's rides. The
+## rules are the model's (Quests); this opens the dialogue, takes and gives back the controls, and plays the rides: tram 11
+## to Börneplatz, where it breaks down outside Mr. Nobody's house; on to the bank once it is mended; the golf cart inside
+## the bank's gate.
 class_name QuestController
 extends Node
 
@@ -10,34 +11,53 @@ var hud: Hud
 var dialogue: DialogueScreen
 var game: Node  # has `sim` (a SimLoop)
 var scenario: Scenario
-var bus: BusView
 var shuttle: ShuttleView  # the golf cart at the bank's gate (null if the map has no gate)
 var fade: FadeScreen
+var rides: RideController  # (the ride itself: the door, the walk, the seat)
 ## Skip the waiting in the fades and captions (tests and tools).
-var fast := false
-var riding_the_bus := false
+var fast := false:
+	set(v):
+		fast = v
+		if rides != null:
+			rides.fast = v
+var riding: bool:
+	get:
+		return rides != null and rides.riding
 
 const BOARD_REACH := 6.0
+const SMOKE_AT := Vector3(0.0, 3.4, 0.0)  # where a broken tram smokes from: its roof, at the pantograph
 
-var _jam_built := false
-var _jam_cleared := false
+var _smoke: Node3D = null
 var _delivering := false  # the dialogue being read is the receptionist's (the letter goes over), not the banker's...
 var _servicing := false  # ...or the technician upstairs
 var _gating := false      # ...or the doorman's at the gate (he opens it)
 
 
-func setup(w: World, p: PlayerController, h: Hud, d: DialogueScreen, g: Node, sc: Scenario, b: BusView, f: FadeScreen, s: ShuttleView = null) -> QuestController:
+func setup(w: World, p: PlayerController, h: Hud, d: DialogueScreen, g: Node, sc: Scenario, f: FadeScreen, s: ShuttleView = null, r: RideController = null) -> QuestController:
 	world = w
 	player = p
 	hud = h
 	dialogue = d
 	game = g
 	scenario = sc
-	bus = b
 	shuttle = s
 	fade = f
+	rides = r
 	name = "QuestController"
 	return self
+
+
+## The story's tram and the bank's golf cart, in the model (Transit), and the tram as it is drawn (null before it is).
+func _tram() -> Vehicle:
+	return world.transit.vehicle(Scenario.TRAM_QUEST)
+
+
+func tram_view() -> TramView:
+	return get_tree().get_first_node_in_group(VehicleView.CABIN + "_" + Scenario.TRAM_QUEST) as TramView
+
+
+func _cart() -> Vehicle:
+	return world.transit.vehicle("shuttle")
 
 
 ## Q at any banker (they all have the letter in mind), at the doorman at the gate, or at the receptionist to hand it over.
@@ -142,27 +162,22 @@ func can_board() -> bool:
 	return boardable() != ""
 
 
-## What the hero could get on now, "bus" or "shuttle", or "". Not while out cold or on the bike.
-## The bus, on the letter quest: first at its stop, before the first ride; later where it stands in the cleared street, once
-## Mr. Nobody has said farewell. Once it has been all the way to the bank it runs back and forth between there and its stop on
-## Kaiserstraße, whenever the hero gets on (so nobody is left stranded at the bank). The shuttle: inside the bank's gate, once
-## the doorman has opened it, and from then on back and forth between the gate and the bank's door.
+## What the hero could get on now, "tram" or "shuttle", or "". Not while out cold or on the bike.
+## The tram, on the letter quest: first at the station, then, once Mr. Nobody has said farewell, where it broke down. When it
+## has been all the way to the bank it is anyone's again (Scenario.held; a LineRideController). The shuttle: inside the
+## bank's gate, once the doorman has opened it, and from then on back and forth between the gate and the bank's door.
 func boardable() -> String:
-	if riding_the_bus or not world.hero.is_on_foot() or world.player.unconscious() or not player.controls_enabled:
+	if riding or not world.hero.is_on_foot() or world.player.unconscious() or not player.controls_enabled:
 		return ""
 	var q := world.quests
-	var letter := q.active() == QuestBook.LETTER
-	if world.bus != null and world.bus.state != Bus.State.DRIVING:
-		var at_door := player.global_position.distance_to(bus.kerb_point()) <= BOARD_REACH
-		if letter and not q.done("rode_bus"):
-			if world.bus.state == Bus.State.AT_STOP and player.ground_pos().distance_to(world.bus_stop) <= BOARD_REACH:
-				return "bus"
-		elif letter and q.done("jam_cleared") and not q.done("rode_on"):
-			if world.bus.state == Bus.State.ARRIVED and at_door:
-				return "bus"
-		elif q.done("rode_on") and at_door:
-			return "bus"
-	if shuttle != null and world.shuttle != null and q.done("cleared_gate") and world.shuttle.state != Bus.State.DRIVING:
+	var model := _tram()
+	var view := tram_view()
+	var wanted := q.active() == QuestBook.LETTER and (not q.done("rode_tram") or (q.done("repaired") and not q.done("rode_on")))
+	if wanted and model != null and view != null and model.state != Vehicle.State.DRIVING:
+		view.door_toward(player.global_position)
+		if player.global_position.distance_to(view.kerb_point()) <= BOARD_REACH:
+			return "tram"
+	if shuttle != null and _cart() != null and q.done("cleared_gate") and _cart().state != Vehicle.State.DRIVING:
 		if player.global_position.distance_to(shuttle.kerb_point()) <= BOARD_REACH:
 			return "shuttle"
 	return ""
@@ -171,281 +186,92 @@ func boardable() -> String:
 ## What the interaction prompt says about getting on.
 func board_prompt() -> String:
 	match boardable():
-		"bus":
-			return "E   board the bus"
+		"tram":
+			return "E   board tram %s" % Scenario.TRAM
 		"shuttle":
 			return "E   hop on the shuttle"
 	return ""
 
 
+## Gets on what the prompt offers; returns when the ride is over.
 func board() -> void:
 	match boardable():
-		"bus":
-			if not world.quests.done("rode_bus"):
-				ride()
-			elif not world.quests.done("rode_on"):
-				ride_on()
+		"tram":
+			if not world.quests.done("rode_tram"):
+				await ride()
 			else:
-				bus_service()
+				await ride_on()
 		"shuttle":
 			if not world.quests.done("rode_shuttle"):
-				ride_shuttle()
+				await ride_shuttle()
 			else:
-				shuttle_service()
+				await shuttle_service()
 
 
-## How near the far end a vehicle has to be to count as being there (the service runs to whichever end it is not at).
-const AT_END := 25.0
-const SHUTTLE_UTURN := 9.0  # metres across the shuttle swings round in (the plaza, the lawn inside the gate)
+## What is said on the shuttle's rides, by the stop it is going to (its name on the line: Scenario._add_shuttle_and_reception):
+## [as it sets off, as it arrives].
+const SAYS := {
+	"the gate": ["The shuttle sets off on its own. \"Leaving so soon? The exit is this way.\"", "The gate. The doorman nods you through."],
+	"the main entrance": ["The shuttle sets off on its own. \"Please keep your hands inside the vehicle. The Bank is that way.\"",
+		"The main entrance. The receptionist looks up, and down again."],
+}
 
 
-## The bus after the letter quest's rides: from the bank back to its stop on Kaiserstraße, or from anywhere else to the bank.
-func bus_service() -> void:
-	if scenario.ecb_stop.is_empty():
-		return
-	var uturn: float = float(scenario.bus_stop.get("width", 12.0)) * 0.5  # (lane to lane)
-	if world.bus.pos.distance_to(scenario.ecb_stop.bus) <= AT_END:
-		await _ride({
-			"dest": town_stop(), "via": [], "flag": "", "uturn": uturn,
-			"board": "Back to Kaiserstraße. The bankers aboard look relieved to be leaving.",
-			"arrive": "Kaiserstraße. The driver opens the doors: \"Bahnhofsviertel. Mind your wallets.\"",
-		})
-	else:
-		await _ride({
-			"dest": scenario.ecb_stop.bus, "via": scenario.ecb_stop.via, "flag": "", "uturn": uturn,
-			"board": "To the European Central Bank. The bankers aboard are checking their watches.",
-			"arrive": "Sonnemannstraße. The driver opens the doors: \"European Central Bank. Mind the step, and the interest rates.\"",
-		})
-
-
-## Where the bus pulls up on Kaiserstraße: its stop, in the lane it comes in by (so its door, on its right, is at the kerb).
-func town_stop() -> Vector2:
-	var stop: Vector2 = scenario.bus_stop.pos
-	var route := world.roads.route(world.bus.pos, stop) if world.roads != null else PackedVector2Array()
-	if route.size() >= 2 and (stop - route[route.size() - 2]).dot(scenario.bus_stop.dir) < 0.0:
-		return stop - (scenario.bus_stop.kerb_side as Vector2) * float(scenario.bus_stop.get("width", 12.0)) * 0.5
-	return stop
-
-
-## The shuttle after its first ride: from the bank's door back to the gate, or from the gate to the door, the same way round.
+## The shuttle after its first ride: between the gate and the bank's door, whichever it is not at.
 func shuttle_service() -> void:
-	var gate: Dictionary = scenario.ecb_gate
-	if gate.is_empty() or shuttle == null:
-		return
-	var via: Array = Array(gate.route)
-	if world.shuttle.pos.distance_to(gate.entrance) <= AT_END:
-		via.reverse()
-		await _ride({
-			"dest": gate.pad, "via": via, "flag": "", "direct": true, "walk": 1.8, "walk_off": 1.6, "uturn": SHUTTLE_UTURN,
-			"board": "The shuttle sets off on its own. \"Leaving so soon? The exit is this way.\"",
-			"arrive": "The gate. The doorman nods you through.",
-		}, shuttle, world.shuttle)
-	else:
-		await _ride({
-			"dest": gate.entrance, "via": via, "flag": "", "direct": true, "walk": 1.8, "walk_off": 1.6, "uturn": SHUTTLE_UTURN,
-			"board": "The shuttle sets off on its own. \"Please keep your hands inside the vehicle. The Bank is that way.\"",
-			"arrive": "The main entrance. The receptionist looks up, and down again.",
-		}, shuttle, world.shuttle)
+	var cart := _cart()
+	if shuttle != null and cart != null and cart.line != null:
+		var says: Array = SAYS.get(str(cart.line.stops[cart.next_stop()].name), ["", ""])
+		await _ride(shuttle, cart, "", says[0], says[1], 1.8, 1.6)
 
 
-## The shuttle: from inside the gate, round the market hall and along the plaza to the bank's door. It is a golf cart and it
-## drives itself; the route is laid out by hand (see SecurityGate).
+## The shuttle's first ride: from inside the gate, round the market hall and along the plaza to the bank's door.
 func ride_shuttle() -> void:
-	if scenario.ecb_gate.is_empty() or shuttle == null:
-		return
-	var gate: Dictionary = scenario.ecb_gate
-	var via: Array = []
-	for p in gate.route:
-		via.append(p)
-	await _ride({
-		"dest": gate.entrance, "via": via, "flag": "rode_shuttle", "direct": true, "walk": 1.8, "walk_off": 1.6,
-		"board": "The shuttle sets off on its own. \"Please keep your hands inside the vehicle. The Bank is that way.\"",
-		"arrive": "The main entrance. A very large glass door, and a very small receptionist behind it.",
-	}, shuttle, world.shuttle)
+	if shuttle != null:
+		await _ride(shuttle, _cart(), "rode_shuttle", SAYS["the main entrance"][0],
+			"The main entrance. A very large glass door, and a very small receptionist behind it.", 1.8, 1.6)
 
 
-## The first ride: to the traffic jam outside Mr. Nobody's house.
+## The first ride: from the station, past the Paulskirche, to Börneplatz, where the tram breaks down outside Mr. Nobody's house.
 func ride() -> void:
-	if scenario.jam.is_empty():
-		return
-	_build_jam()  # the queue is there to be seen on the way in
-	await _ride({
-		"dest": scenario.jam.bus.pos, "via": [], "flag": "rode_bus",
-		"board": "The bus to the European Central Bank. Everyone aboard is a banker.",
-		"arrive": "Traffic. Of course. The driver opens the doors: \"Everybody out. We are not going anywhere.\"",
-	})
+	await _ride_to(Scenario.TRAM_BREAKS_AT, "rode_tram",
+		"Line %s to Fechenheim. The European Central Bank is near the far end. Everyone aboard is a banker." % Scenario.TRAM,
+		"The tram shudders and dies. The driver opens the doors: \"Technical fault. Everybody out. We are not going anywhere.\"")
 
 
-## The second: the traffic has cleared, and the bus goes on to the European Central Bank.
+## The second: the tram is mended, and goes on to the stop for the European Central Bank.
 func ride_on() -> void:
-	if scenario.ecb_stop.is_empty():
+	await _ride_to(Scenario.TRAM_BANK_AT, "rode_on", "The tram hums again. On to the European Central Bank. The bankers aboard are checking their watches.",
+		"%s. The driver opens the doors: \"European Central Bank. Mind the step, and the interest rates.\"" % Scenario.TRAM_BANK_AT)
+
+
+## The tram straight through to the stop called `stop`.
+func _ride_to(stop: String, flag: String, board: String, arrive: String) -> void:
+	var model := _tram()
+	if model == null or model.line == null or model.line.stop_called(stop) < 0:
 		return
-	await _ride({
-		"dest": scenario.ecb_stop.bus, "via": scenario.ecb_stop.via, "flag": "rode_on",
-		"board": "On to the European Central Bank. The bankers aboard are checking their watches.",
-		"arrive": "Sonnemannstraße. The driver opens the doors: \"European Central Bank. Mind the step, and the interest rates.\"",
-	})
+	await _ride(tram_view(), model, flag, board, arrive, 3.4, 2.4, model.line.stop_called(stop))
 
 
-## One ride, by default on the bus. The door opens, the hero walks in and sits down, the vehicle drives itself along its way
-## (the town carries on all the while: nothing is paused), and where it stops the door opens again and the hero steps out onto
-## the kerb on its right-hand side. `vehicle` and `model` say which vehicle (the bus, or the shuttle); `leg.direct` is a route
-## laid out by hand (the shuttle's), not the streets.
-func _ride(leg: Dictionary, vehicle: VehicleView = null, model: Bus = null) -> void:
-	if vehicle == null:
-		vehicle = bus
-		model = world.bus
-	if model == null:
+## One of the story's rides, along `model`'s line to its stop `to` (its next unless given). RideController plays it: the door,
+## the walk, the seat, the walk off. Arriving says `flag` (the quest's); `board` and `arrive` are the captions.
+func _ride(view: VehicleView, model: Vehicle, flag: String, board: String, arrive: String, walk: float, walk_off: float, to := -1) -> void:
+	if view == null or model == null or model.line == null:
 		return
-	riding_the_bus = true
-	player.controls_enabled = false
-	hud.show_prompt("")
-	vehicle.open_door()
-	await _wait(0.9)
-	await _walk([player.global_position, vehicle.kerb_point(), vehicle.doorway_point(), vehicle.seat_point()], leg.get("walk", 3.4))
-	player.scripted = false
-	player.teleport(vehicle.seat_point(), vehicle.rotation.y + PI)  # facing the front
-	player.level_gaze()
-	player.sit(vehicle, vehicle.seat_local())
-	world.hero.enter(Hero.Mode.SEATED)
-	vehicle.close_door()
-	hud.show_caption(leg.board, 0.0 if fast else 3.0)
-	await _wait(0.8)
-	world.transit.board(leg.dest, leg.flag, leg.via, model, leg.get("direct", false), leg.get("uturn", 0.0))
-	while model.state == Bus.State.DRIVING:
-		if fast:  # tests and tools: no frames to wait for, so run the world here
-			_follow_model(vehicle, model)
-			game.advance(1.0)
-		await get_tree().process_frame
-	_follow_model(vehicle, model)
-	await _wait(0.6)
-	vehicle.open_door()
-	if world.player.care != "":
-		# They passed out on the way. Nobody gets up: the ambulance will come to the vehicle, and the medical tent's
-		# controller (not this) gives them their body and controls back when they wake.
-		riding_the_bus = false
-		return
-	hud.show_caption(leg.arrive, 0.0 if fast else 3.5)
-	await _wait(0.9)
-	world.hero.stand()
-	player.stand()
-	var gathered := world.commerce.scoop_aboard()  # whatever is lying on the floor of the bus goes with them
-	if gathered > 0.0:
-		hud.notify("picked up $%d from the floor of the bus" % roundi(gathered))
-	player.scripted = true
-	var out := vehicle.kerb_point()
-	await _walk([player.global_position, vehicle.doorway_point(), out], leg.get("walk_off", 2.4))
-	player.scripted = false
-	player.teleport(Vector3(out.x, 0.1, out.z), 0.0)
-	var outward := out - vehicle.doorway_point()
-	player.look_toward(Vector3(out.x + outward.x * 6.0, 1.5, out.z + outward.z * 6.0))  # facing away from the door
-	player.level_gaze()
-	world.player.pos = Vector2(out.x, out.z)
-	world.transit.disembark(model)
-	if world.player.care == "":
-		player.controls_enabled = true
-	riding_the_bus = false
-	await _wait(1.2)
-	vehicle.close_door()
+	var go := func() -> bool: return world.transit.ride(model, flag, to)
+	await rides.ride(view, model, go, board, arrive, walk, walk_off)
 
 
-## The jam clears: every stuck car drives off down its lane, the front ones first.
-func clear_jam() -> void:
-	if _jam_cleared:
-		return
-	_jam_cleared = true
-	var cars := get_tree().get_nodes_in_group("stuck_cars")
-	if fast or cars.is_empty():
-		for c in cars:
-			c.queue_free()
-		return
-	var fwd: Vector2 = scenario.jam.fwd
-	cars.sort_custom(func(a, b): return _lead(a, fwd) > _lead(b, fwd))  # the front of the queue goes first
-	var delay := 0.0
-	for c in cars:
-		var heading := Vector3(sin(c.rotation.y), 0.0, cos(c.rotation.y))  # a car's front is its +Z, as the bus's is
-		var tween := create_tween()
-		tween.tween_interval(delay)
-		tween.tween_property(c, "position", c.position + heading * 160.0, 9.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-		tween.tween_callback(c.queue_free)
-		delay += 0.7
-
-
-## How far a car is ahead in the way it is going, along the street: the bigger, the nearer the front of its queue.
-func _lead(car: Node3D, fwd: Vector2) -> float:
-	var heading := Vector2(sin(car.rotation.y), cos(car.rotation.y))
-	return Vector2(car.position.x, car.position.z).dot(fwd) * (1.0 if heading.dot(fwd) >= 0.0 else -1.0)
-
-
+## A broken tram smokes, from breaking down until it is mended.
 func _process(_delta: float) -> void:
-	if not _jam_cleared and world.quests.done("jam_cleared"):
-		clear_jam()
+	var broken := world.quests.done("rode_tram") and not world.quests.done("repaired")
+	if broken and _smoke == null and tram_view() != null:
+		_smoke = Effects.smoke(tram_view(), SMOKE_AT)
+	elif not broken and _smoke != null:
+		_smoke.queue_free()
+		_smoke = null
 
 
-## Where the bus is in the model, for the view and the seated hero (tests and tools step the world without frames).
-func _follow_model(vehicle: VehicleView = null, model: Bus = null) -> void:
-	if vehicle == null:
-		vehicle = bus
-		model = world.bus
-	vehicle.place(model.pos, VehicleView._yaw_of(model.heading))
-	player.update_seat()
-
-
-## Walk the hero along `points` (world positions of their feet) in `seconds`, turning to look where they are going.
-## They are moved by this and not by the keys while it lasts. (Fast: they are simply put at the end.)
-func _walk(points: Array, seconds: float) -> void:
-	player.scripted = true
-	world.hero.stand()
-	player.stand()
-	if fast:
-		player.teleport(points[points.size() - 1], player.rotation.y)
-		return
-	var total := 0.0
-	for i in points.size() - 1:
-		total += (points[i] as Vector3).distance_to(points[i + 1])
-	var tween := create_tween()
-	tween.tween_method(_walk_step.bind(points, total), 0.0, 1.0, seconds)
-	await tween.finished
-
-
-## One frame of _walk: the hero a fraction `t` of the way along the path.
-func _walk_step(t: float, points: Array, total: float) -> void:
-	var at := t * total
-	for i in points.size() - 1:
-		var leg: float = (points[i] as Vector3).distance_to(points[i + 1])
-		if at <= leg or i == points.size() - 2:
-			var k := clampf(at / maxf(leg, 0.001), 0.0, 1.0)
-			player.global_position = (points[i] as Vector3).lerp(points[i + 1], k)
-			var ahead: Vector3 = points[i + 1]
-			player.look_toward(Vector3(ahead.x, 1.3, ahead.z), 0.08)
-			return
-		at -= leg
-
-
-## What a save needs of this controller (the quests themselves are in the model, and so are the bus and the shuttle, where they
-## were left: Snapshot.SINGLES): whether the traffic jam has been laid out and whether it has driven off.
-func save_state() -> Dictionary:
-	return {"jam_built": _jam_built, "jam_cleared": _jam_cleared}
-
-
-## Puts the scene back as a save left it: the stuck cars are there if the jam was built and has not cleared.
-func load_state(state: Dictionary) -> void:
-	_jam_cleared = state.get("jam_cleared", false)
-	if state.get("jam_built", false) and not _jam_cleared:
-		_build_jam()
-	_jam_built = state.get("jam_built", false)
-
-
-func _build_jam() -> void:
-	if _jam_built:
-		return
-	_jam_built = true
-	for c in scenario.jam.cars:
-		game.add_child(BusView.car(c.pos, c.yaw, c.color))
-
-
-func _wait(seconds: float) -> void:
-	if fast:
-		await get_tree().process_frame
-	else:
-		await get_tree().create_timer(seconds).timeout
+## Is the broken tram smoking (tests and tools)?
+func smoking() -> bool:
+	return _smoke != null

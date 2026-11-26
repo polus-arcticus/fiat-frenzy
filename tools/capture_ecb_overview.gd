@@ -22,7 +22,7 @@ func _run(game: Node, dir: String) -> void:
 	game.sim_paused = true
 	game.hud.visible = false
 	var sc: Scenario = game.scenario
-	var marks := {"stop": sc.ecb_stop.bus, "doorman": sc.ecb_stop.doorman, "tower door": sc.ecb.door}
+	var marks := {"stop": sc.ecb_stop.at, "doorman": sc.ecb_stop.doorman, "tower door": sc.ecb.door}
 	for k in marks:
 		var m := MeshInstance3D.new()
 		var cyl := CylinderMesh.new()

@@ -11,6 +11,16 @@ func _walk(w: World, d: Drone, goal: Vector2, max_steps := 1500) -> int:
 	return steps
 
 
+func test_a_short_hop_does_not_go_round_by_the_streets() -> void:
+	var w := World.new()
+	w.roads = RoadGraph.new()  # three sides of a square, 30 m across: nothing inside it
+	w.roads.add_polyline(PackedVector2Array([Vector2(0, 0), Vector2(0, 40), Vector2(30, 40), Vector2(30, 0)]))
+	check(w.walking.way(Vector2(1, 5), Vector2(29, 5)) == PackedVector2Array([Vector2(29, 5)]), "28 m across it, where the streets go 98: straight")
+	check(w.walking.way(Vector2(0, 5), Vector2(1, 38)).size() > 1, "along a side, the street is hardly longer: by the street")
+	w.roads = Fixtures.l_road()
+	check(w.walking.way(Vector2(0, 0), Vector2(50, 50)).size() > 1, "and a long walk keeps to the streets, round the corner")
+
+
 func test_a_clear_way_is_one_straight_line_and_a_blocked_one_goes_round() -> void:
 	var w := World.new()
 	w.add_fire(Vector2(0, 0))
@@ -56,8 +66,7 @@ func test_a_tents_open_end_is_just_free_cells() -> void:
 	check(w.nav.blocked("district", Vector2(-0.95, -0.5)), "its side wall is not")
 	var way := w.nav.path("district", inside, behind)
 	check(not way.is_empty() and way[0].y > 0.8, "from inside to behind it, the way goes out of the open end first (via %s)" % str(way[0] if not way.is_empty() else null))
-	var d := w.add_drifter(inside, 0.0)
-	check(_walk(w, d, behind) < 1500, "and they get there")
+	# (that walkers then get out and there: footprints.someone_inside_a_tent_leaves_by_the_open_end)
 
 
 func test_a_wall_can_be_built_and_taken_down_and_the_way_follows() -> void:

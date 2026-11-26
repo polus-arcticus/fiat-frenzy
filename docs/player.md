@@ -9,7 +9,7 @@ User space: the hero's controls, screens and vehicles. The engine's rules are in
 | WASD, Shift, Space | move, run, jump |
 | hold left mouse | spray $1 bills (gift), or charge a contract (invest) |
 | scroll | switch gift / invest |
-| E | open a stand (trading), the tent city (its tents), the bus or shuttle door |
+| E | open a stand (trading), the tent city (its tents), a tram, bus or shuttle door |
 | Tab | your bag |
 | Q | talk |
 | F | on and off the bike |
@@ -174,10 +174,11 @@ The street's people are hardened to it; the hero is new out here. Without clothe
 of walking by day (`Cold.DAY_BLOCKS`, a block being 110 m: about 49 s) and **three quarters of a block** at night (about 18 s).
 - An old coat takes it 1.4 times as far, a coat 2.5 times, both 10 times.
 - A barrel fire fills the bar in a few seconds, standing beside it. At night you must be within about 3 m to gain on the cold.
-- Shops, the sage's house, the bus and the bank's shuttle are warm inside.
+- Shops, the sage's house, a tram or bus and the bank's shuttle are warm inside.
 - The feed warns you when the bar falls past 40%. At 0 you collapse (and are robbed).
-- Fires (`Scenario.STREET_FIRES`): seven down Kaiserstraße from Moselstraße to Gallusanlage, about 60 m apart; one among the
-  bank's stalls by its gate, and one on its plaza by the entrance.
+- Fires: every atom has one by its market (in the story, the station forecourt's and the bank's market's), and one stands on the
+  bank's plaza by the entrance. The tent keeper sells more, for the hero to put down. (The street fires, every 60 m, went with
+  the hand-made market: the hero's cold, tuned against them, is open: docs/review.md.)
 
 ## What the hero sees
 
@@ -185,15 +186,16 @@ of walking by day (`Cold.DAY_BLOCKS`, a block being 110 m: about 49 s) and **thr
   bar fills toward the next.
 - **Chat bubbles** (`npc/agents/chatter.gd`, `npc/agents/lines.gd`). A few lines per kind of person, said now and then.
 - **The sky** (`assets/shaders/sky.gdshader`, `DayNight`). A watercolour wash, toon clouds, a sun; stars at night.
-- **Warmth indoors** (`engine/systems/heating.gd`). The shops, Mr. Nobody's house, the bus and the shuttle warm whoever is inside.
+- **Warmth indoors** (`engine/systems/heating.gd`). The shops, Mr. Nobody's house and any vehicle warm whoever is inside.
 - **The bottle depot** (`engine/deposit/`): a kiosk under a green PFAND board, its attendant behind the counter and crates of
   empties by the side, one at each market. Its board says what a bottle is worth ($1) and what it has paid out. Whoever is
   short of cash (under $25) walks to the recycling, takes what brings them back up to $25 (a bag holds 20; a runner's cart
   16) and hands it in there: that is how money
   comes into the town, apart from you. The depot pays out of what the stalls paid for their leftovers and water first, and prints
   only when that is empty.
-- **Getting about after the letter**: the bus runs between its stop on Kaiserstraße and the bank whenever you get on, and the
-  shuttle between the bank's gate and its door, each turning round where its way starts behind it.
+- **Getting about**: tram 11 runs both ways, a stop each time you get on (E at a door), and past the last stop it comes round
+  from the other end of town. The eastbound tram at the station waits for the letter quest. The shuttle runs between the bank's
+  gate and its door.
 
 ## The inspector (F3, `user/inspector/`)
 

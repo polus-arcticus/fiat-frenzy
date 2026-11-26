@@ -14,6 +14,7 @@ var fires: Array[BarrelFire] = []
 var bins: Array[WasteBin] = []  # the town's base inputs: its garbage, recycling and organics bins, and its fountains
 var hospitals: Array[Hospital] = []
 var bottle_depots: Array[BottleDepot] = []  # where bottles are worth their deposit, and the town's fund (see Deposit)
+var vehicles: Array[Vehicle] = []  # what the hero can ride: the bus, the bank's golf cart, a train (Transit; each by its name)
 var ambulances: Array[Ambulance] = []
 var bills: Array[Bill] = []  # printed money, in flight or lying about
 var roads: RoadGraph = null  # optional: with one, drones walk the streets
@@ -27,9 +28,6 @@ var landform := Landform.new()
 ## The story's scripted cast, by role (Mr. Nobody, the bank's people, its lift): the story's to fill and read. The world only
 ## holds it (it is the composition root); nothing in the engine looks inside.
 var cast := Cast.new()
-var bus_stop := Vector2(INF, INF)  # where the bus waits, if this world has one
-var bus: Bus = null                # the bus itself (see add_bus)
-var shuttle: Bus = null            # the golf cart that takes visitors from the European Central Bank's gate to its door (see add_shuttle)
 var gun_owned := false       # the hero has the money gun (set by whoever hands it over)
 var player: Drone = null     # the local hero's body: bars and a bag. Not in `drones`, so no NPC logic drives it
 ## Every hero this world has known, the local one included. Only the local one is here and ticked; the others (from a merged
@@ -149,6 +147,9 @@ func _attach_game() -> void:
 	sage = Sage.new(self)
 	quests = Quests.new(self)
 	attention = Attention.new(self)
+	transit.arrived.connect(func(v: Vehicle) -> void:  # (a vehicle's arrival is whatever its flag says to the story: Quests)
+		if v.flag != "":
+			quests.set_flag(v.flag))
 	_end_of_tick = [hero, transit] + _end_of_tick + [sage, quests, attention]
 
 
@@ -340,8 +341,10 @@ func add_bin(kind: String, at: Vector2, start := -1) -> WasteBin:
 
 
 ## The bins of every kind side by side: the atom's own, where the map has none near (Atom.LAYOUT "bins"), along `along` from
-## `at` (garbage, recycling, organics). Returns them.
-func add_bin_station(at: Vector2, along := Vector2(1, 0), kinds := ["garbage", "recycling", "organics"]) -> Array[WasteBin]:
+## `at` (WasteBin.station_kinds: garbage, recycling, organics). Returns them.
+func add_bin_station(at: Vector2, along := Vector2(1, 0), kinds: Array = []) -> Array[WasteBin]:
+	if kinds.is_empty():
+		kinds = WasteBin.station_kinds()
 	var out: Array[WasteBin] = []
 	for k in kinds.size():
 		out.append(add_bin(kinds[k], at + along * (float(k) - (kinds.size() - 1) * 0.5) * BIN_APART))

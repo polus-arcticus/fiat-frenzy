@@ -32,11 +32,11 @@ func use() -> String:
 		return "equip"
 	if placeable:
 		return "place"
-	if cls in ["food", "drink"]:
+	if cls in Drone.eaten_classes():
 		return "consume"
 	return ""
 
 
-## Can a drone use one up? (Beds shelter rather than refill, but they are still "used".)
+## Can a drone use one up? Anything that answers a bar (Drone.BARS). (Beds shelter rather than refill, but they are still "used".)
 func consumable() -> bool:
-	return cls in ["food", "drink", "warmth"]
+	return Drone.need_of().has(cls)

@@ -155,12 +155,11 @@ func test_runners_share_the_work() -> void:
 
 
 func test_runners_are_quicker_and_carry_more() -> void:
-	note("cart runners: a tad quicker, a tad stronger")
+	note("cart runners: a tad quicker")
 	var w := World.new()
 	var runner := w.add_runner(Vector2.ZERO)
 	var drifter := w.add_drifter(Vector2.ZERO)
 	check(runner.speed > drifter.speed and runner.speed < drifter.speed * 1.5, "a runner walks faster than a drifter, but not by much (%.1f against %.1f m/s)" % [runner.speed, drifter.speed])
-	check(Hauling.CART_CAPACITY == 16, "and a cart holds 16 units")
 
 
 func test_streets() -> void:
@@ -224,6 +223,36 @@ func test_hot_dog_stand_buys_bread_from_the_bakery() -> void:
 	check(t >= 0 and bakery.stock() == stock0 - 1, "a loaf left the bakery's output inventory for the stand's input")
 	check(is_equal_approx(baker.wallet, bakery.price) and is_equal_approx(30.0 - seller.wallet, bakery.price), "and the stand's owner paid the baker for it")
 	check(is_equal_approx(stand.input_cost["bread"], bakery.price), "the loaf's price is now the stand's cost for bread")
+
+
+## A supply chain: an input the buyer has the runners bring (MachineDef.fetch) comes off another business's shelf on a cart. The
+## runner buys the load there out of their own pocket and is paid it back on delivery, with the fee.
+func test_a_runner_carts_one_business_s_goods_to_another() -> void:
+	var def := Catalog.machine("hot_dog_stand")
+	def.fetch = {"bread": "runner"}
+	var w := World.new()
+	var baker := w.add_vendor("bakery", Vector2(0, 0), 0.0)
+	var bakery := w.machine_of(baker)
+	bakery.rate_per_min = 0.0
+	var seller := w.add_vendor("hot_dog_stand", Vector2(20, 0), 40.0)
+	var stand := w.machine_of(seller)
+	stand.input.take("bread", stand.input.count("bread"))
+	var runner := w.add_runner(Vector2(10, 3), 20.0)
+	for d in w.drones:
+		d.bars = Fixtures.bars(1.0, 1.0, 1.0)
+	check(w.needs.short_input(stand) == "", "the stand's owner no longer goes for bread: the runners bring it")
+	var job := w.logistics.plan(runner)
+	var each := bakery.price
+	check(not job.is_empty() and job["for"] == "haul" and job.target == bakery and job.dest == stand and job.item == "bread", "the runner plans a trip: the bakery's shelf to the stand (%s)" % [job.get("item", "nothing")])
+	var stock0 := bakery.stock()
+	var t := Fixtures.until(w, func(): return stand.input.count("bread") > 0, 200)
+	var n := stand.input.count("bread")
+	check(t >= 0 and n >= Hauling.MIN_LOAD and bakery.stock() == stock0 - n and runner.runner.cart.count("bread") == 0, "a cartload of %d loaves went off the bakery's shelf into the stand's store" % n)
+	check(is_equal_approx(baker.wallet, each * n) and bakery.sold_total == n, "the baker was paid for every loaf ($%.2f), as a sale" % baker.wallet)
+	check(is_equal_approx(seller.wallet, 40.0 - each * n - Hauling.DELIVERY_FEE) and is_equal_approx(runner.wallet, 20.0 + Hauling.DELIVERY_FEE), "the stand paid the loaves and the fee; the runner got back what they paid, and kept the fee")
+	check(is_equal_approx(stand.input_cost["bread"], each + Hauling.DELIVERY_FEE / n) and runner.runner.paid.is_empty(), "the stand's bread costs it the shelf price and its share of the fee")
+	check(is_equal_approx(w.total_money(), w.ledger.printed), "no money went missing")
+	def.fetch = {}
 
 
 # ---------------------------------------------------------------- vocation

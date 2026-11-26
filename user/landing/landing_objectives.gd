@@ -34,7 +34,7 @@ func text() -> String:
 	if not _arrived:
 		var where := " on %s" % _street if _street != "" else ""
 		return "Find this tile's market%s: about %d m that way. If the cold gets to you on the way, put down the barrel fire in your bag (Tab, right-click it)." % [where, roundi(_player.distance_to(_market))]
-	return "Its stands are wrecked and their owners broke. Spray them with money to get them going, and buy into the ones you like."
+	return "The town is a tent city and its keeper. Put up tents (E at the tent city) and its people come, one for each, with their stands: wrecked, their owners broke. Spray them with money to get them going, and buy into the ones you like."
 
 
 func marker() -> Variant:

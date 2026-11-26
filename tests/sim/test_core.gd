@@ -38,7 +38,6 @@ func test_components() -> void:
 	var part := Equity.new()
 	part.buy(20.0, 40.0, 0.0)
 	check(part.room(40.0, 160.0) > part.room(40.0, 0.0) * 2.0, "equity: under the cap, a business that has had more experience takes more dollars to reach it (more room)")
-	check(is_equal_approx(Equity.new().cost_to_reach(0.5, 40.0, 0.0), 40.0), "equity: half of a fresh $40 business would cost $40")
 	var sh := Shelter.new(1, 0.002)
 	var d := Drone.new(Vector2.ZERO)
 	check(sh.has_room(), "shelter: has a spot")

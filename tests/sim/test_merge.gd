@@ -45,7 +45,7 @@ func _saves() -> Array:
 	return [a, b, Snapshot.new(a).capture(), Snapshot.new(b).capture()]
 
 
-func test_two_saves_that_share_a_tile_become_one_world_and_no_money_is_made_or_lost() -> void:
+func test_slow_two_saves_that_share_a_tile_become_one_world_and_no_money_is_made_or_lost() -> void:
 	var s := _saves()
 	var a: World = s[0]
 	var b: World = s[1]
@@ -74,7 +74,7 @@ func test_two_saves_that_share_a_tile_become_one_world_and_no_money_is_made_or_l
 	check(leaks == 0, "and the merged world runs on without a leak (%d ticks off)" % leaks)
 
 
-func test_which_save_hosts_does_not_change_the_books() -> void:
+func test_slow_which_save_hosts_does_not_change_the_books() -> void:
 	var s := _saves()
 	var ab := Merge.combine(s[2], s[3], build)
 	var ba := Merge.combine(s[3], s[2], build)
@@ -84,7 +84,7 @@ func test_which_save_hosts_does_not_change_the_books() -> void:
 	check(cut.call(ab).keys().size() == 2 and is_equal_approx(cut.call(ab).values().reduce(func(x, y): return x + y), cut.call(ba).values().reduce(func(x, y): return x + y)), "and the same stakes")
 
 
-func test_the_merged_world_saves_and_loads_like_any_other() -> void:
+func test_slow_the_merged_world_saves_and_loads_like_any_other() -> void:
 	var s := _saves()
 	var w := Merge.combine(s[2], s[3], build)
 	var data: Dictionary = JSON.parse_string(JSON.stringify(Snapshot.new(w).capture()))

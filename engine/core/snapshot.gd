@@ -17,20 +17,24 @@
 class_name Snapshot
 extends RefCounted
 
-const VERSION := 6  # (3: the hero's bike is in their loadout, Drone.gear; 4: bins (WasteBin) for scrap piles, no food bank;
+const VERSION := 10  # (10: the letter quest rides tram 11, no bus: its flags, and the bank's gate and market moved to its stop;
+                    # 9: tram 11's cars; vehicles that go round their lines; money knows which vehicle it lies in)
+                    #(3: the hero's bike is in their loadout, Drone.gear; 4: bins (WasteBin) for scrap piles, no food bank;
                     # 5: the bottle depot (Deposit) for the welfare office; 6: a runner's cart business is a component,
-                    # Drone.runner, and a tent city's homes, Machine.residence)
+                    # Drone.runner, and a tent city's homes, Machine.residence; 7: the vehicles are a list, World.vehicles, and
+                    # a tent city keeps its founders' places, Residence.slots; 8: the story's town is an atom (Scenario), its
+                    # bus and golf cart on lines)
 ## The systems whose state is saved: World.SAVED, the one list.
 const SYSTEMS := World.SAVED
 ## Variables that are derived, or computed, and so are never written or read.
-const DERIVED := {"Zones": ["_index", "_dirty", "version", "regions"], "Rescue": ["on_admitted"], "Chatter": ["_said"], "Machine": ["shelter"], "Skating": ["mounted"], "Portals": ["all"],
+const DERIVED := {"Vehicle": ["line"], "Zones": ["_index", "_dirty", "version", "regions"], "Rescue": ["on_admitted"], "Chatter": ["_said"], "Machine": ["shelter"], "Skating": ["mounted"], "Portals": ["all"],
 	"Ledger": ["player_cash", "stake_income"], "Equity": ["stake"]}
 ## The world's lists of things, and the class each holds (a thing the save has and the fresh world lacks is made from it).
 const LISTS := {"drones": "Drone", "machines": "Machine", "bins": "WasteBin", "fires": "BarrelFire",
 	"relief_trucks": "ReliefTruck", "hospitals": "Hospital", "ambulances": "Ambulance", "bills": "Bill", "heroes": "Drone",
-	"bottle_depots": "BottleDepot"}
+	"bottle_depots": "BottleDepot", "vehicles": "Vehicle"}
 ## The things the world holds one of, by its field, and their class.
-const SINGLES := {"player": "Drone", "bus": "Bus", "shuttle": "Bus"}
+const SINGLES := {"player": "Drone"}
 ## The world's own fields that are saved.
 const WORLD_FIELDS := ["build_zone", "gun_owned", "author", "seeding", "_seeded", "_made", "rng_state"]
 const _OMIT := "<omit>"
